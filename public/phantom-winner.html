@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhantomIDE — Intelligence Core</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@600;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080d;--s1:#0b0d15;--s2:#0e1019;--s3:#12141f;
+  --b1:rgba(0,255,140,0.1);--b2:rgba(0,255,140,0.22);--b3:rgba(0,255,140,0.45);
+  --g:#00ff8c;--gd:rgba(0,255,140,0.55);--gf:rgba(0,255,140,0.07);
+  --c:#00d4ff;--cd:rgba(0,212,255,0.5);--cf:rgba(0,212,255,0.07);
+  --y:#f5c518;--r:#ff4545;--p:#b06aff;--o:#ff7b2e;
+  --t:#d4e8d4;--t2:rgba(212,232,212,0.5);--t3:rgba(212,232,212,0.2);--t4:rgba(212,232,212,0.08);
+  --mono:'JetBrains Mono',monospace;--ui:'Syne',sans-serif;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--t);font-family:var(--mono);overflow:hidden}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);pointer-events:none;z-index:9999}
+
+.panel{width:100%;height:100vh;display:flex;flex-direction:column;background:var(--s1);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--g),var(--c),var(--g),transparent);animation:tg 5s ease-in-out infinite;z-index:30}
+@keyframes tg{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* HEADER */
+.hdr{padding:8px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,var(--s3),var(--s1));flex-shrink:0}
+.hdr-title{font-family:var(--ui);font-size:11px;font-weight:800;color:var(--g);letter-spacing:.2em;flex:1}
+.hpill{font-size:7px;padding:2px 7px;border-radius:20px;border:1px solid;letter-spacing:.06em;cursor:pointer;transition:all .2s;white-space:nowrap}
+.hpill.live{background:rgba(0,255,140,.1);border-color:rgba(0,255,140,.3);color:var(--g);animation:lp 2s ease-in-out infinite}
+.hpill.prov{background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.2);color:var(--c);max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.hpill.prov.active{border-color:var(--c);box-shadow:0 0 8px rgba(0,212,255,.2)}
+@keyframes lp{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* GHOST */
+.ghost-zone{flex-shrink:0;padding:12px 0 8px;border-bottom:1px solid var(--b1);display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;overflow:hidden}
+.ghost-aura{position:absolute;width:100px;height:70px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,255,140,.08),transparent 70%);animation:aura 2.5s ease-in-out infinite;pointer-events:none}
+@keyframes aura{0%,100%{transform:scale(.8);opacity:.4}50%{transform:scale(1.3);opacity:1}}
+.ghost-wrap{position:relative;width:56px;height:56px;cursor:pointer}
+.orbit{position:absolute;inset:0;border-radius:50%;border:1px solid transparent}
+.ob1{border-top-color:rgba(0,255,140,.5);border-right-color:rgba(0,255,140,.1);animation:spin 1.8s linear infinite}
+.ob2{inset:6px;border-bottom-color:rgba(0,212,255,.5);border-left-color:rgba(0,212,255,.1);animation:spin 1.1s linear infinite reverse}
+.ob3{inset:12px;border-top-color:rgba(245,197,24,.4);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ghost-svg{position:absolute;inset:0;width:56px;height:56px;z-index:2;transition:filter .3s}
+.gbody{transform-origin:28px 26px}
+.gbody.idle{animation:gf 2.8s ease-in-out infinite}
+.gbody.thinking{animation:gs .15s ease-in-out infinite}
+.gbody.running{animation:gb .45s ease-in-out infinite}
+.gbody.error{animation:gt .09s linear infinite}
+.gbody.done{animation:gd .7s ease-out 1}
+@keyframes gf{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes gs{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes gb{0%,100%{transform:translateY(0) scaleY(1)}40%{transform:translateY(-6px) scaleY(1.04)}70%{transform:translateY(0) scaleY(.95)}}
+@keyframes gt{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+@keyframes gd{0%{transform:scale(1)}50%{transform:scale(1.2) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+.gbody.thinking .geye{animation:ep .5s ease-in-out infinite}
+@keyframes ep{0%,100%{r:3.5}50%{r:5}}
+.ghost-state{font-size:9px;color:var(--gd);letter-spacing:.1em;font-weight:500;animation:fs 2s ease-in-out infinite}
+.ghost-sub{font-size:8px;color:var(--t3);letter-spacing:.05em}
+@keyframes fs{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--b1);flex-shrink:0;background:var(--s2)}
+.tab{flex:1;padding:7px 4px;font-size:9px;letter-spacing:.06em;color:var(--t3);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;text-align:center;text-transform:uppercase}
+.tab:hover{color:var(--t2);background:rgba(0,255,140,.03)}
+.tab.active{color:var(--g);border-bottom-color:var(--g);background:rgba(0,255,140,.05)}
+
+/* CTX CHIPS */
+.ctx{display:flex;gap:4px;padding:5px 10px;border-bottom:1px solid var(--b1);overflow-x:auto;flex-shrink:0;background:var(--s2)}
+.ctx::-webkit-scrollbar{display:none}
+.chip{font-size:8px;padding:2px 8px;border-radius:20px;border:1px solid;cursor:pointer;transition:all .15s;flex-shrink:0;letter-spacing:.04em}
+.chip.on{background:var(--gf);border-color:var(--b2);color:var(--g)}
+.chip.off{background:transparent;border-color:var(--b1);color:var(--t3)}
+
+/* AGENTS */
+.sec{display:flex;align-items:center;gap:6px;padding:3px 10px;flex-shrink:0}
+.sec-lbl{font-size:7px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--b2),transparent)}
+
+.agents{flex-shrink:0;max-height:130px;overflow-y:auto}
+.agents::-webkit-scrollbar{width:2px}
+.agents::-webkit-scrollbar-thumb{background:var(--b2)}
+.ag{display:flex;align-items:center;gap:8px;padding:4px 12px;transition:background .15s;position:relative;cursor:default}
+.ag:hover{background:rgba(0,255,140,.03)}
+.ag.on{background:rgba(0,255,140,.04)}
+.ag.on::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;background:var(--g);border-radius:0 2px 2px 0;box-shadow:0 0 6px var(--g)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:all .3s}
+.dot.idle{background:rgba(212,232,212,.12);border:1px solid rgba(212,232,212,.2)}
+.dot.run{background:var(--g);box-shadow:0 0 6px var(--g);animation:dp 1s ease-in-out infinite}
+.dot.think{background:var(--c);box-shadow:0 0 6px var(--c);animation:dp .55s ease-in-out infinite}
+.dot.tool{background:var(--y);box-shadow:0 0 6px var(--y);animation:dp .35s ease-in-out infinite}
+.dot.err{background:var(--r);box-shadow:0 0 4px var(--r)}
+@keyframes dp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.55)}}
+.ag-name{font-size:10px;color:var(--t);flex:1;font-weight:400}
+.ag-st{font-size:8px;transition:color .3s}
+.ag-st.idle{color:var(--t3)}
+.ag-st.run{color:var(--g)}
+.ag-st.think{color:var(--c)}
+.ag-st.tool{color:var(--y)}
+.ag-st.err{color:var(--r)}
+
+/* REASONING */
+.reason{overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s;flex-shrink:0;max-height:0;opacity:0;border-bottom:1px solid transparent}
+.reason.open{max-height:110px;opacity:1;border-bottom-color:var(--b1)}
+.reason-inner{padding:8px 12px;background:linear-gradient(180deg,rgba(0,212,255,.04),transparent)}
+.reason-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.reason-ring{width:10px;height:10px;flex-shrink:0;position:relative}
+.reason-ring::after{content:'';position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--c);animation:spin .65s linear infinite}
+.reason-lbl{font-size:8px;color:var(--cd);letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+.reason-badge{font-size:7px;padding:1px 6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--c);border-radius:20px;animation:lp 1.5s ease-in-out infinite}
+.reason-scroll{max-height:65px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.reason-scroll::-webkit-scrollbar{width:2px}
+.reason-scroll::-webkit-scrollbar-thumb{background:rgba(0,212,255,.3)}
+.rstep{font-size:9px;color:rgba(0,212,255,.6);line-height:1.5;display:flex;gap:5px;align-items:flex-start;font-style:italic}
+.rstep::before{content:'›';color:var(--c);flex-shrink:0;font-style:normal}
+.rtool{font-size:8px;padding:1px 7px;background:rgba(245,197,24,.07);border:1px solid rgba(245,197,24,.2);color:var(--y);border-radius:3px;display:inline-flex;align-items:center;gap:3px;margin-top:1px}
+.rtool::before{content:'⚙'}
+
+/* CHAT AREA */
+.chat{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:7px;min-height:0}
+.chat::-webkit-scrollbar{width:3px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.chat::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+.msg{display:flex;flex-direction:column;gap:3px;animation:mi .25s cubic-bezier(.4,0,.2,1) forwards;opacity:0;transform:translateY(5px)}
+@keyframes mi{to{opacity:1;transform:translateY(0)}}
+.msg.user{align-items:flex-end}
+.msg.ai{align-items:flex-start}
+.msg.sys{align-items:center}
+.msg-who{font-size:7px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:0 4px;font-weight:500}
+.bubble{max-width:92%;padding:8px 11px;font-size:10px;line-height:1.6;word-break:break-word;position:relative}
+.msg.user .bubble{background:linear-gradient(135deg,rgba(0,255,140,.12),rgba(0,255,140,.07));border:1px solid rgba(0,255,140,.22);border-radius:8px 8px 2px 8px;color:var(--t)}
+.msg.ai .bubble{background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(0,0,0,.25));border:1px solid var(--b1);border-radius:8px 8px 8px 2px;color:var(--t);white-space:pre-wrap}
+.msg.sys .bubble{background:rgba(176,106,255,.06);border:1px solid rgba(176,106,255,.18);color:rgba(176,106,255,.75);font-size:8px;text-align:center;border-radius:20px;padding:3px 10px}
+.codeblock{margin-top:6px;background:rgba(0,0,0,.5);border:1px solid var(--b1);border-radius:6px;overflow:hidden}
+.code-lang-bar{padding:3px 10px;background:rgba(0,255,140,.06);border-bottom:1px solid var(--b1);font-size:8px;color:var(--gd);display:flex;justify-content:space-between;align-items:center}
+.code-copy{cursor:pointer;opacity:.6;transition:opacity .2s}
+.code-copy:hover{opacity:1}
+.code-pre{padding:8px 10px;font-size:9px;color:rgba(0,255,140,.85);white-space:pre;overflow-x:auto;line-height:1.55}
+.code-pre::-webkit-scrollbar{height:2px}
+.code-pre::-webkit-scrollbar-thumb{background:var(--b2)}
+
+/* TYPING */
+.typing-row{display:flex;align-items:center;gap:8px;padding:3px 2px}
+.tsp{width:16px;height:16px;position:relative;flex-shrink:0}
+.tsp::before{content:'';position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--g);animation:spin 1s linear infinite}
+.tsp::after{content:'';position:absolute;inset:4px;border-radius:50%;border:1px solid transparent;border-bottom-color:var(--c);animation:spin .65s linear infinite reverse}
+.tsp-core{position:absolute;inset:7px;border-radius:50%;background:var(--g);opacity:.6;animation:cp 1s ease-in-out infinite}
+@keyframes cp{0%,100%{transform:scale(.7);opacity:.5}50%{transform:scale(1.1);opacity:.9}}
+.typing-txt{font-size:9px;color:var(--t3);animation:fs 1.5s ease-in-out infinite}
+
+/* AUTO PROMPTS */
+.auto{padding:6px 10px;border-top:1px solid var(--b1);background:var(--s2);flex-shrink:0}
+.auto-lbl{font-size:7px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.auto-row{display:flex;gap:4px;flex-wrap:wrap}
+.ap{font-size:9px;padding:3px 9px;border:1px solid var(--b1);border-radius:20px;color:var(--t2);background:transparent;cursor:pointer;transition:all .18s;white-space:nowrap}
+.ap:hover{background:var(--gf);border-color:var(--b2);color:var(--g);transform:translateY(-1px)}
+.ap.sel{background:rgba(0,255,140,.12);border-color:var(--b3);color:var(--g)}
+
+/* INPUT */
+.inputarea{padding:8px 10px;border-top:1px solid var(--b1);background:linear-gradient(180deg,var(--s2),var(--bg));flex-shrink:0}
+.input-row{display:flex;gap:6px;align-items:flex-end}
+.iwrap{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--b1);border-radius:8px;padding:7px 10px;display:flex;gap:6px;align-items:flex-end;transition:all .2s}
+.iwrap:focus-within{border-color:var(--b2);box-shadow:0 0 0 2px rgba(0,255,140,.05),0 0 15px rgba(0,255,140,.04)}
+.cinput{flex:1;background:transparent;border:none;outline:none;color:var(--t);font-size:10px;font-family:var(--mono);resize:none;line-height:1.5;max-height:60px;min-height:16px}
+.cinput::placeholder{color:var(--t3)}
+.ibtn{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--g),var(--g2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.ibtn:hover{transform:scale(1.06);box-shadow:0 0 14px rgba(0,255,140,.35)}
+.ibtn:active{transform:scale(.96)}
+.ibtn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.ibtn svg{width:14px;height:14px}
+.itools{display:flex;gap:4px;margin-top:5px}
+.itool{font-size:8px;padding:2px 7px;border:1px solid var(--b1);border-radius:3px;color:var(--t3);cursor:pointer;transition:all .15s;background:transparent}
+.itool:hover{border-color:var(--b2);color:var(--t2);background:var(--t4)}
+.itool.active{border-color:var(--b2);color:var(--g);background:var(--gf)}
+
+/* ── LIVE RUN CARD (inline in chat) ── */
+.run-card{border:1px solid rgba(0,212,255,.1);border-radius:6px;overflow:hidden;font-size:9px;margin-bottom:5px;background:rgba(0,0,0,.18)}
+.rc-head{display:flex;align-items:center;gap:6px;padding:4px 9px;cursor:pointer;user-select:none}
+.rc-head:hover{background:rgba(255,255,255,.02)}
+.rc-badge{font-size:7px;padding:1px 6px;border-radius:8px;border:1px solid;font-weight:700;letter-spacing:.04em;transition:all .25s}
+.rc-badge.trying{background:rgba(245,197,24,.1);border-color:rgba(245,197,24,.3);color:var(--y);animation:lp .9s infinite}
+.rc-badge.active{background:rgba(0,255,140,.1);border-color:rgba(0,255,140,.35);color:var(--g)}
+.rc-badge.failed{background:rgba(255,69,69,.08);border-color:rgba(255,69,69,.25);color:var(--r)}
+.rc-badge.done{background:rgba(0,255,140,.06);border-color:rgba(0,255,140,.18);color:var(--gd)}
+.rc-timer{margin-left:auto;color:var(--t3);font-family:var(--mono);font-size:8px;min-width:28px;text-align:right}
+.rc-tog{color:var(--t3);font-size:8px;margin-left:2px;display:inline-block;transition:transform .2s}
+.rc-tog.open{transform:rotate(180deg)}
+.rc-steps{display:none;flex-direction:column;gap:2px;padding:4px 10px 6px;border-top:1px solid rgba(0,212,255,.07)}
+.rc-steps.open{display:flex}
+.rc-step{font-size:8px;color:rgba(0,212,255,.5);display:flex;gap:4px;align-items:flex-start;line-height:1.4;font-style:italic}
+.rc-step::before{content:'›';color:var(--cd);flex-shrink:0;font-style:normal}
+.rc-step.ok{color:rgba(0,255,140,.55);font-style:normal}
+.rc-step.fail{color:rgba(255,69,69,.5);font-style:normal}
+.rc-step.tool{color:rgba(245,197,24,.65);font-style:normal;font-weight:600}
+
+/* ── CHAIN GRID (Chain tab) ── */
+.chain-panel{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px}
+.cg-item{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 11px;transition:border-color .25s,background .25s}
+.cg-item.trying{border-color:rgba(245,197,24,.3);background:rgba(245,197,24,.025);animation:none}
+.cg-item.active{border-color:rgba(0,255,140,.32);background:rgba(0,255,140,.03)}
+.cg-item.failed{border-color:rgba(255,69,69,.22)}
+.cg-item.done{border-color:rgba(0,255,140,.18)}
+.cg-top{display:flex;align-items:center;gap:8px}
+.cg-num{font-size:8px;color:var(--t3);width:12px;text-align:center;flex-shrink:0}
+.cg-name{font-size:10px;color:var(--t);font-weight:600;flex:1}
+.cg-badge{font-size:7px;padding:1px 7px;border-radius:10px;border:1px solid;font-weight:700;letter-spacing:.04em}
+.cg-badge.idle{background:var(--t4);border-color:rgba(212,232,212,.14);color:var(--t3)}
+.cg-badge.trying{background:rgba(245,197,24,.1);border-color:rgba(245,197,24,.3);color:var(--y);animation:lp .9s infinite}
+.cg-badge.active{background:rgba(0,255,140,.1);border-color:rgba(0,255,140,.3);color:var(--g)}
+.cg-badge.failed{background:rgba(255,69,69,.08);border-color:rgba(255,69,69,.25);color:var(--r)}
+.cg-badge.done{background:rgba(0,255,140,.07);border-color:rgba(0,255,140,.2);color:var(--gd)}
+.cg-lat{font-size:8px;color:var(--t3);font-family:var(--mono)}
+.cg-model{font-size:8px;color:var(--t3);margin-top:3px;padding-left:20px}
+.cg-stats{font-size:8px;color:rgba(0,255,140,.38);margin-top:2px;padding-left:20px}
+.cg-hist{margin-top:4px;display:flex;flex-direction:column;gap:2px;padding-left:20px;max-height:54px;overflow-y:auto}
+.cg-hist-row{font-size:8px;color:var(--t2);display:flex;gap:5px;align-items:center}
+
+/* ── RUNS LIST (Agents tab) ── */
+.rl-item{background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:6px 10px;transition:.15s;cursor:default}
+.rl-item:hover{border-color:var(--b2)}
+.rl-row{display:flex;align-items:center;gap:6px;font-size:9px}
+.rl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rl-dot.ok{background:var(--g)}
+.rl-dot.fail{background:var(--r)}
+.rl-msg{font-size:8px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── TAB VIEWS ── */
+.tab-views{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.tab-view{display:none;flex:1;flex-direction:column;overflow:hidden}
+.tab-view.active{display:flex}
+</style>
+</head>
+<body>
+<div class="panel">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-title">PHANTOM AI</div>
+    <span class="hpill dim" id="modelPill" onclick="cycleModel()">qwen2.5</span>
+    <span class="hpill prov" id="provPill">OFFLINE</span>
+    <span class="hpill live">● LIVE</span>
+  </div>
+
+  <!-- GHOST -->
+  <div class="ghost-zone">
+    <div class="ghost-aura"></div>
+    <div class="ghost-wrap" onclick="ghostClick()" title="click me">
+      <div class="orbit ob1"></div>
+      <div class="orbit ob2"></div>
+      <div class="orbit ob3"></div>
+      <svg class="ghost-svg" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="gb" cx="38%" cy="28%" r="65%">
+            <stop offset="0%" stop-color="rgba(0,255,140,0.4)"/>
+            <stop offset="100%" stop-color="rgba(0,255,140,0.06)"/>
+          </radialGradient>
+          <radialGradient id="ge" cx="32%" cy="28%" r="65%">
+            <stop offset="0%" stop-color="#fff"/>
+            <stop offset="100%" stop-color="#aaffdd"/>
+          </radialGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g class="gbody idle" id="gbody" filter="url(#glow)">
+          <path d="M8 30C8 18.402 17.178 9 28 9C38.822 9 48 18.402 48 30V50L43.5 46.5L39 50L34.5 46.5L30 50L25.5 46.5L21 50L16.5 46.5L12 50L8 46.5Z" fill="url(#gb)" stroke="#00ff8c" stroke-width="1.1"/>
+          <circle class="geye" cx="21" cy="29" r="4" fill="url(#ge)"/>
+          <circle class="geye" cx="35" cy="29" r="4" fill="url(#ge)"/>
+          <circle id="lpu" cx="22" cy="30" r="1.8" fill="#001a0d"/>
+          <circle id="rpu" cx="36" cy="30" r="1.8" fill="#001a0d"/>
+          <circle cx="22.5" cy="28.2" r=".7" fill="rgba(255,255,255,.85)"/>
+          <circle cx="36.5" cy="28.2" r=".7" fill="rgba(255,255,255,.85)"/>
+          <path id="gmouth" d="M23 36 Q28 40.5 33 36" stroke="#00ff8c" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          <circle cx="16" cy="33" r="2.5" fill="rgba(0,255,140,.1)"/>
+          <circle cx="40" cy="33" r="2.5" fill="rgba(0,255,140,.1)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="ghost-state" id="gstate">IDLE · WATCHING</div>
+    <div class="ghost-sub" id="gsub">ready · 3 providers</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-chat" onclick="switchTab('chat')">Chat</div>
+    <div class="tab" id="tab-think" onclick="switchTab('think')">Reasoning</div>
+    <div class="tab" id="tab-agents" onclick="switchTab('agents')">Agents</div>
+    <div class="tab" id="tab-chain" onclick="switchTab('chain')">Chain</div>
+  </div>
+
+  <!-- CTX -->
+  <div class="ctx">
+    <div class="chip on" onclick="toggleChip(this)">file</div>
+    <div class="chip on" onclick="toggleChip(this)">diff</div>
+    <div class="chip off" onclick="toggleChip(this)">errors</div>
+    <div class="chip off" onclick="toggleChip(this)">terminal</div>
+    <div class="chip off" onclick="toggleChip(this)">repo</div>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="sec"><span class="sec-lbl">agents</span><div class="sec-line"></div></div>
+  <div class="agents" id="agentsList"></div>
+
+  <!-- REASONING -->
+  <div class="reason" id="reasonPanel">
+    <div class="reason-inner">
+      <div class="reason-hdr">
+        <div class="reason-ring"></div>
+        <span class="reason-lbl">live reasoning</span>
+        <span class="reason-badge">THINKING</span>
+      </div>
+      <div class="reason-scroll" id="reasonScroll"></div>
+    </div>
+  </div>
+
+  <!-- TAB VIEWS -->
+  <div class="tab-views">
+    <div class="tab-view active" id="tv-chat">
+      <div class="chat" id="chatArea"></div>
+    </div>
+    <div class="tab-view" id="tv-chain">
+      <div class="chain-panel" id="chainPanel"></div>
+    </div>
+    <div class="tab-view" id="tv-agents">
+      <div class="chain-panel" id="runsPanel">
+        <div style="text-align:center;padding:20px;font-size:8px;color:var(--t3)">No runs yet</div>
+      </div>
+    </div>
+    <div class="tab-view" id="tv-think">
+      <div class="chain-panel" id="thinkFull"></div>
+    </div>
+  </div>
+
+  <!-- AUTO PROMPTS -->
+  <div class="auto">
+    <div class="auto-lbl">quick actions</div>
+    <div class="auto-row" id="autoPills"></div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="inputarea">
+    <div class="input-row">
+      <div class="iwrap">
+        <textarea class="cinput" id="cinput" rows="1"
+          placeholder="ask phantom anything..."
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="ibtn" id="runBtn" onclick="runMsg()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="black" stroke-width="2" stroke-linecap="round">
+          <path d="M13 2L3 8l4 2 1 4 5-12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="itools">
+      <div class="itool active" id="tool-ollama" onclick="selectProvider('ollama')">Ollama</div>
+      <div class="itool" id="tool-groq" onclick="selectProvider('groq')">Groq</div>
+      <div class="itool" id="tool-sambanova" onclick="selectProvider('sambanova')">SambaNova</div>
+      <div class="itool" id="tool-auto" onclick="selectProvider('auto')">Auto</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PROVIDER CONFIG
+// Set keys:
+//   window.PHANTOM_KEYS = { sambanova: 'sn-...', groq: 'gsk_...' }
+//   window.setPhantomKey('groq', 'gsk_...')
+//   localStorage.setItem('phantom_key_groq', 'gsk_...')
+// ═══════════════════════════════════════════════════════
+window.PHANTOM_KEYS = window.PHANTOM_KEYS || {};
+
+function getKey(id) {
+  return (window.PHANTOM_KEYS[id]) || localStorage.getItem('phantom_key_' + id) || '';
+}
+
+window.setPhantomKey = (id, key) => {
+  localStorage.setItem('phantom_key_' + id, key);
+  window.PHANTOM_KEYS[id] = key;
+  addSys(`✓ key saved: ${id}`);
+};
+
+// Provider definitions
+const PROVIDERS = {
+  sambanova: {
+    name: 'SambaNova',
+    url: 'https://api.sambanova.ai/v1/chat/completions',
+    model: 'Meta-Llama-3.3-70B-Instruct',
+    stream: true,
+    call: async function*(msgs) { yield* oaiStream(this, msgs); }
+  },
+  groq: {
+    name: 'Groq',
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama-3.3-70b-versatile',
+    stream: true,
+    call: async function*(msgs) { yield* oaiStream(this, msgs); }
+  },
+  ollama: {
+    name: 'Ollama',
+    url: 'http://localhost:11434/api/chat',
+    model: currentOllamaModel,
+    stream: true,
+    call: async function*(msgs) { yield* ollamaStream(msgs, this.model); }
+  },
+};
+
+let currentOllamaModel = 'qwen2.5-coder:7b-instruct';
+let preferredProvider = 'auto'; // auto | ollama | groq | sambanova
+
+const OLLAMA_MODELS = ['qwen2.5-coder:7b-instruct','tinyllama','mistral','phi3','gemma:2b','codellama'];
+let omIdx = 0;
+
+function cycleModel() {
+  omIdx = (omIdx + 1) % OLLAMA_MODELS.length;
+  currentOllamaModel = OLLAMA_MODELS[omIdx];
+  PROVIDERS.ollama.model = currentOllamaModel;
+  document.getElementById('modelPill').textContent = currentOllamaModel.split(':')[0];
+  addSys(`model: ${currentOllamaModel}`);
+}
+
+function selectProvider(id) {
+  preferredProvider = id;
+  document.querySelectorAll('.itool').forEach(t => t.classList.remove('active'));
+  document.getElementById('tool-' + id)?.classList.add('active');
+  addSys(`provider: ${id}`);
+}
+
+// ── OpenAI-compatible streaming ──
+async function* oaiStream(p, messages) {
+  const key = getKey(p.name.toLowerCase().replace(/\s/g,''));
+  if (!key) throw new Error(`no key for ${p.name}`);
+  const res = await fetch(p.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model: p.model, messages, stream: true, max_tokens: 2048 })
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`${p.name} HTTP ${res.status}: ${err.slice(0,120)}`);
+  }
+  yield* sseReader(res, c => c.choices?.[0]?.delta?.content || null);
+}
+
+// ── Ollama streaming ──
+async function* ollamaStream(messages, model) {
+  const res = await fetch('http://localhost:11434/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages, stream: true })
+  });
+  if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const j = JSON.parse(line);
+        if (j.message?.content) yield j.message.content;
+        if (j.done) return;
+      } catch {}
+    }
+  }
+}
+
+// ── SSE reader ──
+async function* sseReader(response, extract) {
+  const reader = response.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') return;
+      try { const t = extract(JSON.parse(data)); if (t) yield t; } catch {}
+    }
+  }
+}
+
+// ── Chain state (drives Chain tab grid + run cards) ──
+const CHAIN_ORDER = ['sambanova', 'groq', 'ollama'];
+const chainState = {
+  sambanova: { status: 'idle', lat: null, runs: 0, fails: 0, lastLat: null },
+  groq:      { status: 'idle', lat: null, runs: 0, fails: 0, lastLat: null },
+  ollama:    { status: 'idle', lat: null, runs: 0, fails: 0, lastLat: null },
+};
+const phantomRuns = [];
+
+function resetChainState() {
+  CHAIN_ORDER.forEach(id => { chainState[id].status = 'idle'; chainState[id].lat = null; });
+  refreshChainGrid();
+}
+
+function setChainStatus(id, status, lat) {
+  chainState[id].status = status;
+  if (lat != null) chainState[id].lat = lat;
+  if (status === 'done') chainState[id].runs++;
+  if (status === 'failed') chainState[id].fails++;
+  refreshChainGrid();
+}
+
+// ── Fallback chain ──
+async function* callFallback(messages) {
+  const order = preferredProvider === 'auto'
+    ? ['sambanova', 'groq', 'ollama']
+    : [preferredProvider, ...CHAIN_ORDER.filter(p => p !== preferredProvider)];
+
+  for (const id of order) {
+    const p = PROVIDERS[id];
+    const model = p.model || currentOllamaModel;
+    if (id !== 'ollama' && !getKey(id)) {
+      addRStep(`skip ${p.name} — no key`);
+      window._rcCb?.step(`skip ${p.name} — no key`, 'fail');
+      setChainStatus(id, 'failed');
+      continue;
+    }
+    setProv(p.name);
+    setChainStatus(id, 'trying');
+    addRStep(`trying ${p.name} · ${model}`);
+    window._rcCb?.badge(p.name.toUpperCase(), 'trying');
+    window._rcCb?.step(`trying ${p.name} · ${model}`);
+    const t0 = Date.now();
+    try {
+      let got = false;
+      for await (const chunk of p.call(messages)) {
+        got = true;
+        yield chunk;
+      }
+      if (got) {
+        const lat = ((Date.now() - t0) / 1000).toFixed(2) + 's';
+        chainState[id].lastLat = lat;
+        setChainStatus(id, 'done', lat);
+        addRStep(`✓ ${p.name} succeeded`);
+        window._rcCb?.badge(p.name.toUpperCase() + ' ✓', 'done');
+        window._rcCb?.step(`✓ ${p.name} · ${lat}`, 'ok');
+        return;
+      }
+    } catch (err) {
+      setChainStatus(id, 'failed');
+      addRStep(`✗ ${p.name}: ${err.message.slice(0,80)}`);
+      window._rcCb?.step(`✗ ${p.name}: ${err.message.slice(0,60)}`, 'fail');
+    }
+  }
+  throw new Error('all providers failed — check keys or Ollama');
+}
+
+// ═══════════════════════════════════════════════════════
+// AGENTS
+// ═══════════════════════════════════════════════════════
+const AGENTS = [
+  { name: 'Ghost',     state: 'idle' },
+  { name: 'Console',   state: 'idle' },
+  { name: 'Reasoning', state: 'idle' },
+  { name: 'Tools',     state: 'idle' },
+  { name: 'Agent',     state: 'idle' },
+  { name: 'History',   state: 'idle' },
+  { name: 'Files',     state: 'idle' },
+  { name: 'Logs',      state: 'idle' },
+];
+
+function sl(s) { return { idle:'Idle', run:'Active', think:'Think...', tool:'Tool...', err:'Error' }[s] || s; }
+
+function renderAgents() {
+  const el = document.getElementById('agentsList');
+  el.innerHTML = AGENTS.map((a, i) => `
+    <div class="ag" id="ag${i}">
+      <div class="dot idle" id="dot${i}"></div>
+      <span class="ag-name">${a.name}</span>
+      <span class="ag-st idle" id="ast${i}">Idle</span>
+    </div>`).join('');
+}
+
+function sa(i, s) {
+  const dot = document.getElementById('dot' + i);
+  const st = document.getElementById('ast' + i);
+  const ag = document.getElementById('ag' + i);
+  if (!dot) return;
+  AGENTS[i].state = s;
+  dot.className = 'dot ' + s;
+  st.className = 'ag-st ' + s;
+  st.textContent = sl(s);
+  ag.className = 'ag' + (s !== 'idle' ? ' on' : '');
+}
+function allIdle() { AGENTS.forEach((_, i) => sa(i, 'idle')); }
+
+// ═══════════════════════════════════════════════════════
+// GHOST
+// ═══════════════════════════════════════════════════════
+const MOUTHS = {
+  idle:    'M23 36 Q28 40.5 33 36',
+  think:   'M23 37 Q28 37 33 37',
+  run:     'M21 35 Q28 42 35 35',
+  error:   'M23 39 Q28 34 33 39',
+  done:    'M20 35 Q28 43 36 35',
+};
+const GCOLS = { idle: '#00ff8c', think: '#00d4ff', run: '#00ff8c', error: '#ff4545', done: '#f5c518' };
+
+function setGhost(mode, st, sub) {
+  document.getElementById('gbody').className = 'gbody ' + mode;
+  document.getElementById('gmouth').setAttribute('d', MOUTHS[mode] || MOUTHS.idle);
+  document.getElementById('gstate').textContent = st || 'IDLE · WATCHING';
+  document.getElementById('gsub').textContent = sub || 'ready · 3 providers';
+  document.querySelector('.ghost-svg').style.filter = `drop-shadow(0 0 6px ${GCOLS[mode] || GCOLS.idle})`;
+}
+
+const SURPRISES = [
+  () => { setGhost('done','BOO!','gotcha 👻'); setTimeout(() => setGhost('idle'), 1200); },
+  () => addSys('phantom says: just ship it'),
+  () => addSys(`providers: SambaNova → Groq → Ollama (${currentOllamaModel})`),
+  () => { setGhost('run','ZOOMING','max power'); setTimeout(() => setGhost('idle'), 1500); },
+  () => addSys(`history: ${history.length} messages in context`),
+];
+let si = 0;
+function ghostClick() { SURPRISES[si++ % SURPRISES.length](); }
+
+// ═══════════════════════════════════════════════════════
+// REASONING PANEL
+// ═══════════════════════════════════════════════════════
+function openReason() { document.getElementById('reasonPanel').classList.add('open'); }
+function closeReason() { document.getElementById('reasonPanel').classList.remove('open'); }
+function addRStep(txt, isTool) {
+  openReason();
+  const sc = document.getElementById('reasonScroll');
+  const el = document.createElement('div');
+  el.className = isTool ? 'rtool' : 'rstep';
+  el.textContent = txt;
+  sc.appendChild(el);
+  sc.scrollTop = sc.scrollHeight;
+}
+function clearReason() { document.getElementById('reasonScroll').innerHTML = ''; closeReason(); }
+
+// ═══════════════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════════════
+const chatArea = document.getElementById('chatArea');
+let busy = false;
+let history = [];
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderContent(text) {
+  // parse code blocks
+  const parts = text.split(/(```[\s\S]*?```)/g);
+  return parts.map(p => {
+    if (p.startsWith('```')) {
+      const lines = p.slice(3).split('\n');
+      lines.pop();
+      const lang = lines.shift() || 'code';
+      const code = esc(lines.join('\n'));
+      return `<div class="codeblock"><div class="code-lang-bar"><span>${esc(lang)}</span><span class="code-copy" onclick="copyCode(this)" title="copy">⎘ copy</span></div><pre class="code-pre">${code}</pre></div>`;
+    }
+    return `<span style="white-space:pre-wrap">${esc(p)}</span>`;
+  }).join('');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.codeblock').querySelector('.code-pre');
+  navigator.clipboard?.writeText(pre.textContent);
+  btn.textContent = '✓ copied';
+  setTimeout(() => btn.textContent = '⎘ copy', 1500);
+}
+
+function addMsg(type, text) {
+  const row = document.createElement('div');
+  row.className = 'msg ' + type;
+  const who = { user:'you', ai:'phantom', sys:'' }[type];
+  row.innerHTML = `${who ? `<div class="msg-who">${who}</div>` : ''}<div class="bubble">${type === 'ai' ? esc(text) : renderContent(text)}</div>`;
+  chatArea.appendChild(row);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return row.querySelector('.bubble');
+}
+function addSys(t) { addMsg('sys', t); }
+
+let typingTimer = null, tpi = 0;
+const TPHRASES = ['scanning context...','reasoning...','streaming...','thinking hard...','calling tools...'];
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg ai'; row.id = 'trow';
+  row.innerHTML = `<div class="typing-row"><div class="tsp"><div class="tsp-core"></div></div><span class="typing-txt" id="ttxt">scanning...</span></div>`;
+  chatArea.appendChild(row);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  typingTimer = setInterval(() => {
+    const e = document.getElementById('ttxt');
+    if (e) e.textContent = TPHRASES[tpi++ % TPHRASES.length];
+  }, 950);
+}
+function removeTyping() { clearInterval(typingTimer); document.getElementById('trow')?.remove(); }
+
+function setProv(name) {
+  const el = document.getElementById('provPill');
+  el.textContent = name.toUpperCase();
+  el.className = 'hpill prov active';
+}
+
+// ═══════════════════════════════════════════════════════
+// AGENTIC LOOP — with tool detection + live streaming
+// ═══════════════════════════════════════════════════════
+const SYSTEM = `You are Phantom, an expert agentic coding AI embedded in PhantomIDE. You are watching the user's code in real-time.
+
+You can call tools by writing them on their own line:
+TOOL: read_file(path)
+TOOL: write_file(path, content)  
+TOOL: run_terminal(command)
+TOOL: search_code(query)
+TOOL: explain_code(snippet)
+TOOL: fix_bug(description)
+TOOL: generate_component(description)
+TOOL: add_tests(description)
+TOOL: refactor(goal)
+
+Think step by step. Use tools when helpful. Be direct, technical, and concise. You're talking to a developer.`;
+
+const TOOL_EXEC = {
+  read_file: a => `// ${a}\n// [file contents would appear here via IDE bridge]`,
+  write_file: a => `✓ wrote ${a.split(',')[0].trim()}`,
+  run_terminal: a => `$ ${a}\n[exit 0] — connect window.phantomBridge.exec() for real execution`,
+  search_code: a => `3 matches for "${a}" in src/`,
+  explain_code: _ => `This is a React component managing async state with cleanup.`,
+  fix_bug: a => `Fix applied: ${a} — null check added before property access`,
+  generate_component: a => `Component "${a}" generated with TypeScript props`,
+  add_tests: _ => `4 test cases generated — happy path, edge cases, async flow`,
+  refactor: a => `Refactored toward: ${a} — extracted to custom hook`,
+};
+
+async function execTool(name, args) {
+  await new Promise(r => setTimeout(r, 350));
+  // 🔌 HOOK: window.phantomBridge?.execTool(name, args) for real IDE integration
+  return (TOOL_EXEC[name] || (() => `${name}(${args}) — executed`))(args);
+}
+
+async function runAgenticLoop(userMsg) {
+  const messages = [
+    { role: 'system', content: SYSTEM },
+    ...history,
+    { role: 'user', content: userMsg }
+  ];
+
+  sa(0, 'run'); sa(2, 'think'); sa(4, 'run');
+  setGhost('think', 'REASONING...', 'agentic loop active');
+  addRStep('starting phantom reasoning loop');
+  resetChainState();
+
+  // ── Live run card ──
+  const rcId = 'rc' + Date.now();
+  const msgRow = document.createElement('div');
+  msgRow.className = 'msg ai';
+  msgRow.innerHTML = `<div class="msg-who">phantom</div>
+    <div class="run-card" id="${rcId}">
+      <div class="rc-head" onclick="toggleRC('${rcId}')">
+        <span class="rc-badge trying" id="rcb-${rcId}">STARTING</span>
+        <span style="font-size:8px;color:var(--t3)" id="rca-${rcId}">Ghost · Agent · Reasoning</span>
+        <span class="rc-timer" id="rct-${rcId}">0.0s</span>
+        <span class="rc-tog" id="rctog-${rcId}">▾</span>
+      </div>
+      <div class="rc-steps" id="rcs-${rcId}"></div>
+    </div>`;
+  chatArea.appendChild(msgRow);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  const runT0 = Date.now();
+  const timerIv = setInterval(() => {
+    const el = document.getElementById('rct-' + rcId);
+    if (el) el.textContent = ((Date.now() - runT0) / 1000).toFixed(1) + 's';
+  }, 100);
+
+  window._rcCb = {
+    badge: (txt, cls) => { const b = document.getElementById('rcb-' + rcId); if (b) { b.textContent = txt; b.className = 'rc-badge ' + cls; } },
+    step:  (txt, cls) => {
+      const steps = document.getElementById('rcs-' + rcId);
+      if (!steps) return;
+      const el = document.createElement('div');
+      el.className = 'rc-step' + (cls ? ' ' + cls : '');
+      el.textContent = txt;
+      steps.appendChild(el);
+      steps.classList.add('open');
+      const tog = document.getElementById('rctog-' + rcId);
+      if (tog) tog.classList.add('open');
+    }
+  };
+
+  let full = '', bubble = null, started = false;
+
+  try {
+    for await (const chunk of callFallback(messages)) {
+      full += chunk;
+
+      const toolMatch = full.match(/TOOL:\s*(\w+)\(([^)]*)\)/);
+      if (toolMatch && !full.includes('[ToolResult:')) {
+        const [, tname, targs] = toolMatch;
+        sa(3, 'tool');
+        setGhost('run', `⚙ ${tname.toUpperCase()}`, 'tool executing...');
+        addRStep(`${tname}(${targs})`, true);
+        window._rcCb?.step(`⚙ ${tname}(${targs})`, 'tool');
+        const result = await execTool(tname, targs);
+        addRStep(`result: ${result.slice(0, 60)}`);
+        full += `\n[ToolResult: ${result}]\n`;
+        sa(3, 'idle');
+      }
+
+      if (!started) {
+        removeTyping();
+        bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.style.whiteSpace = 'pre-wrap';
+        msgRow.appendChild(bubble);
+        started = true;
+        setGhost('run', 'STREAMING...', 'phantom responding');
+        sa(1, 'run');
+      }
+
+      if (bubble) {
+        const clean = full.replace(/TOOL:[^\n]*\n(\[ToolResult:[^\n]*\]\n)?/g, '');
+        bubble.textContent = clean;
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
+
+      const l = full.toLowerCase();
+      if (l.includes('reason') || l.includes('think') || l.includes('analyz')) sa(2, 'think');
+      if (l.includes('file') || l.includes('import') || l.includes('module')) sa(6, 'run');
+      if (l.includes('log') || l.includes('debug') || l.includes('trace')) sa(7, 'run');
+      if (l.includes('history') || l.includes('previous') || l.includes('memory')) sa(5, 'run');
+    }
+
+    if (bubble) {
+      const clean = full.replace(/TOOL:[^\n]*\n(\[ToolResult:[^\n]*\]\n)?/g, '');
+      if (clean.includes('```')) bubble.innerHTML = renderContent(clean);
+      else bubble.textContent = clean;
+    }
+
+    history.push({ role: 'user', content: userMsg });
+    history.push({ role: 'assistant', content: full.replace(/TOOL:[^\n]*\n(\[ToolResult:[^\n]*\]\n)?/g, '') });
+
+    const elapsed = ((Date.now() - runT0) / 1000).toFixed(2) + 's';
+    const usedProv = CHAIN_ORDER.find(id => chainState[id].status === 'done') || '?';
+    phantomRuns.unshift({ msg: userMsg.slice(0, 80), prov: usedProv, elapsed, ok: true, ts: Date.now() });
+    if (phantomRuns.length > 40) phantomRuns.length = 40;
+
+    sa(5, 'run'); setTimeout(() => sa(5, 'idle'), 700);
+    setGhost('done', 'DONE ✓', `${Math.floor(history.length / 2)} exchanges`);
+    setTimeout(() => setGhost('idle', 'IDLE · WATCHING', `${Math.floor(history.length / 2)} exchanges`), 1400);
+
+  } catch (err) {
+    removeTyping();
+    if (!bubble) { bubble = document.createElement('div'); bubble.className = 'bubble'; msgRow.appendChild(bubble); }
+    bubble.textContent = `⚠ ${err.message}\n\nSet keys:\n  window.setPhantomKey('groq','gsk_...')\n  window.setPhantomKey('sambanova','sn-...')\n\nOr make sure Ollama is running:\n  ollama serve`;
+    bubble.style.color = 'var(--r)';
+    window._rcCb?.badge('FAILED', 'failed');
+    setGhost('error', 'FAILED', 'check keys/ollama');
+    sa(0, 'err');
+    const elapsed = ((Date.now() - runT0) / 1000).toFixed(2) + 's';
+    phantomRuns.unshift({ msg: userMsg.slice(0, 80), prov: '—', elapsed, ok: false, ts: Date.now() });
+  } finally {
+    clearInterval(timerIv);
+    window._rcCb = null;
+    allIdle();
+    clearReason();
+    document.getElementById('provPill').className = 'hpill prov';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+async function runMsg() {
+  const inp = document.getElementById('cinput');
+  const text = inp.value.trim();
+  if (!text || busy) return;
+  busy = true;
+  document.getElementById('runBtn').disabled = true;
+  inp.value = ''; inp.style.height = 'auto';
+  addMsg('user', text);
+  showTyping();
+  try { await runAgenticLoop(text); }
+  finally { busy = false; document.getElementById('runBtn').disabled = false; cyclePrompts(); }
+}
+
+const PILL_SETS = [
+  ['explain this','fix the bug','add tests','optimize'],
+  ['add TypeScript','extract hook','error handling','simplify'],
+  ['write docs','split component','add memo','review'],
+  ['find edge cases','add loading state','check security','refactor'],
+  ['generate component','write migration','add logging','performance'],
+];
+let pIdx = 0;
+function cyclePrompts() {
+  const set = PILL_SETS[pIdx++ % PILL_SETS.length];
+  document.getElementById('autoPills').innerHTML = set.map(p =>
+    `<div class="ap" onclick="quickSend(this,'${p}')">${p}</div>`
+  ).join('');
+}
+function quickSend(el, t) {
+  document.querySelectorAll('.ap').forEach(a => a.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('cinput').value = t;
+  runMsg();
+}
+function toggleChip(el) { el.classList.toggle('on'); el.classList.toggle('off'); }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runMsg(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 60) + 'px'; }
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  const viewMap = { chat: 'tv-chat', think: 'tv-think', agents: 'tv-agents', chain: 'tv-chain' };
+  document.getElementById(viewMap[id] || 'tv-chat')?.classList.add('active');
+  if (id === 'chain') renderChainPanel();
+  if (id === 'agents') renderRunsPanel();
+  if (id === 'think') renderThinkFull();
+}
+
+function toggleRC(id) {
+  const steps = document.getElementById('rcs-' + id);
+  const tog = document.getElementById('rctog-' + id);
+  if (!steps) return;
+  steps.classList.toggle('open');
+  if (tog) tog.classList.toggle('open');
+}
+
+function refreshChainGrid() {
+  const p = document.getElementById('chainPanel');
+  if (p && p.offsetParent !== null) renderChainPanel();
+}
+
+function renderChainPanel() {
+  const p = document.getElementById('chainPanel');
+  if (!p) return;
+  const PROV_META = {
+    sambanova: { label: 'SambaNova', model: 'Meta-Llama-3.3-70B', num: 1 },
+    groq:      { label: 'Groq',      model: 'llama-3.3-70b-versatile', num: 2 },
+    ollama:    { label: 'Ollama',    model: currentOllamaModel, num: 3 },
+  };
+  p.innerHTML = `<div style="font-size:7px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;padding:0 2px">FALLBACK CHAIN · SambaNova → Groq → Ollama</div>`
+    + CHAIN_ORDER.map(id => {
+      const m = PROV_META[id];
+      const s = chainState[id];
+      const badgeTxt = { idle:'IDLE', trying:'TRYING...', active:'ACTIVE', done:'DONE', failed:'FAILED' }[s.status] || s.status.toUpperCase();
+      const histLine = (s.runs || s.fails) ? `<div class="cg-stats">runs: ${s.runs} · fails: ${s.fails}${s.lastLat ? ' · last: ' + s.lastLat : ''}</div>` : '';
+      return `<div class="cg-item ${s.status}">
+        <div class="cg-top">
+          <span class="cg-num">${m.num}</span>
+          <span class="cg-name">${m.label}</span>
+          <span class="cg-badge ${s.status}">${badgeTxt}</span>
+          ${s.lat ? `<span class="cg-lat">${s.lat}</span>` : ''}
+        </div>
+        <div class="cg-model">${m.model}</div>
+        ${histLine}
+      </div>`;
+    }).join('');
+}
+
+function renderRunsPanel() {
+  const p = document.getElementById('runsPanel');
+  if (!p) return;
+  if (!phantomRuns.length) {
+    p.innerHTML = '<div style="text-align:center;padding:20px;font-size:8px;color:var(--t3)">No runs yet</div>';
+    return;
+  }
+  const PROV_COLS = { sambanova: 'var(--c)', groq: 'var(--y)', ollama: 'var(--g)' };
+  p.innerHTML = `<div style="font-size:7px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;padding:0 2px">RUN HISTORY (${phantomRuns.length})</div>`
+    + phantomRuns.map(r => `
+      <div class="rl-item">
+        <div class="rl-row">
+          <div class="rl-dot ${r.ok ? 'ok' : 'fail'}"></div>
+          <span style="font-size:9px;color:${PROV_COLS[r.prov] || 'var(--t2)'};">${r.prov.toUpperCase()}</span>
+          <span style="flex:1"></span>
+          <span style="font-size:8px;color:var(--t3);font-family:var(--mono)">${r.elapsed}</span>
+        </div>
+        <div class="rl-msg">${esc(r.msg)}</div>
+      </div>`).join('');
+}
+
+function renderThinkFull() {
+  const p = document.getElementById('thinkFull');
+  if (!p) return;
+  const src = document.getElementById('reasonScroll');
+  if (src) p.innerHTML = `<div style="font-size:7px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;padding:0 2px">LIVE REASONING LOG</div>` + src.innerHTML;
+  else p.innerHTML = '<div style="text-align:center;padding:20px;font-size:8px;color:var(--t3)">No reasoning yet</div>';
+}
+
+// ── EXTERNAL API ──
+window.phantomAsk = t => { document.getElementById('cinput').value = t; runMsg(); };
+window.setPhantomKey = (id, key) => { localStorage.setItem('phantom_key_' + id, key); window.PHANTOM_KEYS[id] = key; addSys(`✓ key saved: ${id}`); };
+
+// ── INIT ──
+renderAgents();
+cyclePrompts();
+renderChainPanel();
+
+// probe Ollama
+fetch('http://localhost:11434/api/tags').then(r => r.json()).then(d => {
+  const models = d.models?.map(m => m.name) || [];
+  if (models.length) {
+    currentOllamaModel = models[0];
+    PROVIDERS.ollama.model = currentOllamaModel;
+    document.getElementById('modelPill').textContent = currentOllamaModel.split(':')[0];
+    addSys(`ollama online · ${models.length} model(s): ${models.slice(0,3).join(', ')}`);
+    selectProvider('ollama');
+  }
+}).catch(() => {
+  addSys('ollama offline · set groq/sambanova keys to use cloud');
+});
+
+setTimeout(() => {
+  addMsg('ai', `PhantomIDE intelligence core online.\n\n3-provider chain ready:\n1. SambaNova (Meta-Llama-3.3-70B)\n2. Groq (llama-3.3-70b)\n3. Ollama (local)\n\nSet your keys:\nwindow.setPhantomKey('sambanova', 'sn-...')\nwindow.setPhantomKey('groq', 'gsk_...')\n\nOr use the bottom toolbar to pick a provider.\n\nReady to build.`);
+}, 400);
+</script>
+</body>
+</html>
