@@ -48,8 +48,8 @@ const KNOWN_MAP = {
   11036: 'tt0283111',   // Van Wilder (2002)
   // The Boys
   76479: 'tt1190634',
-  115036: 'tt15691788', // The Boys Presents: Diabolical
-  94526: 'tt15155558',  // Gen V
+  210491: 'tt16350094', // The Boys Presents: Diabolical
+  94526: 'tt13159924',  // Gen V
   // Stranger Things
   66203: 'tt4574334',
   // Breaking Bad
@@ -253,8 +253,8 @@ const FRANCHISES = {
     addedAt: '2026-05-21T17:43:51.795Z',
     ids: [
       { tmdb: 76479, imdb: 'tt1190634', title: 'The Boys' },
-      { tmdb: 210491, imdb: 'tt15691788', title: 'The Boys Presents: Diabolical' },
-      { tmdb: 94526, imdb: 'tt15155558', title: 'Gen V' },
+      { tmdb: 210491, imdb: 'tt16350094', title: 'The Boys Presents: Diabolical' },
+      { tmdb: 94526, imdb: 'tt13159924', title: 'Gen V' },
     ],
     seasons: { 1: 8, 2: 8, 3: 8, 4: 8, 5: 8 },
   },
