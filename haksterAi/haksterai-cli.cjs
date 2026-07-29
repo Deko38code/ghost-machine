@@ -10,14 +10,25 @@
 
 'use strict';
 
+// License gate — TUI won't start without valid license
+const { checkLicense } = require('./server/src/license');
+
 const blessed = require('blessed');
 const http = require('http');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-// ── Config ────────────────────────────────────────────────────────
-const API_BASE = (process.env.HAKSTER_HOST || 'http://localhost:3579').replace(/\/$/, '');
-const DEFAULT_PROVIDER = process.env.HAKSTER_PROVIDER || 'ollama';
-const DEFAULT_MODEL = process.env.HAKSTER_MODEL || '';
+// ── Config (config file first, env vars override, sensible fallback) ──
+const CONFIG_FILE = path.join(os.homedir(), '.hakster', 'config.json');
+const _cfgDefaults = (() => {
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch { return {}; }
+})();
+const API_BASE = (process.env.HAKSTER_HOST || _cfgDefaults.server || 'http://localhost:3579').replace(/\/$/, '');
+const DEFAULT_PROVIDER = process.env.HAKSTER_PROVIDER || process.env.DEFAULT_PROVIDER || _cfgDefaults.provider || 'nous';
+const DEFAULT_MODEL = process.env.HAKSTER_MODEL || _cfgDefaults.model || '';
+const MAX_LOG_LINES = parseInt(process.env.MAX_LOG_LINES || '500', 10); // Grid tuning max log lines
 
 // ── Color palette ──────────────────────────────────────────────────
 const C = {
@@ -38,6 +49,7 @@ let selectedPerson = null;
 let selectedMachine = null;
 let people = [];
 let machines = [];
+let pendingConfirm = null; // { toolCallId, command, reason, isSudo, passwordMode }
 
 // ── HTTP helpers ──────────────────────────────────────────────────
 function httpGet(url) {
@@ -85,12 +97,48 @@ function saveMessage(role, content, meta = {}) {
   });
 }
 
+async function postConfirm(toolCallId, approved, permanent = false) {
+  try {
+    await httpPost(`${API_BASE}/api/agent/confirm`, {
+      sessionId: sessionId || '',
+      toolCallId,
+      approved,
+      permanent,
+      command: pendingConfirm?.command || '',
+    });
+  } catch (e) {
+    chatBox.log(`{${C.error}}✗ confirm failed: ${e.message}{/${C.error}}`);
+  }
+}
+
 // ── Formatting ───────────────────────────────────────────────────
 const fmtUptime = s => { const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60); return d>0?`${d}d ${h}h ${m}m`:h>0?`${h}h ${m}m`:`${m}m`; };
 
 // ── Screen ────────────────────────────────────────────────────────
+// License gate — TUI won't start without valid license
+(async () => {
+  const lic = await checkLicense(true);
+  if (!lic.valid) {
+    console.error('\n' + lic.message + '\n');
+    process.exit(1);
+  }
+  if (lic.message) console.log(lic.message + '\n');
+})();
+
 const screen = blessed.screen({ smartCSR: true, title: 'haksterAi CLI', fullUnicode: true, dockBorders: true });
 screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
+
+// Coalesce bursty renders (e.g. many SSE chunks/sec while the agent is
+// streaming) into one render per tick. Without this, each delta/thinking/
+// tool_call line forces a full synchronous screen.render(), which races the
+// per-keystroke render() the focused inputBox fires and makes the terminal
+// cursor appear to jump back to the start of the line while typing ahead.
+let _renderPending = false;
+function renderThrottled() {
+  if (_renderPending) return;
+  _renderPending = true;
+  setImmediate(() => { _renderPending = false; try { screen.render(); } catch {} });
+}
 
 const bdrStyle = { border: { fg: C.primary }, bg: C.bg, fg: C.fg, label: { fg: C.accent } };
 
@@ -106,7 +154,7 @@ const machinesBox = blessed.list({ top:'50%', left:0, width:'25%', height:'50%-2
 
 const chatBox = blessed.log({ top:1, left:'25%', width:'75%', height:'100%-4',
   label:` {${C.primary}}◆{/} CHAT `, border:{type:'line'}, style:bdrStyle, tags:true, scrollable:true,
-  alwaysScroll:true, scrollback:1000, scrollbar:{ch:'█',style:{fg:C.primary}} });
+  alwaysScroll:true, scrollback:MAX_LOG_LINES, scrollbar:{ch:'█',style:{fg:C.primary}} });
 
 const inputBox = blessed.textbox({ bottom:1, left:'25%', width:'75%', height:3,
   label:` {${C.primary}}◆{/} MESSAGE {${C.fgSubtle}}(Tab←entities, Enter→send){/${C.fgSubtle}} `, border:{type:'line'}, style:{...bdrStyle, focus:{border:{fg:C.accent}}}, tags:true, input:true, keys:true });
@@ -115,8 +163,56 @@ const statusBox = blessed.box({ bottom:1, left:0, width:'25%', height:3,
   label:` {${C.primary}}◆{/} SESSION `, border:{type:'line'}, style:bdrStyle, tags:true });
 
 // Auto-scroll chat
+let _thinkingActive = false;
+let _thinkingInterrupted = false;
+let _writingLiveLine = false;
 const _origChatLog = chatBox.log.bind(chatBox);
-chatBox.log = (...args) => { _origChatLog(...args); try { chatBox.setScrollPerc(100); } catch {} };
+chatBox.log = (...args) => {
+  // If something other than updateThinkingLine/endThinkingLine writes to the
+  // box while a live thinking line is showing (deltas, tool_call_start/result,
+  // errors, etc. all land on chatBox too via this same override), the thinking
+  // line is no longer the tail of the log. Flag it so the next pop is skipped —
+  // see updateThinkingLine below for why popping here would delete that content.
+  if (_thinkingActive && !_writingLiveLine) _thinkingInterrupted = true;
+  _origChatLog(...args);
+  try { chatBox.setScrollPerc(100); } catch {}
+};
+
+// Live thinking line: reasoning streams arrive as many small chunks per
+// second. Logging each one as its own line used to flood the chat box and
+// shove everything else up the screen. Instead we keep exactly one line
+// "live" — pop the rows the previous chunk occupied, then log the new
+// snippet in the same spot — so a whole thinking burst stays pinned to a
+// single, continuously-updating line.
+let _thinkingRows = 0;
+// blessed's Element.popLine(n) is broken for n>1: it computes the delete
+// index once (fake.length-1) and reuses it across the loop, so after the
+// first splice the array has shrunk and that index is out of range —
+// every subsequent splice is a silent no-op. Net effect: only the single
+// last line is ever removed, no matter what n is. Calling popLine(1) in a
+// loop recomputes the index fresh each time and actually removes n lines.
+function popLines(box, n) { for (let i = 0; i < n; i++) { try { box.popLine(1); } catch {} } }
+function updateThinkingLine(text) {
+  // Only pop if nothing else got appended since our last write — otherwise
+  // the tail belongs to unrelated content (tool output, deltas) and popping
+  // would silently delete it. Skipping the pop just leaves one stale
+  // "thinking" line behind instead, which is a cosmetic no-op, not data loss.
+  if (_thinkingActive && _thinkingRows > 0 && !_thinkingInterrupted) popLines(chatBox, _thinkingRows);
+  _writingLiveLine = true;
+  const before = chatBox.getLines().length;
+  chatBox.log(text);
+  _writingLiveLine = false;
+  _thinkingRows = Math.max(1, chatBox.getLines().length - before);
+  _thinkingActive = true;
+  _thinkingInterrupted = false;
+}
+function endThinkingLine(finalText) {
+  if (_thinkingActive && _thinkingRows > 0 && !_thinkingInterrupted) popLines(chatBox, _thinkingRows);
+  _thinkingActive = false;
+  _thinkingRows = 0;
+  _thinkingInterrupted = false;
+  if (finalText) { _writingLiveLine = true; chatBox.log(finalText); _writingLiveLine = false; }
+}
 
 screen.append(header); screen.append(peopleBox); screen.append(machinesBox); screen.append(chatBox); screen.append(inputBox); screen.append(statusBox);
 
@@ -150,7 +246,7 @@ async function loadEntities() {
       return `${icon} {${C.fg}}${os.padEnd(14)}{/${C.fg}} {${C.fgMuted}}${ago}{/${C.fgMuted}}`;
     }) : [`{${C.fgSubtle}}No machines found{/${C.fgSubtle}}`]);
 
-    screen.render();
+    renderThrottled();
   } catch (err) {
     chatBox.log(`{${C.error}}✗ Failed to load people/machines: ${err.message}{/${C.error}}`);
   }
@@ -196,16 +292,18 @@ function streamAgent(prompt) {
           let data;
           try { data = JSON.parse(t.slice(6)); } catch { continue; }
           if (data.type === 'delta') {
-            fullContent += data.content;
-            // Strip ANSI escape codes from streamed content for chat display
-            const clean = (data.content || '').replace(/\x1b\[[0-9;]*m/g, '');
-            if (clean) chatBox.log(clean);
+            // Block deltas while approval is pending so the prompt stays visible
+            if (!pendingConfirm) {
+              fullContent += data.content;
+              const clean = (data.content || '').replace(/\x1b\[[0-9;]*m/g, '');
+              if (clean) chatBox.log(clean);
+            }
           } else if (data.type === 'thinking_start') {
-            chatBox.log(`{${C.secondary}}🧠 thinking…{/${C.secondary}}`);
+            updateThinkingLine(`{${C.secondary}}🧠 thinking…{/${C.secondary}}`);
           } else if (data.type === 'thinking') {
-            chatBox.log(`{${C.fgSubtle}}  ${(data.content || '').replace(/\n/g, ' ').slice(0, 200)}{/${C.fgSubtle}}`);
+            updateThinkingLine(`{${C.fgSubtle}}  ${(data.content || '').replace(/\n/g, ' ').slice(0, 200)}{/${C.fgSubtle}}`);
           } else if (data.type === 'thinking_end') {
-            chatBox.log(`{${C.secondary}}🧠 done{/${C.secondary}}`);
+            endThinkingLine(`{${C.secondary}}🧠 done{/${C.secondary}}`);
           } else if (data.type === 'tool_call_start') {
             chatBox.log(`{${C.mustard}}⚡ tool{/${C.mustard}} {${C.accent}}${data.tool_name || '?'}{/${C.accent}}`);
           } else if (data.type === 'tool_call_result') {
@@ -217,8 +315,22 @@ function streamAgent(prompt) {
             meta = { ...data, inputTokens: data.inputTokens || 0, outputTokens: data.outputTokens || 0, latency: data.latency || 0 };
           } else if (data.type === 'loop_detected') {
             chatBox.log(`{${C.mustard}}⚠ ${data.reason || 'loop'}: ${data.message || ''}{/${C.mustard}}`);
+          } else if (data.type === 'needs_confirmation') {
+            const { tool_call_id, reason, command } = data;
+            const isSudo = /^\s*sudo\b/i.test(String(command || ''));
+            pendingConfirm = { toolCallId: tool_call_id, reason: reason || 'Approval needed', command: command || '', isSudo };
+            inputBox.setValue('');
+            inputBox.setLabel(` {${C.error}}◆{/} CONFIRM {${C.fgSubtle}}${isSudo ? '🔑 sudo password' : 'y=approve n=deny a=allowlist'}{/${C.fgSubtle}} `);
+            inputBox.focus();
+            chatBox.log(`{${C.error}${C.bold}}╔══════════════════════════════════════════════════════════════════╗{/${C.error}${C.bold}}`);
+            chatBox.log(`{${C.error}${C.bold}}║  ${isSudo ? '🔑 SUDO PASSWORD REQUIRED' : '⚠️  DANGEROUS COMMAND DETECTED'}${' '.repeat(isSudo ? 16 : 12)}║{/${C.error}${C.bold}}`);
+            chatBox.log(`{${C.error}${C.bold}}╚══════════════════════════════════════════════════════════════════╝{/${C.error}${C.bold}}`);
+            chatBox.log(`{${C.yellow}}  Reason: ${reason || 'command/file change'}{/${C.yellow}}`);
+            chatBox.log(`{${C.fgSubtle}}  Command: $ ${command || '(unknown)'}{/${C.fgSubtle}}`);
+            chatBox.log(`{${C.primary}}  y=approve  n=deny  a=approve+allowlist${isSudo ? '  [password=enter to approve]' : ''}{/${C.primary}}`);
+            screen.render();
           }
-          screen.render();
+          renderThrottled();
         }
       });
       res.on('end', () => resolve({ content: fullContent, meta }));
@@ -234,6 +346,38 @@ function streamAgent(prompt) {
 async function sendMessage() {
   if (streaming) return;
   const text = inputBox.getValue().trim();
+
+  // Approval mode: inputBox is repurposed for y/n/a/password
+  if (pendingConfirm) {
+    const ans = text;
+    inputBox.setValue('');
+    const c = pendingConfirm;
+    pendingConfirm = null;
+    inputBox.setLabel(` {${C.primary}}◆{/} MESSAGE {${C.fgSubtle}}(Tab←entities, Enter→send){/${C.fgSubtle}} `);
+    if (!ans) {
+      chatBox.log(`{${C.fgSubtle}}  [confirm dismissed]{/${C.fgSubtle}}`);
+      await postConfirm(c.toolCallId, false);
+    } else if (/^\s*(y|yes)\s*$/i.test(ans)) {
+      chatBox.log(`{${C.success}}  ✓ approved{/${C.success}}`);
+      await postConfirm(c.toolCallId, true);
+    } else if (/^\s*(a|allow)\s*$/i.test(ans)) {
+      chatBox.log(`{${C.success}}  ✓ approved + allowlisted{/${C.success}}`);
+      await postConfirm(c.toolCallId, true, true);
+    } else if (/^\s*(n|no)\s*$/i.test(ans)) {
+      chatBox.log(`{${C.error}}  ✗ denied{/${C.error}}`);
+      await postConfirm(c.toolCallId, false);
+    } else if (c.isSudo) {
+      chatBox.log(`{${C.success}}  ✓ sudo password accepted{/${C.success}}`);
+      await postConfirm(c.toolCallId, true);
+    } else {
+      chatBox.log(`{${C.fgSubtle}}  [confirm dismissed]{/${C.fgSubtle}}`);
+      await postConfirm(c.toolCallId, false);
+    }
+    inputBox.focus();
+    screen.render();
+    return;
+  }
+
   if (!text) return;
   inputBox.setValue('');
   inputBox.focus();
