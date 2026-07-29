@@ -7195,5 +7195,46 @@ function startServer(delay = 2000) {
     process.exit(1);
   }
   if (lic.message) console.log(lic.message);
-  startServer();
+  // === Stripe License API Routes (additive) ===
+// Verify license key (called by CLI/TUI at startup)
+app.post('/api/license/verify', (req, res) => {
+  const { key, fingerprint } = req.body;
+  const result = verifyLicense(getDb(), key, fingerprint);
+  res.json(result);
+});
+
+// Create Stripe checkout session (called by frontend Buy button)
+app.post('/api/stripe/checkout', async (req, res) => {
+  if (!Stripe) return res.status(500).json({ error: 'Stripe not configured' });
+  const handler = createCheckoutSession(Stripe(process.env.STRIPE_SECRET_KEY));
+  return handler(req, res);
+});
+
+// Get license key after successful payment (called from success page)
+app.get('/api/license/from-session', async (req, res) => {
+  const handler = getLicenseFromSession(getDb());
+  return handler(req, res);
+});
+
+// Stripe webhook (payment → auto-generate license)
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!Stripe) return res.status(500).json({ error: 'Stripe not configured' });
+  const handler = stripeWebhookHandler(getDb(), Stripe(process.env.STRIPE_SECRET_KEY));
+  return handler(req, res);
+});
+
+// Admin: deactivate license
+app.post('/api/license/deactivate', (req, res) => {
+  const { key, adminToken } = req.body;
+  if (adminToken !== process.env.HAKSTER_ADMIN_TOKEN) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  deactivateLicense(getDb(), key);
+  res.json({ success: true });
+});
+
+// Initialize license tables in DB
+try { initLicenseTables(getDb()); } catch (e) { console.warn('License tables init deferred:', e.message); }
+
+startServer();
 })();
