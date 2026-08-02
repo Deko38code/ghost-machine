@@ -1,0 +1,401 @@
+{
+  "11": {
+    "type": "movie",
+    "title": "Star Wars",
+    "tmdb_id": 11
+  },
+  "13": {
+    "type": "movie",
+    "title": "Forrest Gump",
+    "tmdb_id": 13
+  },
+  "122": {
+    "type": "movie",
+    "title": "LOTR: Return of the King",
+    "tmdb_id": 122
+  },
+  "155": {
+    "type": "movie",
+    "title": "The Dark Knight",
+    "tmdb_id": 155
+  },
+  "218": {
+    "type": "movie",
+    "title": "The Terminator",
+    "tmdb_id": 218
+  },
+  "238": {
+    "type": "movie",
+    "title": "The Godfather",
+    "tmdb_id": 238
+  },
+  "278": {
+    "type": "movie",
+    "title": "The Shawshank Redemption",
+    "tmdb_id": 278
+  },
+  "497": {
+    "type": "movie",
+    "title": "The Green Mile",
+    "tmdb_id": 497
+  },
+  "550": {
+    "type": "movie",
+    "title": "Fight Club",
+    "tmdb_id": 550
+  },
+  "590": {
+    "type": "tv",
+    "title": "Seinfeld",
+    "tmdb_id": 590
+  },
+  "603": {
+    "type": "movie",
+    "title": "The Matrix",
+    "tmdb_id": 603
+  },
+  "680": {
+    "type": "movie",
+    "title": "Pulp Fiction",
+    "tmdb_id": 680
+  },
+  "947": {
+    "type": "movie",
+    "title": "Fast & Furious",
+    "tmdb_id": 947
+  },
+  "1100": {
+    "type": "tv",
+    "title": "NCIS",
+    "tmdb_id": 1100
+  },
+  "1396": {
+    "type": "tv",
+    "title": "Breaking Bad",
+    "tmdb_id": 1396
+  },
+  "1399": {
+    "type": "tv",
+    "title": "Game of Thrones",
+    "tmdb_id": 1399
+  },
+  "1429": {
+    "type": "tv",
+    "title": "Attack on Titan",
+    "tmdb_id": 1429
+  },
+  "1434": {
+    "type": "tv",
+    "title": "Family Guy",
+    "tmdb_id": 1434
+  },
+  "1622": {
+    "type": "tv",
+    "title": "Sherlock",
+    "tmdb_id": 1622
+  },
+  "1668": {
+    "type": "tv",
+    "title": "Friends",
+    "tmdb_id": 1668
+  },
+  "2190": {
+    "type": "tv",
+    "title": "South Park",
+    "tmdb_id": 2190
+  },
+  "2316": {
+    "type": "tv",
+    "title": "The Office",
+    "tmdb_id": 2316
+  },
+  "2478": {
+    "type": "tv",
+    "title": "Dexter",
+    "tmdb_id": 2478
+  },
+  "2615": {
+    "type": "tv",
+    "title": "Law & Order: SVU",
+    "tmdb_id": 2615
+  },
+  "2734": {
+    "type": "tv",
+    "title": "Law & Order",
+    "tmdb_id": 2734
+  },
+  "4087": {
+    "type": "tv",
+    "title": "Forensic Files",
+    "tmdb_id": 4087
+  },
+  "4614": {
+    "type": "tv",
+    "title": "Criminal Minds",
+    "tmdb_id": 4614
+  },
+  "4626": {
+    "type": "tv",
+    "title": "CSI: NY",
+    "tmdb_id": 4626
+  },
+  "8592": {
+    "type": "tv",
+    "title": "Naruto",
+    "tmdb_id": 8592
+  },
+  "12971": {
+    "type": "tv",
+    "title": "Dragon Ball Z",
+    "tmdb_id": 12971
+  },
+  "31911": {
+    "type": "tv",
+    "title": "My Hero Academia",
+    "tmdb_id": 31911
+  },
+  "37854": {
+    "type": "tv",
+    "title": "One Piece",
+    "tmdb_id": 37854
+  },
+  "45793": {
+    "type": "tv",
+    "title": "Brooklyn Nine-Nine",
+    "tmdb_id": 45793
+  },
+  "46260": {
+    "type": "tv",
+    "title": "Doctor Who",
+    "tmdb_id": 46260
+  },
+  "48883": {
+    "type": "tv",
+    "title": "Schitt\\",
+    "tmdb_id": 48883
+  },
+  "48891": {
+    "type": "tv",
+    "title": "The Good Place",
+    "tmdb_id": 48891
+  },
+  "55316": {
+    "type": "tv",
+    "title": "CSI: Cyber",
+    "tmdb_id": 55316
+  },
+  "57243": {
+    "type": "tv",
+    "title": "House of Cards",
+    "tmdb_id": 57243
+  },
+  "60573": {
+    "type": "tv",
+    "title": "Black Mirror",
+    "tmdb_id": 60573
+  },
+  "60625": {
+    "type": "tv",
+    "title": "Rick and Morty",
+    "tmdb_id": 60625
+  },
+  "62104": {
+    "type": "tv",
+    "title": "Vikings",
+    "tmdb_id": 62104
+  },
+  "62710": {
+    "type": "tv",
+    "title": "Knightfall",
+    "tmdb_id": 62710
+  },
+  "66732": {
+    "type": "tv",
+    "title": "Stranger Things",
+    "tmdb_id": 66732
+  },
+  "67158": {
+    "type": "tv",
+    "title": "Cops",
+    "tmdb_id": 67158
+  },
+  "67195": {
+    "type": "tv",
+    "title": "Westworld",
+    "tmdb_id": 67195
+  },
+  "67915": {
+    "type": "tv",
+    "title": "The Witcher",
+    "tmdb_id": 67915
+  },
+  "70536": {
+    "type": "tv",
+    "title": "Dark",
+    "tmdb_id": 70536
+  },
+  "70548": {
+    "type": "tv",
+    "title": "Cobra Kai",
+    "tmdb_id": 70548
+  },
+  "71446": {
+    "type": "tv",
+    "title": "Gravity Falls",
+    "tmdb_id": 71446
+  },
+  "71663": {
+    "type": "tv",
+    "title": "Live PD",
+    "tmdb_id": 71663
+  },
+  "71912": {
+    "type": "tv",
+    "title": "Ozark",
+    "tmdb_id": 71912
+  },
+  "76479": {
+    "type": "tv",
+    "title": "The Boys",
+    "tmdb_id": 76479
+  },
+  "77169": {
+    "type": "tv",
+    "title": "Daredevil",
+    "tmdb_id": 77169
+  },
+  "82819": {
+    "type": "tv",
+    "title": "The Umbrella Academy",
+    "tmdb_id": 82819
+  },
+  "82856": {
+    "type": "tv",
+    "title": "Peaky Blinders",
+    "tmdb_id": 82856
+  },
+  "85968": {
+    "type": "tv",
+    "title": "Panic",
+    "tmdb_id": 85968
+  },
+  "88396": {
+    "type": "tv",
+    "title": "Falcon & Winter Soldier",
+    "tmdb_id": 88396
+  },
+  "89826": {
+    "type": "tv",
+    "title": "61st Street",
+    "tmdb_id": 89826
+  },
+  "93484": {
+    "type": "tv",
+    "title": "Loki",
+    "tmdb_id": 93484
+  },
+  "94555": {
+    "type": "tv",
+    "title": "Accused",
+    "tmdb_id": 94555
+  },
+  "100283": {
+    "type": "tv",
+    "title": "Jujutsu Kaisen",
+    "tmdb_id": 100283
+  },
+  "102022": {
+    "type": "tv",
+    "title": "CSI: Vegas",
+    "tmdb_id": 102022
+  },
+  "103516": {
+    "type": "tv",
+    "title": "Star Wars: Bad Batch",
+    "tmdb_id": 103516
+  },
+  "104281": {
+    "type": "tv",
+    "title": "Demon Slayer",
+    "tmdb_id": 104281
+  },
+  "125141": {
+    "type": "tv",
+    "title": "Spy x Family",
+    "tmdb_id": 125141
+  },
+  "157336": {
+    "type": "movie",
+    "title": "Interstellar",
+    "tmdb_id": 157336
+  },
+  "202250": {
+    "type": "tv",
+    "title": "Criminal Minds: Evolution",
+    "tmdb_id": 202250
+  },
+  "245891": {
+    "type": "movie",
+    "title": "John Wick",
+    "tmdb_id": 245891
+  },
+  "293660": {
+    "type": "movie",
+    "title": "Deadpool",
+    "tmdb_id": 293660
+  },
+  "496243": {
+    "type": "movie",
+    "title": "Parasite",
+    "tmdb_id": 496243
+  },
+  "533535": {
+    "type": "movie",
+    "title": "Deadpool & Wolverine",
+    "tmdb_id": 533535
+  },
+  "1380316": "Is God Is",
+  "1972591": "Swordfish",
+  "masters of the universe 2026": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "masters of the universe": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "he-man": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "heman": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "he man 2026": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "motu 2026": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  },
+  "motu": {
+    "key": "tmdb_454639",
+    "title": "Masters of the Universe",
+    "year": "2026",
+    "type": "movie"
+  }
+}

@@ -1,0 +1,1878 @@
+{
+  "agent": "flix-AI",
+  "version": "1.0",
+  "status": "running",
+  "startedAt": "2026-06-06T07:00:27.937Z",
+  "franchises": [
+    "National Lampoon",
+    "Marvel Cinematic Universe",
+    "Star Wars",
+    "Star Wars TV",
+    "Star Wars Upcoming",
+    "The Boys",
+    "Stranger Things",
+    "Breaking Bad",
+    "Game of Thrones",
+    "Better Call Saul",
+    "Peaky Blinders",
+    "Yellowstone",
+    "The Last of Us",
+    "Succession",
+    "Severance",
+    "The Bear",
+    "Shogun",
+    "House of the Dragon",
+    "Daredevil: Born Again",
+    "John Wick",
+    "The Matrix",
+    "Fast & Furious",
+    "Jurassic Park",
+    "Mission Impossible",
+    "New Releases 2026",
+    "New Releases 2025",
+    "Spider-Man",
+    "Batman",
+    "James Bond",
+    "Lord of the Rings",
+    "Terminator",
+    "Rocky & Creed",
+    "Hannibal Lecter",
+    "Alien Universe",
+    "Pirates of the Caribbean",
+    "Transformers",
+    "Hunger Games",
+    "Die Hard",
+    "Men in Black",
+    "Indiana Jones",
+    "Back to the Future",
+    "Toy Story",
+    "Shrek",
+    "Lethal Weapon",
+    "Deadpool & Wolverine",
+    "CSI",
+    "The Witcher",
+    "South Park",
+    "Rick and Morty",
+    "The Office",
+    "Brooklyn Nine-Nine",
+    "Family Guy",
+    "Friends",
+    "Sherlock",
+    "Dexter",
+    "Ozark",
+    "Dark",
+    "Criminal Minds",
+    "NCIS",
+    "Law & Order",
+    "Vikings",
+    "Umbrella Academy",
+    "Black Mirror",
+    "Cobra Kai",
+    "The Good Place",
+    "Redbox Picks",
+    "Blockbuster Classics"
+  ],
+  "totalItems": 258,
+  "checkedItems": 258,
+  "liveStreams": 969,
+  "deadStreams": 5882,
+  "goojaraLinks": 375,
+  "results": {
+    "National Lampoon": {
+      "type": "movie",
+      "items": {
+        "tt0085995": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0089670": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0097958": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0118995": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0077975": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0283111": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Marvel Cinematic Universe": {
+      "type": "movie",
+      "items": {
+        "tt0371746": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0430807": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0800080": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0458339": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0848228": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1981115": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2395427": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2015381": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0471470": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1825683": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt3498820": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1211837": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt9114286": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4154756": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt4154796": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4154664": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Star Wars": {
+      "type": "movie",
+      "items": {
+        "tt0076759": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0080684": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0086190": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0120915": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0121765": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0121766": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2488496": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt3748528": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt3778644": {
+          "verified": false,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2527336": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2527338": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Star Wars TV": {
+      "type": "tv",
+      "items": {
+        "tt8111088": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt9253284": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt13668894": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt8466564": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt13622776": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt20600980": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt12708542": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt0458290": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt2930604": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt20723374": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt13622982": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt32019314": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt36414431": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt8336340": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt36594331": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0361243": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1185834": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt10300394": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt27481069": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Star Wars Upcoming": {
+      "type": "movie",
+      "items": {
+        "tt10300398": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt30825738": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt10300396": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Boys": {
+      "type": "tv",
+      "items": {
+        "tt1190634": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt16350094": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        },
+        "tt13159924": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Stranger Things": {
+      "type": "tv",
+      "items": {
+        "tt4574334": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Breaking Bad": {
+      "type": "tv",
+      "items": {
+        "tt0903747": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Game of Thrones": {
+      "type": "tv",
+      "items": {
+        "tt0944947": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Better Call Saul": {
+      "type": "tv",
+      "items": {
+        "tt3032476": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Peaky Blinders": {
+      "type": "tv",
+      "items": {
+        "tt2442560": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Yellowstone": {
+      "type": "tv",
+      "items": {
+        "tt4236770": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Last of Us": {
+      "type": "tv",
+      "items": {
+        "tt3581920": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Succession": {
+      "type": "tv",
+      "items": {
+        "tt7660850": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Severance": {
+      "type": "tv",
+      "items": {
+        "tt11271052": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Bear": {
+      "type": "tv",
+      "items": {
+        "tt14452776": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Shogun": {
+      "type": "tv",
+      "items": {
+        "tt20277110": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "House of the Dragon": {
+      "type": "tv",
+      "items": {
+        "tt11198330": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Daredevil: Born Again": {
+      "type": "tv",
+      "items": {
+        "tt14253176": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 4,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "John Wick": {
+      "type": "movie",
+      "items": {
+        "tt2911666": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4425200": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6146586": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt10366206": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Matrix": {
+      "type": "movie",
+      "items": {
+        "tt0133093": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0234215": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0242651": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt10838180": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Fast & Furious": {
+      "type": "movie",
+      "items": {
+        "tt0232500": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0322259": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0463985": {
+          "verified": false,
+          "liveEmbeds": 0,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1905041": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4630562": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Jurassic Park": {
+      "type": "movie",
+      "items": {
+        "tt0107290": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0119567": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0163025": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0369610": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4881806": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt9489370": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Mission Impossible": {
+      "type": "movie",
+      "items": {
+        "tt0117060": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0120755": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0317919": {
+          "verified": false,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2097114": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt9603212": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "New Releases 2026": {
+      "type": "mixed",
+      "items": {
+        "tt37287335": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt8036976": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt32141377": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 4,
+          "goojaraLive": 0
+        },
+        "tt32430579": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt27613895": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt32612507": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt33978029": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt16431404": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt33612209": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt33100314": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt12042730": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt17490712": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt32897959": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt28650488": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt7734244": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt37969426": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt34379307": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt31728330": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt33071426": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt40792117": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt35672862": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt32565993": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt26443616": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt27681354": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt33546863": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt34991493": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt33265765": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt8772296": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt9813792": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt33332385": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt21906238": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt27331527": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt33253070": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt32420734": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt11815682": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6741278": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt36849871": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1869454": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "New Releases 2025": {
+      "type": "mixed",
+      "items": {
+        "tt30144839": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt12300742": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt32916440": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1757678": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt26581740": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt29567915": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt27543632": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt14107334": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt30459041": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt31938062": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt18923754": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Spider-Man": {
+      "type": "movie",
+      "items": {
+        "tt0145487": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0316654": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0413300": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2250912": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6320628": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt10872600": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt13623148": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0848228": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Batman": {
+      "type": "movie",
+      "items": {
+        "tt0096895": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0103776": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0468569": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0066664": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0372784": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1877830": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "James Bond": {
+      "type": "movie",
+      "items": {
+        "tt0055928": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0057076": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0058233": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0059127": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0062512": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0066995": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0075755": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0075704": {
+          "verified": false,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0090265": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0381061": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1056705": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1074638": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2379713": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2382320": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Lord of the Rings": {
+      "type": "movie",
+      "items": {
+        "tt0120737": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0167261": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0167260": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 4,
+          "goojaraLive": 0
+        },
+        "tt0903624": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1170358": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2310332": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Terminator": {
+      "type": "movie",
+      "items": {
+        "tt0088247": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0103064": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0188521": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2108541": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0438488": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6151802": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Rocky & Creed": {
+      "type": "movie",
+      "items": {
+        "tt0075148": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0079817": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0084602": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0089927": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0100507": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0479143": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt3076658": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6343314": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt11145118": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Hannibal Lecter": {
+      "type": "movie",
+      "items": {
+        "tt0102926": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0212985": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0289765": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Alien Universe": {
+      "type": "movie",
+      "items": {
+        "tt0078748": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0086856": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0086367": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0108363": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2316201": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Pirates of the Caribbean": {
+      "type": "movie",
+      "items": {
+        "tt0325980": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0383576": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0449088": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1294496": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1790808": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Transformers": {
+      "type": "movie",
+      "items": {
+        "tt0418279": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1055369": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1399103": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2109248": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt3371366": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt6663360": {
+          "verified": false,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Hunger Games": {
+      "type": "movie",
+      "items": {
+        "tt1392170": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1951264": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2084670": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1951266": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2076658": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Die Hard": {
+      "type": "movie",
+      "items": {
+        "tt0095016": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0098718": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0112864": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0337978": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Men in Black": {
+      "type": "movie",
+      "items": {
+        "tt0119654": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0120912": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1409024": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2283336": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Indiana Jones": {
+      "type": "movie",
+      "items": {
+        "tt0082971": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0087469": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 4,
+          "goojaraLive": 0
+        },
+        "tt0097576": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0367882": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt1462774": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Back to the Future": {
+      "type": "movie",
+      "items": {
+        "tt0088763": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0096874": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0099088": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Toy Story": {
+      "type": "movie",
+      "items": {
+        "tt0114709": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0211915": {
+          "verified": false,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0435761": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1979660": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Shrek": {
+      "type": "movie",
+      "items": {
+        "tt0184291": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0298148": {
+          "verified": true,
+          "liveEmbeds": 0,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0410981": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0892782": {
+          "verified": false,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Lethal Weapon": {
+      "type": "movie",
+      "items": {
+        "tt0093409": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Deadpool & Wolverine": {
+      "type": "movie",
+      "items": {
+        "tt1431045": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt5463162": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt6263850": {
+          "verified": true,
+          "liveEmbeds": 1,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt1430132": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "CSI": {
+      "type": "tv",
+      "items": {
+        "tt0374549": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4204520": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0247082": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt15281066": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Witcher": {
+      "type": "tv",
+      "items": {
+        "tt5180504": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "South Park": {
+      "type": "tv",
+      "items": {
+        "tt0121955": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Rick and Morty": {
+      "type": "tv",
+      "items": {
+        "tt2861424": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 4,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Office": {
+      "type": "tv",
+      "items": {
+        "tt0386676": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Brooklyn Nine-Nine": {
+      "type": "tv",
+      "items": {
+        "tt2467372": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Family Guy": {
+      "type": "tv",
+      "items": {
+        "tt0182576": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    }
+  }
+}

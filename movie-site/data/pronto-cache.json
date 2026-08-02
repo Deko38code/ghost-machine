@@ -1,0 +1,1204 @@
+{
+  "version": 1,
+  "lastRun": "2026-05-21T00:01:29.521Z",
+  "franchises": {
+    "National Lampoon": {
+      "type": "movie",
+      "items": [
+        "tt0085995",
+        "tt0089670",
+        "tt0097958",
+        "tt0118995",
+        "tt0077975",
+        "tt0283111"
+      ],
+      "lastChecked": "2026-05-21T00:04:06.511Z"
+    },
+    "The Boys": {
+      "type": "tv",
+      "items": [
+        "tt1190634"
+      ],
+      "lastChecked": "2026-05-21T00:04:13.594Z"
+    },
+    "Marvel Cinematic Universe": {
+      "type": "movie",
+      "items": [
+        "tt0371746",
+        "tt0145487",
+        "tt4154756",
+        "tt4154796",
+        "tt2395427"
+      ],
+      "lastChecked": "2026-05-21T00:06:46.525Z"
+    },
+    "Stranger Things": {
+      "type": "tv",
+      "items": [
+        "tt4574334"
+      ],
+      "lastChecked": "2026-05-21T00:07:20.571Z"
+    },
+    "Star Wars": {
+      "type": "movie",
+      "items": [
+        "tt0076759",
+        "tt0080684",
+        "tt0086190",
+        "tt2488496",
+        "tt3748528"
+      ],
+      "lastChecked": "2026-05-21T00:08:45.399Z"
+    },
+    "Breaking Bad": {
+      "type": "tv",
+      "items": [
+        "tt0903747"
+      ],
+      "lastChecked": "2026-05-21T00:08:52.095Z"
+    },
+    "Game of Thrones": {
+      "type": "tv",
+      "items": [
+        "tt0944947"
+      ],
+      "lastChecked": "2026-05-21T00:09:17.885Z"
+    }
+  },
+  "items": {
+    "tt0085995": {
+      "tmdbId": 11852,
+      "imdbId": "tt0085995",
+      "title": "Vacation (1983)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0085995",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0085995",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0085995",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": "",
+          "url": "https://vidsrc.to/embed/movie/tt0085995",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": true,
+          "url": "https://vidsrc.dev/embed/movie/tt0085995",
+          "iframeSrc": "https://resultsfastfind.com/sr/754870121/SAFEFRAME.html?ule=833&-PH~=_&-PH~M2yX=&2Xj=&2ot~~=h&6-P=S&6yHt2D=qh&7XXHy=h&Dy=&EORD=E2t&EeP=at0DSSMDqaJGRqSGaSqa0CTqhtJPL_SRLSUS&HeP=&M72oT=EyjS5e2XM&M72oU=&MM=9.&MPj=dUTUT&MXHeP=&MeP=C%289G4TlTv&M~eP=JT0SCGGUL&NaeP=&OTXgHt=PoEOR&Po~D=h&PtMooo=&RH%286=&RMX=%21w%296uuA26~3zDzSm-~zAut2U~twmwwDUwRU&RPEoRe2=&RPXT=&RPXh=&RPj=&RaDOieP=jT&XyMt=fhTUJ&aP~%29P=&aRt=&aeP=&aePjT=&at=_&e2XMO=CFZNQGLZp%3Anwd%7CqtCZ%3A6eeW6e6Wl0W66&eyeP=_&gHOH=&gPyH~=&ga25MM5tmH=&htmlsrc=1&iOyXH=_&iy7H=_&je=hGG0UThGT0J_CCC_T_J&kkdd=u%2A%7Cu%7CA%2A39Hn&nP=&ni~D=&oyHR=h&tM~eP=&tpid=&yM=%283&yaP~%29P=&yeAt=hhLSmJC0&yyOP=%7B%22yyMM%22%3A%229.%22%2C%22yyMXg%22%3A%22oEPtyXE%22%2C%22yyeH%22%3A%22%22%2C%22yyyM%22%3A%22%283%22%2C%22yyAeH%22%3A%22%22%7D&~tu6~O=7XXH%3A%2F%2FjePy~MWPtj%3F5yOyt2%3Dh&eobd=&eoac=RvYbkNvbY&eoch=_rqz_q&ure=1#vgd_sc=CA&acl=&aclp=&cl=&clp=&hvsid=00001779321729998012373606401764&l2type=dmola&lp=%7B%22ppvi%22%3A%222152686732995817283%22%2C%22wlstp%22%3A%220%22%7D&matchstring=&pvl=%7B%22nmerr%22%3A%221%22%7D&pvlp=&sbdrId=&verid=&acid=undefined&mprpslog=o6wAR4DA014L4smrcv3Vf2hwqQTEN47yNHoh7U02G6bqhvo_g3v7NWtWviNu-TIdRjXfS8s350c1awI-koaPpY7LYe1q7rnGN3LcLv70jPGkzP_vt3xAqvWxRCfOF_lgFoC0oyH2Z9AIRURtUTwVvj4s7cgx3r8Z_08WFacCwW673K9cx2gRbSBrzwVwZFtqXr44TsgzKvQ%3D&tchkpts=%7B%22prel2%22%3A1779321730143%7D&stime=1779321730143&l3d=%257B%2522l2host%2522%253A%2522https%253A%252F%252Fresultsfastfind.com%252Fsr%252F754870121%252FSAFEFRAME.html%253F%25252138%253DD%2526%252521cm%25252Ar6%253Dop%2526%25252AtsE8%253D%2526-81%253D%2526-82n-Er%253D%2526-8Zk%253D%2526-8Zp%253D%2526-mj%252521%253D%2526-tZ%253D0d%252528%252521llPr%252521s.S6SDy3sSPl%25252Arzs%25252Adydd6zd-z%2526-~6eLE8%253D1k%25261E%253DpHHVzkpHkVxI777IkIx%25262E8%253D~%25252AV6DDt6o~xH-oDH~Do~V7kop%25252Ax8CID-CDzD%25262e-6%253D2r%25252A%252638ms%253DI%252638mstrcZ%253D%25266c%253D%25268%25252Atnnn%253D%2526A8cms%253D%2526Amem%253D%2526A~rMttM%25252Aym%253D%2526EcE8%253DI%2526ErZte%253D7%2525294FXHC4Q%25253A_dW%25257Co%25252A74%25253A%252521EET%252521E%252521TKVT%252521%252521%2526F~E8%253D%2526Lcwm%253DI%2526LecZm%253DI%2526Zct%25252A%253Dipkzx%2526_8%253D%2526_Ls6%253D%2526cEP%25252A%253DppCDyx7V%2526cce8%253D%25257B%252522cctt%252522%25253A%252522Ob%252522%25252C%252522cctZA%252522%25253A%252522n28%25252AcZ2%252522%25252C%252522ccEm%252522%25253A%252522%252522%25252C%252522ccct%252522%25253A%252522j.%252522%25252C%252522ccPEm%252522%25253A%252522%252522%25257D%2526ct%253Dj.%2526c~8s%2525288%253D%2526ekZAm%25252A%253D8n2e-%2526htmlsrc%253D1%2526kkdd%253D%25252AW%25257Ch%25257C3%25252AnHA9u%2526mE8%253D%2526ncm-%253Dp%2526rZ1%253D%2526rn%25252Ass%253Dp%2526s%25252Al%252521se%253DwZZm%25253A%25252F%25252F1E8cstT8%25252A1%25253FMcec%25252Ar%25253Dp%2526t81%253DWzkzk%2526tE8%253D7jOHfkKkB%2526tZmE8%253D%2526tpid%253D%2526tsE8%253DxkVD7HHzC%2526tt%253DOb%2526twrnk%253D2c1DMErZt%2526twrnz%253D%2526wZZmc%253Dp%2526~%25252A%253DI%2526~-%25252A%253D%2526~8s%2525288%253D%2526~E8%253D%2526~E81k%253D%2522%252C%2522be%2522%253A%25220%2522%252C%2522nmerr%2522%253A%25221%2522%257D",
+          "title": ""
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0085995",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=7vv8cby9pojt",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:01:30.960Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0085995",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0089670": {
+      "tmdbId": 11853,
+      "imdbId": "tt0089670",
+      "title": "European Vacation (1985)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0089670",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0089670",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0089670",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0089670",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0089670/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": true,
+          "url": "https://vidsrc.dev/embed/movie/tt0089670",
+          "iframeSrc": "https://resultsfastfind.com/sr/754870121/SAFEFRAME.html?ule=817&5clFbK=Au65G&65Gs=6TK&6BA=Gw.00Gc0~RcnG~1nLk~ksR1~ckGc9Z9KwZL9&8AqeA=&8BA=&8BAtc=&8GK=&8K=n&AKLuuu=&Auqs=.&BTlL5=RMJXfw0JH%3AQVz%7C~KRJ%3ASBB7SBS7Ok7SS&BoBA=n&F8T2LL2K4b=&FAobq=&Fb5b=&G8s5IBA=tc&GA6uGBT=&GAl.=&GAlc=&GAt=&GLl=3VeSxx_TSqUvsv14rqv_xKT9qKV4VVs9VG9&GbNS=&I5olb=n&Ioib=n&KLqBA=&LAt=z9c9c&LBA=RNYw%2AcOcP&LL=Ya&LiTu9=&LiTuc=6ot12BTlL&LlbBA=&LqBA=Zck1Rww90&QA=&QIqs=&SobKTs=~.&SrA=1&Tlt=&TuKqq=.&X8BA=&bBA=&htmlsrc=1&illbo=.&kkdd=%2Ah%7CH%7Cn9%2AA&loLK=-.c9Z&o8AqeA=&oB_K=..014ZRk&oL=NU&oo5A=%7B%22ooLL%22%3A%22Ya%22%2C%22ooLlF%22%3A%22u6AKol6%22%2C%22ooBb%22%3A%22%22%2C%22oooL%22%3A%22NU%22%2C%22oo_Bb%22%3A%22%22%7D&qKxSq5=illb%3A%2F%2FtBAoqL7AKt%3F2o5oKT%3D.&rAbq=n&rAbqLTol=&so=&tB=.wwk9c.w0wRk1.1n0Z1&tpid=&uobG=.&eobd=&eoac=RvYbkNvbY&eoch=_rqz_q&ure=1#vgd_sc=CA&acl=&aclp=&cl=&clp=&hvsid=00001779321757220012373606403846&l2type=dmola&lp=%7B%22ppvi%22%3A%222152686735717310191%22%2C%22wlstp%22%3A%220%22%7D&matchstring=&pvl=%7B%22nmerr%22%3A%221%22%7D&pvlp=&sbdrId=&verid=&acid=undefined&mprpslog=MTvyKFYcZ64iRWi1HkEtkOl2NInGayuP9SD7PKQnFoQmt2o26WS4g-CIpVL79E9HIIw_hv1ZosCqjJ_ESXuTKNcWWb0rIGLBXu2_5oeyvv3l-u6kFXUYBEOrJkFUkvmWJfTIDqaTs34WKR0-JTUrlnZTK2qiLAjIygZPfqDZE3jiIKMR-rkeADAMe9YDlyD_QIYely1DOAY%3D&tchkpts=%7B%22prel2%22%3A1779321757393%7D&stime=1779321757393&l3d=%257B%2522l2host%2522%253A%2522https%253A%252F%252Fresultsfastfind.com%252Fsr%252F754870121%252FSAFEFRAME.html%253F.55mM%253DF%25261nkjI%253D%25264yjI%253D%25265Mn1%253D~FUVL%25268j%253DFHHAVUFHQHuAcFcXQLc%25269jI%253DwHFQQwUQ%252528uUXw%252528cXnA%252528AZuc%252528UAwUVLV1HLnV%25269vwZ%253D9q1%2526DI%253D%2526DokZ%253D%2526I1nhhh%253D%2526MMvI%253D%25257B%252522MMnn%252522%25253A%252522dz%252522%25252C%252522MMn5f%252522%25253A%252522h9I1M59%252522%25252C%252522MMjm%252522%25253A%252522%252522%25252C%252522MMMn%252522%25253A%252522RY%252522%25252C%252522MM2jm%252522%25253A%252522%252522%25257D%2526Mj21%253DFFQcgLuA%2526Mn%253DRY%2526MyIk%25252AI%253D%2526OImk%253DX%2526OImknqM5%253D%2526ZM%253D%2526aMm1qZ%253D%252528F%2526aOI%253Dc%2526fIMmk%253D%2526fmvm%253D%2526fyqpnnp1gm%253D%2526hMmw%253DF%2526htmlsrc%253D1%2526jMjI%253DX%2526jq5nv%253Du-K43HQKx%25253ADlt%25257C%2525281uK%25253AajjrajarWAraa%2526k1Eakv%253D.55m%25253A%25252F%25252F8jIMknrI18%25253FpMvM1q%25253DF%2526kkdd%253Dnh%25257C%252521%25257CWAn9%25252AHuh3%2526mjI%253D%2526n.qhU%253D9M8cpjq5n%2526n.qhV%253D%2526n5mjI%253D%2526nI8%253DtVUVU%2526njI%253DuRdHCUWUB%2526nkjI%253DLUAcuHHVQ%2526nn%253Ddz%2526oM.m%253DX%2526ovM5m%253DX%2526q58%253D%2526qh1kk%253DF%2526tpid%253D%2526vU5fm1%253DIh9vw%2526wI5F%253D%2526wI5U%253D%2526wI8%253D%2526wI9hwjq%253D%2526wmRa%253D%2526wn5%253Dbl%25252AaEE2qakYPZPcgOkP2E1qVk1lgllZVlwV%2526wyZvojI%253D8U%2526y1%253DX%2526yIk%25252AI%253D%2526yjI%253D%2526yjI8U%253D%2526yw1%253D%2522%252C%2522be%2522%253A%25220%2522%252C%2522nmerr%2522%253A%25221%2522%257D",
+          "title": ""
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0089670",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=rg7jykesrcv4",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:02:18.892Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0089670",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0097958": {
+      "tmdbId": 11854,
+      "imdbId": "tt0097958",
+      "title": "Christmas Vacation (1989)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0097958",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0097958",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt0097958",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0097958",
+          "title": "Player"
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0097958",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0097958/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": true,
+          "url": "https://vidsrc.dev/embed/movie/tt0097958",
+          "iframeSrc": "https://resultsfastfind.com/sr/754870121/SAFEFRAME.html?ule=888&%28c=%21aaoZ.%21aaz%21%21o5faoa.&%2A9M=&%2AKnYK=&%2AM=z&%2AcK=&%2AcK%28.=&-K=&-Wnx=&1UUJD=%21&41sw.=FD%28uAcsU4&41swZ=&44=36&4K%28=gZ.Z.&4UJcK=&4cK=583aj.q.H&4ncK=f.ou5aaZ7&9%2AxXWcK=%28.&94U=tNYhBBQshnTyxyu~LnyQBMsZnMN~NNxZN9Z&9J8h=&9K%28=&9KFw9cs=&9KU%21=&9KU.=&D%2AKnYK=&D4=8T&DDXK=%7B%22DD44%22%3A%2236%22%2C%22DD4Ub%22%3A%22wFKMDUF%22%2C%22DDcJ%22%3A%22%22%2C%22DDD4%22%3A%228T%22%2C%22DDQcJ%22%3A%22%22%7D&DcQM=%21%217u~f5o&FX9x=FsM&FcK=.MZMauKf_z94u_uMz7_9uM%2A_xx9K%2AZ%21%2A%21xKz&JcK=&KM4www=&Kwnx=%21&LKJn=z&LKJn4sDU=&M4ncK=&UD4M=E%21.Zf&V%2AcK=&WD1J=z&WXDUJ=z&X.UbJM=KwFX9&b%2AsA44AM~J=&bJXJ=&bKDJn=&cDcK=z&csU4X=5GrVka7rO%3A-Ng%7C_M5r%3Ahccdhchdqodhh&hDJMsx=_%21&hLK=u&htmlsrc=1&kkdd=HH%7C3%7CA9Hn%2A&nMBhnX=1UUJ%3A%2F%2F%28cKDn4dKM%28%3FADXDMs%3D%21&sU%28=&swMnn=%21&tpid=&wDJ9=%21&xD=&eobd=&eoac=RvYbkNvbY&eoch=_rqz_q&ure=1#vgd_sc=CA&acl=&aclp=&cl=&clp=&hvsid=00001779321770716012373606404250&l2type=dmola&lp=%7B%22ppvi%22%3A%222152686737067189987%22%2C%22wlstp%22%3A%220%22%7D&matchstring=&pvl=%7B%22nmerr%22%3A%221%22%7D&pvlp=&sbdrId=&verid=&acid=undefined&mprpslog=4N2sHNtQFhNiNRQd1bRQKkpAVR6GHmvYPYIzw9bLJIPqnrsudI_QPqCtwMFLdh4C8rITg-q9TcdN1RwQy7FNp_9K1e2TAyBWscKPqz1GzTfZ9woF_2dm5ZWOFTqLtL_Eyvd9DzsjRC_1kfe0RW-Z3C5_3Oyy98Mvmn8uVS97AzHJ_4bKa-P0wNaT9NX9Y3tte2yJrv5wf50%3D&tchkpts=%7B%22prel2%22%3A1779321770891%7D&stime=1779321770891&l3d=%257B%2522l2host%2522%253A%2522https%253A%252F%252Fresultsfastfind.com%252Fsr%252F754870121%252FSAFEFRAME.html%253F%2525285UV%253D%2526%252528Hf%253D-02VRRFBV8Gzvzj%252521b8zFRcB~8c0%25252100v~0%252528~%2526%252528Pvs_Kg%253DMJ%2526%252528gM%253D%2526%252528gfJ%253D%2526%252528gfX%253D%2526%252528gw6%252528KB%253D%25265Kg%253D%2526675%252528%253DX%252677sg%253D%25257B%25252277HH%252522%25253A%252522x%252529%252522%25252C%25252277Hfr%252522%25253A%2525226wgc7fw%252522%25252C%25252277K5%252522%25253A%252522%252522%25252C%252522777H%252522%25253A%252522UG%252522%25252C%25252277FK5%252522%25253A%252522%252522%25257D%25267H%253DUG%25267KFc%253DXXZj%252521I3m%25267Pg82g%253D%25268cRV8s%253Dlff5%25253A%25252F%25252FMKg78HOgcM%25253FE7s7cB%25253DX%2526B6c88%253DX%2526BfM%253D%2526H8Kg%253DIJmj3YY~Z%2526HH%253Dx%252529%2526HKg%253D3UxY1JDJL%2526Hf5Kg%253D%2526HgM%253Dy~J~J%2526HlB6J%253Dw7MjEKBfH%2526HlB6~%253D%2526K7Kg%253Do%2526KBfHs%253D3.CQ4YZCN%25253Au0y%25257Chc3C%25253AVKKOVKVODmOVV%2526MK%253DXYYm~JXYYoXXm3IYmYJ%2526P%252528c%253D%2526PKg%253D%2526PKgMJ%253D%2526Pc%253Do%2526Pg82g%253D%2526QPKg%253D%2526V75cBv%253DhX%2526Vbg%253Dj%2526_7l5%253Do%2526_s7f5%253Do%2526bg58%253Do%2526bg58HB7f%253D%2526cH8Kg%253D%2526f7Hc%253D%25252AXJ~I%2526gcH666%253D%2526htmlsrc%253D1%2526kkdd%253Duh%25257C3%25257Cn9HA%25252A%2526lff57%253DX%2526r5s5%253D%2526rPBEHHEc%2525215%253D%2526rg758%253D%2526sJfr5c%253Dg6ws%252528%2526tpid%253D%2526u_8v%253D%2526ug%253D%2526v7%253D%2526wKg%253DJc~cYjgIho%252528HjhjcoZh%252528jcPhvv%252528gP~XPXvgo%2526ws%252528v%253DwBc%2522%252C%2522be%2522%253A%25220%2522%252C%2522nmerr%2522%253A%25221%2522%257D",
+          "title": ""
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0097958",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=fxxj5kr137ux",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:02:40.355Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0097958",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0118995": {
+      "tmdbId": 11855,
+      "imdbId": "tt0118995",
+      "title": "Vegas Vacation (1997)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0118995",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0118995",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0118995",
+          "iframeSrc": "",
+          "title": "404 Not Found"
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0118995",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0118995/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0118995",
+          "error": "Execution context was destroyed, most likely because of a navigation."
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0118995",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=5p6pu79oiyd4",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:02:53.641Z",
+      "idVerified": false,
+      "streamApi": {
+        "imdb": "tt0118995",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0077975": {
+      "tmdbId": 3935,
+      "imdbId": "tt0077975",
+      "title": "Animal House (1978)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0077975",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0077975",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt0077975",
+          "iframeSrc": "https://cloudnestra.com/rcp/NDk1YzNiYWIwMmYzZTc5Nzg5NGQ3M2NiZTc0MmE4Mzg6VVdJclVURlNkMFlyWld3elRFdEdTa3N4UjFSSmREQlZaWE4wUVhCRFJrdDNRbkZLYTIwelJYaE5ZakprWjJVNUsxTldOV3RsZWpobUswaHJNa0ZMY25kaU1ETXJTVXRRWnpCRFZVMU1URlZSZWxweVpUWlZPWGN2WVRkUFNYSlhRemxoU0hkNGIyZFZOekl2YlRsa1oyNU9TRVZUU0ROb2FqZFdhSFowYkVJMGRuSXlMMVU0VlhOcFNXTnhTbFIyYVhCU1UxZDVjbGhYTWk5cFowbEtOMlJQTHpkNGR5OUJVVlpoVW5oNGFYcEZWbEV3YTBOQmVtZ3pRM052ZG1zemExUmFkbFJxY1dOTlZXVTFkV1o0YlRoMVNXRnBSazAyVDNSSEwyZEdRMVZHY2paVmVFTXlhRUZIVG1KbllXMDBlbU5FUlcxUFJsSjNOVE00ZVZScFVscERWelptWXl0UGVHUkRaMDVCVVdkM1p6TXpSbFpCYTNkdVdsSk9WMDVtVWtKc2VYbFNiVUZDZFZrMlVHSlFaRmcwZW5obVFUaEdhamRrUjFoaFVtdEdkakY0YW1OU1NXSmhkR2w2T1daTmMyZHdkekZVZW01NmJ6RjNRVkZ5UldFNVpsZHFhR0pKYmxCamRrMXhTbWRYVUVOVFNtb3lObXg2Ym1Ka2JXZElabGxKVVd4R1pYTk9VSE5vSzNWeUswNXdlV1pVVld0TFZrWk5UM2QwTTNnMlVISnZSVlJpZG1oV2EydHlXREZOWjFWUEt5OVZSek5sV2s1dE1IcFJMMHRWYVdKRWNsTnFSV1ZQTm5aRWFYUnlWRzV0V2swNVowbEJSMEp6VW5oMGRGTXpaamM0TDI1NlVGTjBZMlJ0Tm5sTlZrNWpXSGhOVm10Nk1tcHNXbHB5U3podmRHdzRUbEUzVVd0ak1YRTRTR1ExZGpKaWVrMHlTaTk1U0dFeE0wNVZha0paVVVSalprMW5ObXBOVTFoblYwUjJWa1ZEWm1SNWQxZzRhVlV6Vm01Q2NEWTJRVmh6ZDBJNWVua3lNRzR5ZDIxclpETmpkRkk0WVZBeFZDOTVUR3BPU2l0eGIzaGtWMEZWZFhaNldreHplV0ZsYlZsSFJ6UXhVVUozY1hkWFIyaEZSR3BVTTNkR2FubHBjbTU1UTBWRmQzcEphM2xEVkVaaFpsSlVZV3RzU2xOVk56VXZSek5yVkRCTGEzTmthME5GTTFneVNUWlljblp2TVU5SVppdFNhVnBHVERObk4yZDZkVGgyZW5SU1ZXSnpXbVEyYkZKSlpHdGpTMjVPT0RGVGFVRmhlbk5QWVdKU0wwYzVVemMzV21WcU5EQndjSHBNYWtwSFFuTnZhVTlCUlhabVRVdE9XRlJVTmxvM2QyOVdOa2xwYW1ZcldGSk1TVlF2TmxCeVJXTnJPSFZIUTB4R2RWRjVMMGxwYmtsYVdFTTBZWFpZVERKU0syUmljMlo2VTNWaU4zTlBMMXB5YURWcFNYYzJWa3RJUm5OMWRHaEVZbE5UVW1OVFZIaHdOamg1YlV0ME1VdENWM2xTY0UxSlIwdHpWSEEzTVRGWmQwOVlRWGM0VTFGcFprNUtiRlJETVVWSWJUWjBaRFJzUm1odlltcEVPR0ZuWkVKMFVYbG5jbEp6UkhGTVpHWXljbE5hVEROclNrMUxOMW8zVUhsSFJsZGxjek5WU2pWbU5teFFlakV2VTJSWEsyYzVNMm95UVU1eFMyMXlWbUZKU1d0VWJWcEpMMEZ3WjFsRmNXdG9jVkpxY0ZONlVGWTFOa2w0VHl0eGJVZE1NR2s0YjNkQ2VIQjZjV2xOY0hNdmVGVlVVVFZ4ZEVwaWNtbHZVRXA0U0hwc1FrTlRXR05GVVhVclpYbHlka0pZY2xFNE9FUmpWRGRpTVdsWmRISjVNRkpLWlV0TE9XTlVWVzVyVUM5NFZTdGhUU3MyU25KM2RUaHJhMWszYjB0d2VtVmhlRmhGYVd3dlNsWTBRU3QzTjIxRWRHODBORXhzTVZod1NtMHpUVTkzVUdKaldqbENZbUU1TjIxclkyMW1ha3ROYUhwMlVUMDk-",
+          "title": "Animal House (1978)"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/movie/tt0077975",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/movie/tt0077975"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0077975",
+          "error": "net::ERR_ABORTED at https://vidsrc.dev/embed/movie/tt0077975"
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/movies/view/0077975",
+          "error": "net::ERR_ABORTED at https://www.lookmovie2.to/movies/view/0077975"
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly DVD",
+          "url": "https://ww1.goojara.to/go.php?url=ZU1SZ2Fta1NFbk9xQ3VobVpERlo1WWZiL3EwN042MHBsT3dHQlpWWDNGOD0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo DVD",
+          "url": "https://ww1.goojara.to/go.php?url=YzBlUUY2b05iaDdOamxiejQ5ZVRPOHJEYWxJR1Ava1owUjRTbWdBSndvaHFrNkRxbHJZbEc1ZXVSWjI0YXFGMg",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood DVD",
+          "url": "https://ww1.goojara.to/go.php?url=QmhRZjF2eHFlUXBaNjRQWUpnZHpLdTNiUkdtUHh6c2QxclJhQ2lBOU5lVVpFMXU5dVhvc3FTZHFHdXBWQjVaKw",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:03:20.734Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0077975",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0283111": {
+      "tmdbId": 11036,
+      "imdbId": "tt0283111",
+      "title": "Van Wilder (2002)",
+      "type": "movie",
+      "franchise": "National Lampoon",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0283111",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0283111",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt0283111",
+          "iframeSrc": "https://cloudnestra.com/rcp/ZjVjMDYwOTZhOTI2MzNmOWY1MTVjYWRjMzIwYWQ2Mzc6T1dSRVVuRk5ka3RUYWpBeVUwWTNibFI2VG1ScGRrNUVRbWd3YVZkcU1UZDVhQzlsVFVOc09DdE5jRlZKWTBKeWFISnZTek5YWkVsWU9DdDZhVzF5U2twTGVIQm5UMGhNWjB4RU5HRkpOR1JXYTBGWWEyZFZiSFp1TUZSUldUbEpRbWxNU0ZCRVMwOU5Ubk50ZVU5M1ZWaDJSelJ4ZUhCTk4yaDBkRUo2ZVRJMFoyZHZPVkJ0UmpsSlpqUjJVRWhST1RsS2J6QkJOVlV4ZERKTFZUbFhSako1WWxsbE5qY3ZiM2swUVhsVFlsRnBVVFJ2T1hOVU5rUmpjRnB5U0ZSU1VrbHVUV2t6UVd0RlpqUlBkR0kyZW5oVU5FSkNkbTF6V0hwRFluTkdXVlZ3VlVac2NEUkRaVVp3VFdwUWIyUnVPVW92ZG5oRlNIcE5PRVprVm5WemQybFlNR05sWlhKd1VrZEZaRVJGV1VabGREWlRla1JsY1hWVlJDOHhhSE5oVEZodWMxaEtVM04zU2pKamNWbFdNSE5wU1ZkaFkwOWpRbE5tUTJGaVdYUnJZa3hQUkVKTlkwRk5VSFpQZDNoVWIzSTJjMFZJYnprMk0waHJXVkJVUmxNMFVURnBkVkpxYTFwRlNXRnRTeXR1ZUcxTlNFRjZOVTlaZVZKNGIzWkhabVJuT1dkTGIzSnVVWFpWY1cxWlRHNVFaazVwY1RSa1RXRjZPSEptVFVGR1JHUkhUamgzV2xoRU5teHBVVGxOY21ZeVEybFhaeTgzUlRnMk5VeFJPR0pXVm5kcVJYSnpUakJvVFV0c0swMWtaRWxGU1RnNWR6ZG1aRzVsZUVoc2N6aFVNM2R5UkRkek4xRkVjRlY2YzFCcllYaGpXbVozTmxWRVIyTlRaM29yZVRGT2N6QmpaRFppWnprNU5WSnBiQzl6VEU5R2RIWXpWbE15YVd4a1J6Sk9SVGMzTTFCUWJUSkhTakJoVm1kbWExaGpZV1pqTTFBNFJ6RXlTRFpzYlVGdmVIVktjM1J6TVV4TlpIVnpOUzlXUTI1RFRIbzRabGN6ZUhCMVNESndVakZvYjNWWVIzSTFRVXB0TjJSbk4zVktTVVJOVkZSVVJHSmFUalZNUjBoTE1qQldRelphTlhwNVVYRlFiSEJsUzFkbWJWcEVkbmN5T1VORlVFeG5RemhTZUVSd1IyUnhNMFZ2U2t0b1N5OU1UalJWU2xGNFdXOXhMekZHV2xZelRFTmtRMXBuZGxveFJUVnZhRXRHVmt4NFptSm1SVEZzZVRkdVptVnVNekV3Wm5WaWMxRk1lRWxhUW5vemFtZFNjRlJtZWpWRFVuRmFaV3B2UTIweFZ6bDJMMFJOVVhWSmFIQktjelpvVXpaRk1sb3JXRTVuWldSM1NXTTRXVVpXZW1aTVVETnJlRU5YVEZONWREWkhNa0ZKVkZVNFZUQXJhMGN6VEVZMk5EVmFNVzFtTTAwd1VpOUVTVUpYWXl0UFFWQkZjR3B0UjBSRldESjZVR0pHT1ZsUFVrbFpPRUp5V1RCSVIxQnVNa1pQZUM5MVpXVnBTRTluT0U5d01ta3pUMjl5VWpWT2NucEdWR3R1Wlc1clF6QlhZV3hFVUVobVZqTmlTR1JIWTJZMkwzZFBhWEZVUmtKSWNERkRRVWRLZWt0MlV6RldjR294UWpOV2IyRTBjWFZ6YmpWUFdHTlFjMkp6YUhGV1JHVjFaakprTVVsMVIxZE5PRU5DWVVSU1UwWk9ORkUyYjFKc05FMW5jVzgzUTNSWFFUTTFjaTlxV1dKSVFtVlhNbXRSZDFST1QzUkNXbVpHVFZGQk5qUXdhMDFuZG5JNGFYUnVRaTltU3pkWkwxbzVkbFZUTUdGT1VURmlNSEZ3U0hwd1MwTlBUR3QyTVZGM1ZHMHZjbGx4Y1doS2NUUnlkMFpGTDJaVlVVcHhXRTVJY2pBM1psTmpTRkZDVDNkWVNFOUdRbFJEV1VGR1UwaEdaamRqVWtaR2QwNUJSRVJFYlhoR1UwUmhibFJ3YzFSNk5sVXdhalpYY0ZRelZXVmpObU5oZEV0b2NGTkViVU5rUWtseGFFeDZXa280YzNsbmFHZzJWVFpxTTJwU01qQk5lbEl6V21Ob2MycHlLMDVSTDJjeWMybFNaM2RrTVZscWRUTjRabVppZWpadFNuRnNOWEk1ZEdaa1ZUUTVNSG93WlZOTlZFVlJkbTlhVlU5RlpqSXJTVFpvVkVjclYxQndObEUwWm05dFkwc3hSMFE0U21sUGFVdEhZMVZEWjAxa1IzaG5QVDA9",
+          "title": "National Lampoon's Van Wilder (2002)"
+        },
+        "vidsrc2": {
+          "working": "",
+          "url": "https://vidsrc.to/embed/movie/tt0283111",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0283111",
+          "error": "Navigation timeout of 18000 ms exceeded"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0283111",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=h0ak47iyx68",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:03:27.407Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0283111",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt1190634": {
+      "tmdbId": 76479,
+      "imdbId": "tt1190634",
+      "title": "The Boys",
+      "type": "tv",
+      "franchise": "The Boys",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/tv/tt1190634/1/1",
+          "iframeSrc": "https://brightpathsignals.com/embed/tv/tt1190634/1/1",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/tv/tt1190634/1/1",
+          "iframeSrc": "https://cloudnestra.com/rcp/MThkNmFkZmZkMzQ4MTBmMDAwNzIxZTA0MGMxMGIyMjI6UzFBNU5XUXlaMFJ2WXk5U1RFNXJNV0pDVTBkQlR6UlVkbFZKTUZaSWQzaEpOMWxHT1hSU0wwMW9hbGxGUzIweU1HZGlVazRyTTFCb1ZXSTBSbGgzV2xkVWQwTmFNR2RTY21waEsyZzRTeTk2VVRZeU1FaDVjVVp5YUhFMmRVZzJVbG80UjJwSGNrUmhTakJoV1ZRNU1XOTJRemRYY1RoeFUxTkpNMk1yY0VSV1FsVnNhV3hoT1ZkbFVrbElRWFZtTVZscGNEbHhVV1F4TjFwdlVDdEVabFUxYVhkcmRUZHVTRlpxTVdsSWNsVmtRbVJCYTJoUU0wdFVSWEZIVVZsbkx6ZGlSRTlpY1hoSllVeFpkM2hMU2pGRloyMDJTa2c1UlZoRmFuZzVkbTlRZVc1UVNVczJRazkxYmxGWWFVUnZha1JQTkhOVE1tVjVabGN3UzNKTVUyeHZXVmMyZFRSNFpra3pRM3ByVEdaWVQxcHdSME1yU2s5emRuUnRSR1ZCUW5sSmJFeDBjblJ1UjJkV1R6RmpibXhtUTBScWNuRm5NMmhpWjI5M1dqRktVV0V2TTFsRU1GTXpiMkoxT0ZCMmFFeDZTbFE1Y1VKaVdsSnFlRzAzZUd4SlRHNXNMM3BSUlZjMGMyRkpWM1pwYUROd1FtMHdVemRLVkRGRlMzRkRabHBaVm5oemQydG1RVkptYURVd1ZUSnVXR3g2YzNZcmVDdFBUWGhoVUZKVU1XUlFXazRyZERaelZFOU9WelZ0U0N0UlIxa3JkVVZ0WW5JMVJURndLMEozYm0xMmNuZzJSbWhsTTJkR1kwWjJZazgyUzIxQ1IyaFdVVFZGVEVzNVNVSlpOM0ZZWWxoUlpVMDRSVk5tT0c1Nk4wdDNTVVZyT0hGNGFUUkVjemcwT1dGQ2QyTnVkMHgyVVM5bGRsTm9aMkp6YUZORlF5dERUM1JtTVhwT1ZGUlZSWHBVVDNOa1VUVnpjeTl4UldOalR5dGlSRk5GVkROeFFsUlVlVFZaU1hBMVYzVTRNek5uYjFNMmRWUTFiaXRzZERsUWRDdGpaRTFhYVM5SGNEQjVhMnB3TkhCVVVHMXZWVlJXZDNCUlQyTnRNVlZLWlRKQmFtc3laSE42Vkd4dGRtRTJiV1ZZT0VWQmFtUlZNbFlyVDJOa2RtazVSRzF2ZFZGb2VYaERMelJUYVRsa2VXdENObU41VVU5amFWSnFUVzloYWl0R1ZrOTNUR1JUYVVSbWVtOVZaVWw2V1dWRGEyVmpPRnB5Ykc5Tkt6ZzBNbGRUZFVOb1YxVlJSamRDTlZJemVXNXpXVWQwVms1dFJFWTVRMWRwTkVaeFZERkpRa3N3ZFdOdWFIZGtjM2RGZHpZME0ya3haa3BRVG1SaFEyWklXWFZHZFVWS2MzbEtXVWRzU0hrelQydGtSakp5T1d0VFQySmtRblI0TUVvd2VFUkRUVTQyYUdJdlZHNUpVR3hFU3l0UVRUUjJRM2dyUlhSTFpUUndVMjlrWkhBclEzTjFOWEoxTm0xdE5YQndXVmREVW0xdVNGUlhNRGg1U2xWcGFESlJia2RoVTJ0eE0yUlBNbXBwWkVwS1F6UktNbXBPWlRaTFNIZHBTVGRXY25abVYwZFRkMjg1WTNGamFGWTRVSFZKWkdWd01VZHBNVzFzVEdWb2FYVjZVREphWmpCWmJEbHhMMVV3UkdodE0yUjRWekl6U1RsT1UwTXJaWGhyYkVaUFpTdG9OWEZXTjNKR2NuTkllRWN3UkVnMWJIVkRiM0pYZWk5S1ZtbGxWbmRsTkVjeWMyZDZiMGxITWxkRFdsbExOSGRpWjNORVJHRm9XV2RvWW5aYVV6UlRPRk5vU0ZOTVRqSTVLMnhoUXpWc2FtRTFiREYzTlhnMFFXbG1XR3hUYzFCUWRXSXZNR0pLZFZKUlpXbFdLelZsWlVOcE9Vb3dXblpxVUhSbmNtOHlOVlJhWTFwR1oyZGxiMk5qYURKT1kyMDJVWEpaZDJ4dVRuWTJlRU5DY1VaamQwTTRaSEZOYUhSQ01ESnpUREJ1YzA4NE9Wb3JVRTVZUVRsNFZHNHhOekJyWkd4Q2IzVlBVRmxzU0cwMFZFaFVTRlZXVVhCT2QwWkdUaTk0YjNKU2JUTk9keTluVjNwd1YySkxTR05NVlhOTmNrUmhheTlhU0hobGFrRnFiakZvT0ZWWkwzb3ZSMjFXU1dWeFRVb3pabUYxWVZWdWRsQkxSekpEYkRONFoxSlRNVE40TkZVPQ--",
+          "title": "The Boys (2019) S01E01"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/tv/tt1190634/1/1",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/tv/tt1190634/1/1"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/tv/tt1190634/1/1",
+          "error": "net::ERR_ABORTED at https://vidsrc.dev/embed/tv/tt1190634/1/1"
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/shows/view/1190634",
+          "error": "net::ERR_ABORTED at https://www.lookmovie2.to/shows/view/1190634"
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly HDTV",
+          "url": "https://ww1.goojara.to/go.php?url=TU9NR1lKRVQ0NTFtRUMyaTVCQTUyTUc2SVpWRTlSMkUxcytRamZyWDgrST0",
+          "goPhp": true
+        },
+        {
+          "source": "av1",
+          "label": "AV1.Opus HDTV",
+          "url": "https://ww1.goojara.to/go.php?url=Skp0RGRsNjFHUEppNUJqbXVDUDJ1QVlmSnUvdkVFbWtveGVrbjdwWERCZz0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo HDTV",
+          "url": "https://ww1.goojara.to/go.php?url=WmZMclMrUmtJQndMd0xYcTgzb0lZdEtDNE9oSmI3d2FBcjZRYmNka3JBNldqNGw2MVpoTEdsa1c1dHN3RjlCMw",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood HDTV",
+          "url": "https://ww1.goojara.to/go.php?url=WjZFc1IzUWtrMmhta0JPTU5zQUQ2WVNMd1JYUDRlMUpjQ2FxUUVhK1ZOZjBiaUEyVFVlVUgvM0oyWXFXT0RZLw",
+          "goPhp": true
+        },
+        {
+          "source": "streamplay",
+          "label": "streamplay HDTV",
+          "url": "https://ww1.goojara.to/go.php?url=YitmYlRGdjVOc2ljWHBYK3pVRGRHL3ZiNGdEQkt4M2RnWnFYNHVuRldDNG9CL3VKejBtMG5naXJ1bjFhZXNjUg",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:04:06.513Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt1190634",
+        "type": "tv",
+        "season": 1,
+        "episode": 1,
+        "streams": [
+          {
+            "source": "wootly",
+            "label": "wootly hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvdood hdtvluluvdo hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvluluvdo hdtvluluvdo hdtvvidsrc \n\n\n\n\n\nfunction _(a){return document.getelementbyid(a)}\nfunction _a(a){return document.queryselectorall(a)}\nfunction _b(a,b){return a.getattribute(b)}\nvar w = window.location.href;\n$();\nfunction $() {var _0xe3c4=[\"\\x35\\x20\\x61\\x3d\\x38\\x28\\x6f\\x28\\x22\\x41\\x22\\x29\\x2c\\x22\\x36\\x2d\\x42\\x22\\x29\\x2c\\x62\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x34\\x29\\x2c\\x63\\x3d\\x61\\x2e\\x70\\x28\\x37\\x2c\\x33\\x29\\x2b\\x62\\x2c\\x64\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x32\\x29\\x3b\\x43\\x28\\x32\\x2c\\x73\\x28\\x29\\x7b\\x71\\x28\\x35\\x20\\x65\\x3d\\x74\\x2e\\x75\\x2e\\x44\\x28\\x22\\x20\\x22\\x29\\x2c\\x66\\x3d\\x65\\x5b\\x64\\x5b\\x30\\x5d\\x5d\\x2e\\x45\\x28\\x29\\x2c\\x67\\x3d\\x65\\x5b\\x64\\x5b\\x31\\x5d\\x5d\\x2c\\x68\\x3d\\x22\\x6f\\x22\\x2b\\x66\\x5b\\x62\\x5b\\x30\\x5d\\x5d\\x2c\\x69\\x3d\\x67\\x5b\\x63\\x5b\\x30\\x5d\\x5d\\x2c\\x6a\\x3d\\x31\\x2c\\x6c\\x3d\\x62\\x2e\\x39\\x3b\\x6a\\x3c\\x6c\\x3b\\x6a\\x2b\\x2b\\x29\\x68\\x2b\\x3d\\x66\\x5b\\x62\\x5b\\x6a\\x5d\\x5d\\x3b\\x71\\x28\\x35\\x20\\x6d\\x3d\\x31\\x2c\\x6e\\x3d\\x63\\x2e\\x39\\x3b\\x6d\\x3c\\x6e\\x3b\\x6d\\x2b\\x2b\\x29\\x69\\x2b\\x3d\\x67\\x5b\\x63\\x5b\\x6d\\x5d\\x5d\\x3b\\x22\\x22\\x3d\\x3d\\x46\\x28\\x68\\x29\\x26\\x26\\x47\\x28\\x68\\x2c\\x6b\\x2e\\x48\\x28\\x69\\x29\\x2e\\x49\\x28\\x29\\x29\\x2c\\x4a\\x28\\x61\\x2c\\x73\\x28\\x29\\x7b\\x6f\\x28\\x22\\x4b\\x22\\x29\\x2e\\x4c\\x3d\\x74\\x2e\\x75\\x3b\\x35\\x20\\x61\\x3d\\x4d\\x28\\x22\\x4e\\x5b\\x36\\x2d\\x72\\x5d\\x22\\x29\\x2c\\x76\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x77\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x4f\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x76\\x2c\\x77\\x29\\x3b\\x71\\x28\\x35\\x20\\x62\\x3d\\x30\\x2c\\x79\\x3d\\x61\\x2e\\x39\\x3b\\x62\\x3c\\x79\\x3b\\x62\\x2b\\x2b\\x29\\x7b\\x35\\x20\\x63\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x7a\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x50\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x63\\x2c\\x7a\\x29\\x7d\\x7d\\x29\\x7d\\x29\",\"\\x7c\",\"\\x73\\x70\\x6c\\x69\\x74\",\"\\x7c\\x7c\\x7c\\x7c\\x7c\\x76\\x61\\x72\\x7c\\x64\\x61\\x74\\x61\\x7c\\x7c\\x5f\\x62\\x7c\\x6c\\x65\\x6e\\x67\\x74\\x68\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x5f\\x7c\\x73\\x75\\x62\\x73\\x74\\x72\\x7c\\x66\\x6f\\x72\\x7c\\x69\\x64\\x7c\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x7c\\x74\\x68\\x69\\x73\\x7c\\x72\\x65\\x73\\x70\\x6f\\x6e\\x73\\x65\\x54\\x65\\x78\\x74\\x7c\\x62\\x61\\x7c\\x63\\x61\\x7c\\x68\\x6f\\x73\\x74\\x7c\\x65\\x61\\x7c\\x67\\x61\\x7c\\x73\\x68\\x64\\x7c\\x69\\x6e\\x73\\x7c\\x6b\\x77\\x7c\\x73\\x70\\x6c\\x69\\x74\\x7c\\x74\\x6f\\x4c\\x6f\\x77\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x67\\x43\\x6b\\x7c\\x63\\x43\\x6b\\x7c\\x61\\x6d\\x75\\x7c\\x74\\x6f\\x55\\x70\\x70\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x73\\x74\\x6d\\x7c\\x76\\x64\\x6f\\x7c\\x69\\x6e\\x6e\\x65\\x72\\x48\\x54\\x4d\\x4c\\x7c\\x5f\\x61\\x7c\\x62\\x75\\x74\\x74\\x6f\\x6e\\x7c\\x66\\x65\\x74\\x63\\x68\\x7c\\x61\\x6a\\x61\\x78\\x42\\x74\\x6e\",\"\",\"\\x66\\x72\\x6f\\x6d\\x43\\x68\\x61\\x72\\x43\\x6f\\x64\\x65\",\"\\x72\\x65\\x70\\x6c\\x61\\x63\\x65\",\"\\x5c\\x77\\x2b\",\"\\x5c\\x62\",\"\\x67\"];eval(function(_0xfb46x1,_0xfb46x2,_0xfb46x3,_0xfb46x4,_0xfb46x5,_0xfb46x6){_0xfb46x5= function(_0xfb46x3){return (_0xfb46x3 35?string[_0xe3c4[5]](_0xfb46x3+ 29):_0xfb46x3.tostring(36))};if(!_0xe3c4[4][_0xe3c4[6]](/^/,string)){while(_0xfb46x3--){_0xfb46x6[_0xfb46x5(_0xfb46x3)]= _0xfb46x4[_0xfb46x3]|| _0xfb46x5(_0xfb46x3)};_0xfb46x4= [function(_0xfb46x5){return _0xfb46x6[_0xfb46x5]}];_0xfb46x5= function(){return _0xe3c4[7]};_0xfb46x3= 1};while(_0xfb46x3--){if(_0xfb46x4[_0xfb46x3]){_0xfb46x1= _0xfb46x1[_0xe3c4[6]]( new regexp(_0xe3c4[8]+ _0xfb46x5(_0xfb46x3)+ _0xe3c4[8],_0xe3c4[9]),_0xfb46x4[_0xfb46x3])}};return _0xfb46x1}(_0xe3c4[0],52,52,_0xe3c4[3][_0xe3c4[2]](_0xe3c4[1]),0,{}))}\nvar _0x401f=['\\x5cw+','0\\x201=\\x222.3.4\\x22;0\\x205=6.7.8;9(1!=5){6.7=\\x22a://2.3.4/\\x22}','split','tostring','var|myurl|ww1|goojara|to|currenturl|window|location|hostname|if|https'];(function(_0x264734,_0x401fee){var _0x39cdc1=function(_0x264302){while(--_0x264302){_0x264734['push'](_0x264734['shift']());}};_0x39cdc1(++_0x401fee);}(_0x401f,0x104));var _0x39cd=function(_0x264734,_0x401fee){_0x264734=_0x264734-0x0;var _0x39cdc1=_0x401f[_0x264734];return _0x39cdc1;};'use strict';var _0xc262=[_0x39cd('0x1'),'|',_0x39cd('0x2'),_0x39cd('0x4'),'replace','',_0x39cd('0x0'),'\\x5cb','g'];eval(function(_0x22527f,_0x639167,_0x48bb03,_0x3f2df8,_0x479216,_0x142a36){_0x479216=function(_0x25edb3){return _0x25edb3[_0x39cd('0x3')](_0x639167);};if(!_0xc262[0x5][_0xc262[0x4]](/^/,string)){for(;_0x48bb03--;){_0x142a36[_0x479216(_0x48bb03)]=_0x3f2df8[_0x48bb03]||_0x479216(_0x48bb03);}_0x3f2df8=[function(_0x41be82){return _0x142a36[_0x41be82];}];_0x479216=function(){return _0xc262[0x6];};_0x48bb03=0x1;}for(;_0x48bb03--;){if(_0x3f2df8[_0x48bb03]){_0x22527f=_0x22527f[_0xc262[0x4]](new regexp(_0xc262[0x7]+_0x479216(_0x48bb03)+_0xc262[0x7],_0xc262[0x8]),_0x3f2df8[_0x48bb03]);}}return _0x22527f;}(_0xc262[0x0],0xb,0xb,_0xc262[0x3][_0xc262[0x2]](_0xc262[0x1]),0x0,{}));\nfunction stm(a, b) {\n    var c = _b(_(\"res\"),\"data-ins\"),\n        d = _b(_(\"vdo\"),\"data-page\"),\n        e = k.amu(d + c + a).touppercase(),\n        f = k.amu(d + a),\n        g = new xmlhttprequest;\n    g.onreadystatechange = function() {\n        4 == g.readystate && 200 == g.status && \"function\" == typeof b && b.apply(g)\n    };\n    var q = _(\"borg\")?0:_b(_(\"imdb\"),\"data-ubv\");\n    var h = w + \"?p=2&sig=\" + e + \"&exp=\" + c,\n        i = \"act=2&ogn=\" + d + \"&hash=\" + f + \"&ub=\"+q;\n    g.open(\"post\", h, !0), g.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\"), g.send(i)\n}\n\nfunction kw(c, b) {\n    var a = new xmlhttprequest;\n    a.onreadystatechange = function() {\n        4 == a.readystate && 200 == a.status && \"function\" === typeof b && b.apply(a)\n    };\n    a.open(\"post\", w + \"?p=\" + c, !0);\n    a.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\");\n    a.send(\"act=1\")\n}\n\nfunction fetch(a, b, c) {\n    var d = _(\"vidcon\"),\n        ischrome = window.chrome != null && window.navigator.vendor === \"google inc.\",\n        e = new xmlhttprequest;\n    e.onreadystatechange = function() {\n        if (4 == e.readystate && 200 == e.status) {\n            d.innerhtml = e.responsetext;\n            for (var b = document.queryselectorall(\"button[data-id]\"), c = 0, f = b.length; c 0&&(c_start=document.cookie.indexof(a+\"=\"),c_start!=-1)?(c_start=c_start+a.length+1,c_end=document.cookie.indexof(\";\",c_start),c_end==-1&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):\"\"} var k={amu:function(a,e){var f=object.assign({g:\"string\",h:\"hex\"},e);switch(f.g){default:case \"string\":a=k.i(a);break;case \"hex-bytes\":a=k.f(a)}var g=[1518500249,1859775393,2400959708,3395469782],b=[1732584193,4023233417,2562383102,271733878,3285377520];a+=string.fromcharcode(128);for(var l=math.ceil((a.length/4+2)/16),m=array(l),h=0;hd;d++)m[h][d]=a.charcodeat(64*h+4*d)c;c++)d[c]=m[h][c];for(c=16;80>c;c++)d[c]=k.a(d[c-3]^d[c-8]^d[c-14]^d[c-16],1);for(var n=b[0],p=b[1],q=b[2],r=b[3],u=b[4],c=0;80>c;c++)var t=math.floor(c/20),t=k.a(n,5)+k.c(t,p,q,r)+u+g[t]+d[c]>>>0,u=r,r=q,q=k.a(p,30)>>>0,p=n,n=t;b[0]=b[0]+n>>>0;b[1]=b[1]+p>>>0;b[2]=b[2]+q>>>0;b[3]=b[3]+r>>>0;b[4]=b[4]+u>>>0}for(g=0;g>>32-e},i:function(a){return unescape(encodeuricomponent(a))},f:function(a){a=a.replace(\" \",\"\");for(var e=\"\",f=0;f\n\n\r\ngoojara",
+            "hostUrl": null,
+            "status": "dead",
+            "directUrl": null
+          }
+        ]
+      }
+    },
+    "tt0371746": {
+      "tmdbId": 497698,
+      "imdbId": "tt0371746",
+      "title": "Iron Man (2008)",
+      "type": "movie",
+      "franchise": "Marvel Cinematic Universe",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0371746",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0371746",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0371746",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0371746",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0371746/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0371746",
+          "error": "Navigation timeout of 18000 ms exceeded"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0371746",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=5fufu8feiafx",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly DVD",
+          "url": "https://ww1.goojara.to/go.php?url=Zk5UWjNOWXM0aE5uMFBZNnFLazNqOWtUenlYLzFMejNmVFgzUXdjeWhFaz0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo DVD",
+          "url": "https://ww1.goojara.to/go.php?url=SlJiSEFYSUlsSzh1RElFaE55S01UZjJpMjBMdEJyY1pUMEJvZnJlVGowZDM5VEtoNTBYOGk0U3VjcVBTU1JBSw",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood DVD",
+          "url": "https://ww1.goojara.to/go.php?url=QzFmSTVLTElURjVSK1JySlZrT0pZMTlucEZYMTNNQVFsM29EWUhZRU5wVkFXMUw4UkRFdXlZVkJHUmQ4ajd4Lw",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:04:13.597Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0371746",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [
+          {
+            "source": "wootly",
+            "label": "wootly dvdluluvdo dvddood dvddood dvddood dvdluluvdo dvddood dvdluluvdo dvdluluvdo dvdluluvdo dvddood dvdluluvdo dvddood dvddood dvdluluvdo dvddood dvdluluvdo dvddood dvdluluvdo dvddood dvdluluvdo dvdluluvdo dvdluluvdo dvddood dvdluluvdo dvdluluvdo dvddood dvdluluvdo dvdvidsrc \n\n\n\n\n\nfunction _(a){return document.getelementbyid(a)}\nfunction _a(a){return document.queryselectorall(a)}\nfunction _b(a,b){return a.getattribute(b)}\nvar w = window.location.href;\nfunction stm(a, b) {\n    var c = _b(_(\"res\"),\"data-ins\"),\n        d = _b(_(\"vdo\"),\"data-page\"),\n        e = k.amu(d + c + a).touppercase(),\n        f = k.amu(d + a),\n        g = new xmlhttprequest;\n    g.onreadystatechange = function() {\n        4 == g.readystate && 200 == g.status && \"function\" == typeof b && b.apply(g)\n    };\n    var q = _(\"borg\")?0:_b(_(\"imdb\"),\"data-ubv\");\n    var h = w + \"?p=2&sig=\" + e + \"&exp=\" + c,\n        i = \"act=2&ogn=\" + d + \"&hash=\" + f + \"&ub=\"+q;\n    g.open(\"post\", h, !0), g.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\"), g.send(i)\n}\n\nfunction kw(c, b) {\n    var a = new xmlhttprequest;\n    a.onreadystatechange = function() {\n        4 == a.readystate && 200 == a.status && \"function\" === typeof b && b.apply(a)\n    };\n    a.open(\"post\", w + \"?p=\" + c, !0);\n    a.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\");\n    a.send(\"act=1\")\n}\n\nfunction fetch(a, b, c) {\n    var ischrome = window.chrome != null && window.navigator.vendor === \"google inc.\";\n    var d = _(\"vidcon\"),\n        e = new xmlhttprequest;\n    e.onreadystatechange = function() {\n        if (4 == e.readystate && 200 == e.status) {\n            d.innerhtml = e.responsetext;\n            for (var b = document.queryselectorall(\"button[data-id]\"), c = 0, f = b.length; c 0&&(c_start=document.cookie.indexof(a+\"=\"),c_start!=-1)?(c_start=c_start+a.length+1,c_end=document.cookie.indexof(\";\",c_start),c_end==-1&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):\"\"} var k={amu:function(a,e){var f=object.assign({g:\"string\",h:\"hex\"},e);switch(f.g){default:case \"string\":a=k.i(a);break;case \"hex-bytes\":a=k.f(a)}var g=[1518500249,1859775393,2400959708,3395469782],b=[1732584193,4023233417,2562383102,271733878,3285377520];a+=string.fromcharcode(128);for(var l=math.ceil((a.length/4+2)/16),m=array(l),h=0;hd;d++)m[h][d]=a.charcodeat(64*h+4*d)c;c++)d[c]=m[h][c];for(c=16;80>c;c++)d[c]=k.a(d[c-3]^d[c-8]^d[c-14]^d[c-16],1);for(var n=b[0],p=b[1],q=b[2],r=b[3],u=b[4],c=0;80>c;c++)var t=math.floor(c/20),t=k.a(n,5)+k.c(t,p,q,r)+u+g[t]+d[c]>>>0,u=r,r=q,q=k.a(p,30)>>>0,p=n,n=t;b[0]=b[0]+n>>>0;b[1]=b[1]+p>>>0;b[2]=b[2]+q>>>0;b[3]=b[3]+r>>>0;b[4]=b[4]+u>>>0}for(g=0;g>>32-e},i:function(a){return unescape(encodeuricomponent(a))},f:function(a){a=a.replace(\" \",\"\");for(var e=\"\",f=0;f 35?string[_0xe3c4[5]](_0xfb46x3+ 29):_0xfb46x3.tostring(36))};if(!_0xe3c4[4][_0xe3c4[6]](/^/,string)){while(_0xfb46x3--){_0xfb46x6[_0xfb46x5(_0xfb46x3)]= _0xfb46x4[_0xfb46x3]|| _0xfb46x5(_0xfb46x3)};_0xfb46x4= [function(_0xfb46x5){return _0xfb46x6[_0xfb46x5]}];_0xfb46x5= function(){return _0xe3c4[7]};_0xfb46x3= 1};while(_0xfb46x3--){if(_0xfb46x4[_0xfb46x3]){_0xfb46x1= _0xfb46x1[_0xe3c4[6]]( new regexp(_0xe3c4[8]+ _0xfb46x5(_0xfb46x3)+ _0xe3c4[8],_0xe3c4[9]),_0xfb46x4[_0xfb46x3])}};return _0xfb46x1}(_0xe3c4[0],52,52,_0xe3c4[3][_0xe3c4[2]](_0xe3c4[1]),0,{}))}\n\n\n\r\ngoojara",
+            "hostUrl": null,
+            "status": "dead",
+            "directUrl": null
+          }
+        ]
+      }
+    },
+    "tt0145487": {
+      "tmdbId": 557,
+      "imdbId": "tt0145487",
+      "title": "Spider-Man (2002)",
+      "type": "movie",
+      "franchise": "Marvel Cinematic Universe",
+      "embeds": {
+        "vidsrcpm": {
+          "working": "",
+          "url": "https://vidsrc.pm/embed/movie/tt0145487",
+          "iframeSrc": "",
+          "title": "StreamEmbed - Free Video & File Hosting"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0145487",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0145487",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0145487/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0145487",
+          "error": "Navigation timeout of 18000 ms exceeded"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0145487",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=an42mdsf4beu",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:04:53.569Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0145487",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt4154756": {
+      "tmdbId": 299524,
+      "imdbId": "tt4154756",
+      "title": "Infinity War (2018)",
+      "type": "movie",
+      "franchise": "Marvel Cinematic Universe",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt4154756",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt4154756",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt4154756",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt4154756",
+          "title": "Player"
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt4154756",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt4154756/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt4154756",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt4154756"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/4154756",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=droyt7ae48t8",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly DVD",
+          "url": "https://ww1.goojara.to/go.php?url=enppK1pJT25YcGJMMlJMclhtMzV1V0VNVzhCUFQreWR4eTFFVkFFOHVkcz0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo DVD",
+          "url": "https://ww1.goojara.to/go.php?url=bk05NCt0dGNPblF5Q29kVUtjU21jYVBJaGxrOWs4Skw5dXVrQzlFMGh0MnJNbkhydU83VnoySmcrQkJxb1Z4SQ",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood DVD",
+          "url": "https://ww1.goojara.to/go.php?url=NmJHUUZ4NDkzZytSRGgyak1lTnRHTVZjaE1aSnQyUnN1YXV3aCtQRFh4QjRpUHd5ZnVNOFJrYmh4ZVF1dlFoZQ",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:05:42.297Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt4154756",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt4154796": {
+      "tmdbId": 299519,
+      "imdbId": "tt4154796",
+      "title": "Endgame (2019)",
+      "type": "movie",
+      "franchise": "Marvel Cinematic Universe",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt4154796",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt4154796",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt4154796",
+          "iframeSrc": "https://cloudnestra.com/rcp/ODk1NTExNDg2OWNhYzM1MWIzZGYxZTUxMGE5ZGM2OWI6T1cwdk9IUXhPRzlVWWtwSFlVNVBlRzlVT0hSS2JrbHNSM0UxVVZkaGVqYzRjazlQZGsxaUszcDFOR1EzZWpKak1WQnVaVTk1TTFOWlRYcFROVWxGZUZWa1FXTXlVbmRVYjBkNVYxY3JRbkk0VG5VelJuRlZhbWg1TlU4MlZVRnNPRWhpVlRSdFVERlJNSEpUVDNsRlVYWk9Ua3A0ZEZKelVpOVlhekZZTlUxVFpuWm5lR1puWnpJMmFUWlJObGRuVlRSVFRuTTRkRU5MVGxCU05rUTRkazQzVlZGUVJWSmhhbEZQTWpoV2NtZHBUR0oxVUU1UmNrcHNlbXRwV1V0TVJXdG5jVEZFTkVodE5FMWFOVWhIUjJwU2RWQnpiMWsxWTJoSGJFbzRVbEZSSzNSME0xTm5XbU5YVTI1VVRYaHFVakZ6TVhsbWQySmlOM2N5YUhGTGFETlpiVWhKT0RKaWNFMVRNMmg1VjJKdVUxaFNSR1JaTkdoUFpFZExjMnBVYVRacWVtSm9hRGRsZGpKQmNYTkNaMEl3VjJNMlltcEJiM0ptV0hKSk1pdGpiRWRTVDBSWE1FTmxWRFZYUnl0NkwyWmlhM0ZqTW1SVlNUZDFNSEpEVVRjNFNUTnljblZPWjJoRVVIWmhaR3hOYkRSR1lVNDFSVE5wTWs5SUsyVkdLMHhtZUVwTVpYcG5WM1ZqTTA1bk5HbHdVRkZJTTFoR1VtbFdZMmRUU1d4VlV6TnZPV0ZrUmxsRGNqWlpVWGh2Y1hoWWFXWTRhM0EzWkRKbFREVm9OQzh6V0dvdk0ybGthM1UzWWxWbFIxRlhWMjB3VHpGbU1YZzJWM2xGZGxGYWNIUTBVM2xIY3pkV05rODFVakpQVjFwTlpuTnBhVTByVVZWTlpVMXRibXBoY1ZwVmQzZ3JaelJXY2t4SWMyazBVMkpJWXpKa2RUbEpNVGxCY1RrcmJVVnFSbGRrVjB4aFZWSTFSR2hRVnpkT1dsQndNVzQ0WXpacFFVSm1RM1E0UlVNeUsxRnRVMXB5VWxwaFRYQnZSbHA0WjFOa1JYaEthMFpHV2poWFRIZ3ZWWFZJTDJ3dmNtOU5aa3BrZGxKdlUxVTJiRU01U2pOVlVERlhlbFY2V1d0NFNuRlZUM2hUZEdWNmIxTnFSSE5YYUVoV1lpOVJiRnBpVkVSbk1UUktXR2szYmtocmVXUnNia3AwWkRCc1VsQldhMFV4VGtNd1lYUndkRE51VldobFJreFpZV3dyV2pJMFl6QlhXRGhCVWpocVJ5dE1Uekp4Vmk5clFuVXJhMjFVYURWMGRXcE5NamcyVjIxQllqQnRRelZFTDIxeFZTOTJWMlprY2pkQk9XeEVUME5CT1dOUlQyeGpLMEYwUkhWVFVrVnZaMlZ5TDNoUk4xVnhORkEyT1dsUFdXRlZZVzVPVFZRMVVXSnNRa1I1VWtwUWVGaEVaVzlWVkV0eUt5OHJibTF0ZURSaU4wMUhZMkpNVlM5TGEyTldNRVZxYlRaMFNHaEZZMVp0TVdkTWJXSjNWRTh5VkhFMmJEZzFkak5OTVhablJEbHRlRWRtT1hGMmRIRllRbVZGZVhOQ2MySmpUbWRQUXpZM1ZDdEtWalZMY1doRlluQkJTVFJaZWpOVmVISjRTbUV3ZFhsTGNUaHJPV3d2UjJrNWQxTldNemQzWW1aQmFYaHRTMGQwZGs1MVpXRkVVVEZzWTJsSVUyaHRka0ppVWpoR2FUQjZWelpuYzFOa2VXVnhOa3RNT0V3NVYxTm9lVkJVWlhWUFdqUlpRMUF5UlhocFp6TktUelZQTTJwQk9YSjBXVkE0T0V4RU9YWnFSRGg0Y2pSMVJqZFBXamw2TTFOMU5GTXJibkZMYUhWSmVpdG5UamxpYW5oemEzRkxRVTFwZEc5WmVXUllZVFZzSzA5S01UQjJXRmxFT1hGM2IybFZRMjlTY1RGd09VZFpSRTlvTTJwNk4wZ3ZXVkZLUXpscmF5OHdNbWczVldwM2Myc3lSRTBySzBaUE5UazBTVFJMVldadE1Xd3lkbEZ1TW1GNlNreGhURFJ5UnpOWk5HODBWRlJRTDIxeVNFbEhhM0Y1Um10SlMwbFRkRmc1ZDIwclpHdEZjWFZUWTFSU1ZWUXhVVEZqYWpoUk5XeFZOUzlJZFRjeU1YTlVNVlZsVVVzM2FsRTlQUT09",
+          "title": "Avengers: Endgame (2019)"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/movie/tt4154796",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/movie/tt4154796"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt4154796",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt4154796"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/4154796",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=umhqd3gi8vwv",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:06:03.896Z",
+      "idVerified": false,
+      "streamApi": {
+        "imdb": "tt4154796",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt2395427": {
+      "tmdbId": 299522,
+      "imdbId": "tt2395427",
+      "title": "Winter Soldier (2014)",
+      "type": "movie",
+      "franchise": "Marvel Cinematic Universe",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt2395427",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt2395427",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt2395427",
+          "iframeSrc": "https://cloudnestra.com/rcp/ODI0NDkyMDNhNjdmMzFiOGEyYzAyYWVkOGFkODQxZjc6V0hwdU9Vc3lVR2hNY2xOYWNGTkhaRVJUTldWR2JrRXJSSE0wVkRCUlRFSnJjRkZwVkZCVFpEVTBTVWc0VVU5WVNHVlpVV2QyT1hwbU5UUXZhVFJ3T1RRd1ZsRkxSWGQ1VDNCeGVqbERjekZ5YlZsb2IxQXlWaTlzUVRCcWFFeEhNV3N5T0RCclIzSkhSa3B6VjBndmEzbHZTVEEzUm1GaFJUWktjamd3U2tKSlUyaEhOakEzTm1KS1RHWktURFl2WjJZeGRHeFZURWhpZUhoWlIyZENaMU5vVEVGV1dGTnpSV1owY1hJME1IUmFWSE5VUlRsTFNrc3hhWGg2TlhGRVdqbE5hekJYYW5wcldURmFVbVpMU2xrd1dYTnJjR0l3VVhsWVdEaEdkSGhOVlVwVk4ySlRLMWN3SzNwaE9UbExialpLU25aU1ZVWlRWV3g0YUROUWJIZFJNMmhCVTJKa1ZtRjNTMnhwTmpGQ1IzRk1OelYwYjFnNFlrRjRlVVZLTW1GdFJVMUNTbmx3VWtobGFGbFdjMVoxU3pVMk1qUjRkRzEyZUU0NVFYWnJXamxVYTI5MVFqRTBOMEZ6ZFVOWFZFaHFMek52VTJsUUwyOUhOVU5vVW5oSE1WTkdaalV6WjFBMGIxVlNUR2RDSzFveE5XOWFWbTVWZGk5alNEQnJhMDVwWnpkTWVtMDNNakExYW1KS2JqVkljWGs0VEdrMFFYZEJkMkpJZHpKaU9YUTBSbU5IYldvcmJrRldWR3hzZEVsWVZXWTBWR2t4TW5KNGFWWXZWaTlQYm1KbFV6QjVWRVJEVFZobE5HTXhkRE51Vm1WUVRVZFJOMFpxZWpOeE5tOHpRalZyWlZBMmVYUXZXWE5uVkhJclJEbFJPVzl5YUZKUloxVlVhQzgxZFZZeFUyMHdVMFpRVWtSb2VuTlJTM1ozYUdneVIycFJiVUZqWkVaUVp6TlpVVmR6VG1JNGVtRlRPV1l5TDJSd2RscHNaVmQwYW1FMFpGVkRUVWs1Um1RM1FVTjNWak5GUm1oc2NGQnhXSEpoUkdGdmNsQTJTV2g1T1hvck5uQmxUVzVQZVROWFNtbzRXSFZvVDBONk9FTmhaVWh3ZGtONVJHNUlkakV4WTBadFppdFVaMVI0VmsxbU1ITjRMemQ1V0d4YVoybFdWMWhaYjJWNUwyeHliR1Z3YzI4dlUxWnFRelJxYVdwVE9DdFZNalpZZDBGTlIxTnVRekp0YUV4YVZUQnBMMjFPTWtscFFYWXdWMmRNTjJ4UE1XbDRNRmhaTm5wRVR6RllSeTlOY0M5cGRrUk9ZMnc0U3lzeUwwNHdUVGRQZGxWV1dIQmxNbGx1TW14WFVWZHBaa2xZUmpsYVRISklRMnB0TUZrd1VqVTRVQ3RQYTA1c1MzaE9LMFZKWldKVFdFUXlNbGh1WldkSVMySnpaMmRuYUVseGFESlphazFMYnpKRVFqWlBjRWRZTUdsek1rNHJhR1JLYlhWTmNXSk9URVZPY1VwM01pdFhOVE5OZFhGU2FYVlROVzVLSzFvNEwwcGpiREJQVEN0dWJtSnFkMVpNTTIxV1NIUnlNa2N6TTFCaVQzZGpUbVpEY2tkVlRqQkRUQzlDVG1rNEwwNUJkVUZzVTBsalIzSkJWeTl6VjJKWE5uTk1ZMG81U1VSVEsydHRNWFF4ZGpFMlpHSm5SVXMyT1habVRsTklUSEEzV21GNGFtOXdTQ3RFVkVFMVdYUkJSWEpwU0UxVk1VZFZkR3BwTDFaWlRHNU1jRWMwVjNSRWJFaDZUbVY1T0V0M04yaHBOemhrTm5KUWNuUlZVWEJyZFVWTlRHUXJXSFZ4VVc5NWIwWmxVa1p2Tm5sRU4zbEpSMWwzU1c1cmJsZGhRa05XTTI4dlVEaEdaMUZoZEZoWVVIazFabEJtZUVnNGVGUnViMlV4ZGxoTE5VaDBZMk5QWldJMGRHeEhUbGxMVkVGWk1USkpaVWsxUjI5NlQyMU9ZMWxTTkZsYWRITnNaSEkyYVhrck5EbFhUMk5EUkZoVlNqRlpTVFZ3YUV0VVJFbGlaWE5uY0hod1EwYzFVemREZVRaNGVuZGFaRlZ2WVhwU04wWllZMkUwY1dGR1ZYTkphMUJRYkZWbWNHNWhNRlJWWWxjNU9WUXZSbFZrUTFwMFpXMU5Na2h5WWpkRlRFRTlQUT09",
+          "title": "Avengers: Age of Ultron (2015)"
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt2395427",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt2395427",
+          "title": "Player"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt2395427",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt2395427"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/2395427",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=5n525lnix7ga",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:06:25.510Z",
+      "idVerified": false,
+      "streamApi": {
+        "imdb": "tt2395427",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt4574334": {
+      "tmdbId": 66203,
+      "imdbId": "tt4574334",
+      "title": "Stranger Things",
+      "type": "tv",
+      "franchise": "Stranger Things",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/tv/tt4574334/1/1",
+          "iframeSrc": "https://brightpathsignals.com/embed/tv/tt4574334/1/1",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/tv/tt4574334/1/1",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/tv/tt4574334/1/1",
+          "iframeSrc": "https://vsembed.ru/embed/tv/tt4574334/1-1",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/tv/tt4574334/1/1",
+          "error": "Navigation timeout of 18000 ms exceeded"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/shows/view/4574334",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=fxpeqhhj8ds6",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:06:46.528Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt4574334",
+        "type": "tv",
+        "season": 1,
+        "episode": 1,
+        "streams": [
+          {
+            "source": "wootly",
+            "label": "wootly hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvdood hdtvluluvdo hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvluluvdo hdtvluluvdo hdtvvidsrc \n\n\n\n\n\nfunction _(a){return document.getelementbyid(a)}\nfunction _a(a){return document.queryselectorall(a)}\nfunction _b(a,b){return a.getattribute(b)}\nvar w = window.location.href;\n$();\nfunction $() {var _0xe3c4=[\"\\x35\\x20\\x61\\x3d\\x38\\x28\\x6f\\x28\\x22\\x41\\x22\\x29\\x2c\\x22\\x36\\x2d\\x42\\x22\\x29\\x2c\\x62\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x34\\x29\\x2c\\x63\\x3d\\x61\\x2e\\x70\\x28\\x37\\x2c\\x33\\x29\\x2b\\x62\\x2c\\x64\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x32\\x29\\x3b\\x43\\x28\\x32\\x2c\\x73\\x28\\x29\\x7b\\x71\\x28\\x35\\x20\\x65\\x3d\\x74\\x2e\\x75\\x2e\\x44\\x28\\x22\\x20\\x22\\x29\\x2c\\x66\\x3d\\x65\\x5b\\x64\\x5b\\x30\\x5d\\x5d\\x2e\\x45\\x28\\x29\\x2c\\x67\\x3d\\x65\\x5b\\x64\\x5b\\x31\\x5d\\x5d\\x2c\\x68\\x3d\\x22\\x6f\\x22\\x2b\\x66\\x5b\\x62\\x5b\\x30\\x5d\\x5d\\x2c\\x69\\x3d\\x67\\x5b\\x63\\x5b\\x30\\x5d\\x5d\\x2c\\x6a\\x3d\\x31\\x2c\\x6c\\x3d\\x62\\x2e\\x39\\x3b\\x6a\\x3c\\x6c\\x3b\\x6a\\x2b\\x2b\\x29\\x68\\x2b\\x3d\\x66\\x5b\\x62\\x5b\\x6a\\x5d\\x5d\\x3b\\x71\\x28\\x35\\x20\\x6d\\x3d\\x31\\x2c\\x6e\\x3d\\x63\\x2e\\x39\\x3b\\x6d\\x3c\\x6e\\x3b\\x6d\\x2b\\x2b\\x29\\x69\\x2b\\x3d\\x67\\x5b\\x63\\x5b\\x6d\\x5d\\x5d\\x3b\\x22\\x22\\x3d\\x3d\\x46\\x28\\x68\\x29\\x26\\x26\\x47\\x28\\x68\\x2c\\x6b\\x2e\\x48\\x28\\x69\\x29\\x2e\\x49\\x28\\x29\\x29\\x2c\\x4a\\x28\\x61\\x2c\\x73\\x28\\x29\\x7b\\x6f\\x28\\x22\\x4b\\x22\\x29\\x2e\\x4c\\x3d\\x74\\x2e\\x75\\x3b\\x35\\x20\\x61\\x3d\\x4d\\x28\\x22\\x4e\\x5b\\x36\\x2d\\x72\\x5d\\x22\\x29\\x2c\\x76\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x77\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x4f\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x76\\x2c\\x77\\x29\\x3b\\x71\\x28\\x35\\x20\\x62\\x3d\\x30\\x2c\\x79\\x3d\\x61\\x2e\\x39\\x3b\\x62\\x3c\\x79\\x3b\\x62\\x2b\\x2b\\x29\\x7b\\x35\\x20\\x63\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x7a\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x50\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x63\\x2c\\x7a\\x29\\x7d\\x7d\\x29\\x7d\\x29\",\"\\x7c\",\"\\x73\\x70\\x6c\\x69\\x74\",\"\\x7c\\x7c\\x7c\\x7c\\x7c\\x76\\x61\\x72\\x7c\\x64\\x61\\x74\\x61\\x7c\\x7c\\x5f\\x62\\x7c\\x6c\\x65\\x6e\\x67\\x74\\x68\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x5f\\x7c\\x73\\x75\\x62\\x73\\x74\\x72\\x7c\\x66\\x6f\\x72\\x7c\\x69\\x64\\x7c\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x7c\\x74\\x68\\x69\\x73\\x7c\\x72\\x65\\x73\\x70\\x6f\\x6e\\x73\\x65\\x54\\x65\\x78\\x74\\x7c\\x62\\x61\\x7c\\x63\\x61\\x7c\\x68\\x6f\\x73\\x74\\x7c\\x65\\x61\\x7c\\x67\\x61\\x7c\\x73\\x68\\x64\\x7c\\x69\\x6e\\x73\\x7c\\x6b\\x77\\x7c\\x73\\x70\\x6c\\x69\\x74\\x7c\\x74\\x6f\\x4c\\x6f\\x77\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x67\\x43\\x6b\\x7c\\x63\\x43\\x6b\\x7c\\x61\\x6d\\x75\\x7c\\x74\\x6f\\x55\\x70\\x70\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x73\\x74\\x6d\\x7c\\x76\\x64\\x6f\\x7c\\x69\\x6e\\x6e\\x65\\x72\\x48\\x54\\x4d\\x4c\\x7c\\x5f\\x61\\x7c\\x62\\x75\\x74\\x74\\x6f\\x6e\\x7c\\x66\\x65\\x74\\x63\\x68\\x7c\\x61\\x6a\\x61\\x78\\x42\\x74\\x6e\",\"\",\"\\x66\\x72\\x6f\\x6d\\x43\\x68\\x61\\x72\\x43\\x6f\\x64\\x65\",\"\\x72\\x65\\x70\\x6c\\x61\\x63\\x65\",\"\\x5c\\x77\\x2b\",\"\\x5c\\x62\",\"\\x67\"];eval(function(_0xfb46x1,_0xfb46x2,_0xfb46x3,_0xfb46x4,_0xfb46x5,_0xfb46x6){_0xfb46x5= function(_0xfb46x3){return (_0xfb46x3 35?string[_0xe3c4[5]](_0xfb46x3+ 29):_0xfb46x3.tostring(36))};if(!_0xe3c4[4][_0xe3c4[6]](/^/,string)){while(_0xfb46x3--){_0xfb46x6[_0xfb46x5(_0xfb46x3)]= _0xfb46x4[_0xfb46x3]|| _0xfb46x5(_0xfb46x3)};_0xfb46x4= [function(_0xfb46x5){return _0xfb46x6[_0xfb46x5]}];_0xfb46x5= function(){return _0xe3c4[7]};_0xfb46x3= 1};while(_0xfb46x3--){if(_0xfb46x4[_0xfb46x3]){_0xfb46x1= _0xfb46x1[_0xe3c4[6]]( new regexp(_0xe3c4[8]+ _0xfb46x5(_0xfb46x3)+ _0xe3c4[8],_0xe3c4[9]),_0xfb46x4[_0xfb46x3])}};return _0xfb46x1}(_0xe3c4[0],52,52,_0xe3c4[3][_0xe3c4[2]](_0xe3c4[1]),0,{}))}\nvar _0x401f=['\\x5cw+','0\\x201=\\x222.3.4\\x22;0\\x205=6.7.8;9(1!=5){6.7=\\x22a://2.3.4/\\x22}','split','tostring','var|myurl|ww1|goojara|to|currenturl|window|location|hostname|if|https'];(function(_0x264734,_0x401fee){var _0x39cdc1=function(_0x264302){while(--_0x264302){_0x264734['push'](_0x264734['shift']());}};_0x39cdc1(++_0x401fee);}(_0x401f,0x104));var _0x39cd=function(_0x264734,_0x401fee){_0x264734=_0x264734-0x0;var _0x39cdc1=_0x401f[_0x264734];return _0x39cdc1;};'use strict';var _0xc262=[_0x39cd('0x1'),'|',_0x39cd('0x2'),_0x39cd('0x4'),'replace','',_0x39cd('0x0'),'\\x5cb','g'];eval(function(_0x22527f,_0x639167,_0x48bb03,_0x3f2df8,_0x479216,_0x142a36){_0x479216=function(_0x25edb3){return _0x25edb3[_0x39cd('0x3')](_0x639167);};if(!_0xc262[0x5][_0xc262[0x4]](/^/,string)){for(;_0x48bb03--;){_0x142a36[_0x479216(_0x48bb03)]=_0x3f2df8[_0x48bb03]||_0x479216(_0x48bb03);}_0x3f2df8=[function(_0x41be82){return _0x142a36[_0x41be82];}];_0x479216=function(){return _0xc262[0x6];};_0x48bb03=0x1;}for(;_0x48bb03--;){if(_0x3f2df8[_0x48bb03]){_0x22527f=_0x22527f[_0xc262[0x4]](new regexp(_0xc262[0x7]+_0x479216(_0x48bb03)+_0xc262[0x7],_0xc262[0x8]),_0x3f2df8[_0x48bb03]);}}return _0x22527f;}(_0xc262[0x0],0xb,0xb,_0xc262[0x3][_0xc262[0x2]](_0xc262[0x1]),0x0,{}));\nfunction stm(a, b) {\n    var c = _b(_(\"res\"),\"data-ins\"),\n        d = _b(_(\"vdo\"),\"data-page\"),\n        e = k.amu(d + c + a).touppercase(),\n        f = k.amu(d + a),\n        g = new xmlhttprequest;\n    g.onreadystatechange = function() {\n        4 == g.readystate && 200 == g.status && \"function\" == typeof b && b.apply(g)\n    };\n    var q = _(\"borg\")?0:_b(_(\"imdb\"),\"data-ubv\");\n    var h = w + \"?p=2&sig=\" + e + \"&exp=\" + c,\n        i = \"act=2&ogn=\" + d + \"&hash=\" + f + \"&ub=\"+q;\n    g.open(\"post\", h, !0), g.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\"), g.send(i)\n}\n\nfunction kw(c, b) {\n    var a = new xmlhttprequest;\n    a.onreadystatechange = function() {\n        4 == a.readystate && 200 == a.status && \"function\" === typeof b && b.apply(a)\n    };\n    a.open(\"post\", w + \"?p=\" + c, !0);\n    a.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\");\n    a.send(\"act=1\")\n}\n\nfunction fetch(a, b, c) {\n    var d = _(\"vidcon\"),\n        ischrome = window.chrome != null && window.navigator.vendor === \"google inc.\",\n        e = new xmlhttprequest;\n    e.onreadystatechange = function() {\n        if (4 == e.readystate && 200 == e.status) {\n            d.innerhtml = e.responsetext;\n            for (var b = document.queryselectorall(\"button[data-id]\"), c = 0, f = b.length; c 0&&(c_start=document.cookie.indexof(a+\"=\"),c_start!=-1)?(c_start=c_start+a.length+1,c_end=document.cookie.indexof(\";\",c_start),c_end==-1&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):\"\"} var k={amu:function(a,e){var f=object.assign({g:\"string\",h:\"hex\"},e);switch(f.g){default:case \"string\":a=k.i(a);break;case \"hex-bytes\":a=k.f(a)}var g=[1518500249,1859775393,2400959708,3395469782],b=[1732584193,4023233417,2562383102,271733878,3285377520];a+=string.fromcharcode(128);for(var l=math.ceil((a.length/4+2)/16),m=array(l),h=0;hd;d++)m[h][d]=a.charcodeat(64*h+4*d)c;c++)d[c]=m[h][c];for(c=16;80>c;c++)d[c]=k.a(d[c-3]^d[c-8]^d[c-14]^d[c-16],1);for(var n=b[0],p=b[1],q=b[2],r=b[3],u=b[4],c=0;80>c;c++)var t=math.floor(c/20),t=k.a(n,5)+k.c(t,p,q,r)+u+g[t]+d[c]>>>0,u=r,r=q,q=k.a(p,30)>>>0,p=n,n=t;b[0]=b[0]+n>>>0;b[1]=b[1]+p>>>0;b[2]=b[2]+q>>>0;b[3]=b[3]+r>>>0;b[4]=b[4]+u>>>0}for(g=0;g>>32-e},i:function(a){return unescape(encodeuricomponent(a))},f:function(a){a=a.replace(\" \",\"\");for(var e=\"\",f=0;f\n\n\r\ngoojara",
+            "hostUrl": null,
+            "status": "dead",
+            "directUrl": null
+          }
+        ]
+      }
+    },
+    "tt0076759": {
+      "tmdbId": 11,
+      "imdbId": "tt0076759",
+      "title": "A New Hope (1977)",
+      "type": "movie",
+      "franchise": "Star Wars",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0076759",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0076759",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt0076759",
+          "iframeSrc": "https://cloudnestra.com/rcp/N2M5NWNjZjhiOWI0OWZkZTk4ZTZiMjM4OGM3OTJjNzI6WTNkcmJUUnJZM0Z2UkdkMGJsQTNWR3RaY0VaNVpqQjBXRWRTY3pCTWVFdHhSMEpWU1hGeFMyRlZOVlpqUkdaYWVGVTVhbll4Y2tORVlWUXpWVWhUY1Zwd2JEaDNPRTB2YVhsa1dub3lhbEIyUjFWTlN6VnhLMlJ3VDNwdk16UlliMHhqYkhwTGMxWk5kRGQ0ZWs0clIyaDZieXRwZFd0bmFETnFaV2t3VEhOdGFXVk9jR2RyVm1GWmQzVmlkMWM0VFVkNk4yeHBORFpQZGtkMlZDdEhXVU4xWldrNGNFZHBhSFZoVlhwRFQzTlRielZxZEhoUmNrOXVTV2R0Tkd3eFkwUnFORU5uWjBkVGEyZFhkMmh1Y1RaRE5scG5iVTF3VWxGSGN6TnlZM1JKZEZwblIwbEZjMHAzWXpsMVN5dDRUbEZGTVVaNGFqUTRSemcyV21oQ1dqTXZhV2R6TWs5b2JqbDZWRWhSWjBWVWNFVmpLM1ptYjJoWGIwbHpaVlpHVEhZMlZWSm1helJJVG1OQ2JURkxTRUpYUmpONGFUTndXazlDSzJocmJGTlVOazlSUkRaMU5sSlBaVzR3UjFsd2JrNXFTbEJXUzFRM1owZDFTVlJRZFZsdE0wdEhTelowYnpjM1ZsTnFXRU5hWlM5MWFVcEZjR2RuTmpGa1VVcElhRkF4VUROdFEybHdXa2xWTURsWGNFTXhlR3h1VUcxVVZFYzVSM05CWjBFclozZFhkMkpYV0RoeU1Ya3llVk5xVVVJMlIzTkdkV1phVjBWamQzbDViVWhGV0ZKaFlXSldVbFZvWTFWSVdHeEhiMWszSzNOSU1WaG5SMEZEY1RGM1ptNUlPVE5tV2xVMU1qZ3ZkVlZUWm1kRk5XVTFhRTVIVUZGcldsUkljMG8zYUZjM05FdHJaV2xRVEVRemRuaHliV0pXY1VseFluSk5PVkptWWxWNVFteFBZbTB3VG5rM05sWkdTRlpuTDNKRE4zaHBjV3R6WVc1V1ZHOW1XR2RGUzB4cmJXbFZRV05SU2tsWmJuaGFSRlo0YXpkdVpIUmFNV1JrY1dkS1YwZG5OMmxRZERFM2VrNUZhbWhtY0hwTVVEaDZVRzlYT1c4eWVpdFZXRVJMU2pGSWRYSTNWMU4yY3pobmIwbDZTamRpWmt0UVlXbEhkelJuZWtsWFJVOXRjMnMxYlVsSGEwTTJkVnBEYWpFdllVRktTbFZ3VkVGRU1EZ3JNMHR4UjNSTGFWVndSbGt5UlRkUVJYWkdlWEZvYzFRNGJVMHdjblZtVFdGQmVWUnhkbWRwVTJOMWVubE1VbmRLVURWdFZFaENVbVJuUmpkcVZrNTNLM0pGVld0amJ6VllPRzV0VUZkT1QxZEVlV05CY1VrM2FHcGxOMU5zV1ZjdlkzSjFjSFZ0VFhSRFRFTTRaVGcyWlc1blUwWnBNVzE0UlRjNE5rUjFha1JETjA4M2JXOHdRblJ6UVdVNFZ6QjNkbGgwWnk4M2RWZENUako0YzBkWU1rdE5SVzV1VWxKbU1FVmFURzV6V1hSUUsyZ3dZMmt5TUhCTFR5czFVMDB3TTBkWVVISXJWSFZQTVc5TGEyUjZSelI1Vm5aVVZWVmhSbVIxVlM4MmFUbGhkVEYwVVhoQlRFMTVMMVU0Um5sd1dtZFROV1ppYmsxWFdtMURaM1ZKZUcxYWFIRjRSbEl2TVZacUx6QjRVSFY1VVRGaU4zSlROVVZ5YVdaWFJHaFhXV05ZU0RCYVYwTjBVMjlCWldFNE1FcE1PSEJCVnpkS1FYWlJRV001UlVVM1kyTlJSMnRYWWs5bFFXeGplVkJyV2xkbVFqWlRhRGN2UzIxSUwzWlRVelpGWTB3NVNHZGhXbFZOY2s5aGQycDNjekpsVlhKTU9IQTVZbEl2VWs5Q1ZUbExkWGQxUTJsQ1MydG5kbE0xVERCc1JsTTNWRTFRZUZWTmJYVlJLMlpXY0RWSldEZFBVR3hRVGpGaGJrcFNUVWswU20xUGVGVnpRVEpGZWtkM1JGSXpNSE5oU0RsalVuSllZVk0wZVhVNFNUbGlWV0VyVm5aNE1rVjFXR1V6VUdsdU9VUnpkMU5qUVhoSFMwRTRjM3BMYW10VldtVllaazAwY1hObVRGZHhaRzk2ZVhoMVpFSnFNR3RqS3pGRWFFODBVMGhpWlVOR2RGRTlQUT09",
+          "title": "Star Wars (1977)"
+        },
+        "vidsrc2": {
+          "working": "",
+          "url": "https://vidsrc.to/embed/movie/tt0076759",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0076759",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt0076759"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0076759",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=n2nxj6r10kgl",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:07:20.574Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0076759",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0080684": {
+      "tmdbId": 1891,
+      "imdbId": "tt0080684",
+      "title": "Empire Strikes Back (1980)",
+      "type": "movie",
+      "franchise": "Star Wars",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0080684",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0080684",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt0080684",
+          "iframeSrc": "https://cloudnestra.com/rcp/YjU2Y2JlOWIyZDM4NzdhZjJlMmM2YzM4MGQzMzMzNDU6VVhvclVqVlRlbkpHYmlzNVZtNDRjbEkzWVVZd1NtZ3dhakY1ZUhOemNERmxjMlJaVlhkeVlteDFVRFZOYkhvcmNIWk5NbTkyUTA5dlVYVldkV05hVURRNVNHTkNlbE5LVVRCWFZYRjNOVXB5WjNkcVdUbHpNRkpOZDBka1NGaG9lRVpZTTBOT1RXUk5WMmt4WVhSVldVVlpjMGRHUlhjMFFVOXRVVVJ1VW1sM01tZDVVVWt4TDIxR2NXUXJNSE5OTTNwemRWRkxRemN2WTFWNVREZDVMMDF0YWpCNWRUVTJhbVpGZURWb1YwUklZa1pRYzFOMFRYbG1lVEowV0NzeE9VcHhkbU14ZFVsdFVGQkhiR3RTTWxjdlRscFJlblI1WjA5M1NuUm9VVXRPYkU1alJYQlNiWFphZUdOaFdHNU9URzlxYm1ZNFQyUm1NVkY1Y0djMk0yaDBTak15Yms5UVV6RjRNM0JvY1RKUldtOXlPSE5rZEhob09WRm1URnBrUkRGVWNIbHlNVXhMUlVOSVVGTmhNa0pLY0hoaGFsUTNTR3M1TUVOUEt6WTVNeTlsU0N0Q1UxcDJkR3REYTA5Mk5WQnRkVmxRVG1JM2RuWnNTazVEZEdGWFYzUTFZVmcxZDFKNWFWa3hjR0puVm5vMmVHSjVOakpMTkVSd2JrOHlVaTgzTDNCeU5XeE5MMVkxYWpreVYybHBUVkFySzJGM2JtTkxTa3QxUzB0dGNreGxjVkZhVGpGeFZUaHdka0pEUkVOc1NFUktZbUV6VEdsWmFtOUlUbEY1YTNCUGNuSjJNV1YzZVd0RVQzcFVOblprUTNCM1dVTkdWRmd3U2sxdVRHdElXbWN5U3pWNE1UazJTRk4zTjFRcmFrUjZXREZQWjBWdFFqZExRM2hGTjNKWk4weHZRVmhUV1VSS1dGQnRaVmd2VlhCYVJYbFZaMnhqWnpsbVpsTnJiVkJGTkRWU1prYzVjVWh2UW1vNWRFNWliWFZ4ZFdKNGNuRnVOVmRYYldvMWQwRTViRE5JUkhwcmMxWnpXSHBhTVM5eUx6Vm1lRmhtWkZSdmJXdEVRVFp6WjFaNVIwcHdVa3RoZWxKek5ISlRNblJJYW05bFptWk1ORTFUTlZWaFJXNVViVTA1VFVsdmQzaG9NbFJxUnpZNWEycENaV2hRTkd0cWRIbzBUak5zZVhOdldYY3dZM0EyYTJjd01HRmxUSHBqUzJsamEzZHZWR0pWZGtSbGRUbFFhRGhITnpWbGNTODBNVEV6VDFCUU5YVkdTMVpWUjBKbVVWQnBPRGxUT0RNMlZEUkRUM1pWS3pONFZVSmlVMWd3UzJOaVExaEhMMDVDTUVwV1FpOVpNblpOYzBvMlFYUjBiVlZCZWpoaVoxUXdkV1pKUm5OdmJpdDNUa042UjJWSlJUVmpSMmMxU1V4emRrdHRUVEZRV1VkMFIwcDRWVXBaVmpCSWIydDVRakpGTW5kSFVuSlFTRWxhWWpOT2JERm9OeXMwYkZwMmNUWXdWbVp3VWpkb1dXOXdSVGhGWkhwYVlUWjJjRVo1Wm5vM0sxTk9jMDh5Y0dSSWFHZE9Sbk5tYW5CWVVUaFZkbTkyVjFWb1J6bE5lRGxtWW1KSFUwaDVOREZxU1hkR2MxTkhNM014YzJoTlZreDRjVXRDYkVGRFZUWk1Xbk5PUjBodGJGVm1OM0pxVUZCWlkzbEdLMWxKZFdSblJuUjNZM05RYld4VVJsaERUbkpHUWtkeVkwRm5ZbVJSVHpCaWRGQjRiR0pWT0hZM2NHTTVUbkJtU0VzM00yRkxaRUZtYkhsd2VqTlZkV2hrUzNoU1lrZFFjMk5KWVRNMlpsVTJSMUlyTVRsbGRrcFJVa1ZRVFhoTmRUaHVValpaVkVsS1NIQkdWRGRaTkVOS1JVWmpVREY0U21sTlZFMDBhSGhpYzNONFdUQkdLMjlMZWtocWVGWTNXWFJ1YUZKcWRreElVa1l6UkZVMGRuUjFOV0ZPY2xoR1kwbFFlRk5LUmt3NGJ5dGxRa2RzZUhCRVVsaHRORWhXTDNrMWNtUldkREZCV0ZodGQySnBURkpVTlRob1VFTTRRbEZ4U0hkNVJFNUVhbkpLV2tKbmIxRktjRVpFTDNaVFkzZHZhR2RNY2t0WVJXeExOMnhHTldOWFQwNUtURkpwZVZoVlVHOXJjWEpwTDBkUWRqaDZZbVZaYXk5dFRHbGtVelkwTVVsNWJUbHlkV1p4VEZWWVR6a3JZWGRPYVZFPQ--",
+          "title": "The Empire Strikes Back (1980)"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/movie/tt0080684",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/movie/tt0080684"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0080684",
+          "error": "net::ERR_ABORTED at https://vidsrc.dev/embed/movie/tt0080684"
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/movies/view/0080684",
+          "error": "net::ERR_ABORTED at https://www.lookmovie2.to/movies/view/0080684"
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:07:39.330Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0080684",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0086190": {
+      "tmdbId": 1892,
+      "imdbId": "tt0086190",
+      "title": "Return of the Jedi (1983)",
+      "type": "movie",
+      "franchise": "Star Wars",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt0086190",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt0086190",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt0086190",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt0086190",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt0086190/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt0086190",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt0086190"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/0086190",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=b62buswu4vwh",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly DVD",
+          "url": "https://ww1.goojara.to/go.php?url=Mm1CVEZnZWhjR1lzUGU0MGJncEIwKzFJKzhyN2M4OGhsV0hQUUxYenkvND0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo DVD",
+          "url": "https://ww1.goojara.to/go.php?url=ZFhSamMvY3VucVdBYTBVTjNCb3dYZ21Xc2lWQUtKMEZoaHRtLytwV3JjWTJrUVlHOXgrRGtpZi9sMDR2RnlMRA",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood DVD",
+          "url": "https://ww1.goojara.to/go.php?url=S20yZ2VMTGlIWmF6ZkhGLzNKRHArMTZ4T3ZYbWlQNXZBSFlNWG4zSHArOE5nWkw2VXRUUHNYZHYzcUNrdnVXdg",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:07:44.094Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0086190",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt2488496": {
+      "tmdbId": 181808,
+      "imdbId": "tt2488496",
+      "title": "Force Awakens (2015)",
+      "type": "movie",
+      "franchise": "Star Wars",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/tt2488496",
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/tt2488496",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/movie/tt2488496",
+          "iframeSrc": "https://cloudnestra.com/rcp/MTVmYmQ4YWE3NTIyYTgxZGFiOTlmYjllNGRjMzg3MjA6YjJsQ1JHVTFUbWRzTWxoc1ZIa3ZiMlZQWlVGTVUwZzJiRFp5ZUdrdk5uRm1ja3RMVnpkdFozbEZUSFpWYjJGdE5WWlphMmhtTjNZd016Y3lMMEpOYzBrd05qVm1XbkZLZG1GQ1dpOVBWelFyT1RsU1VYQkJXVWhWUVZWVE1IQTNZbE5yUTBKcldHTXZTRXRPUzJKM1ozRXpVa3hrZWtKTGJqVlBaWFpvUW5oR01EaE1hbVppYlZSa2RtUjFVV3RUVFhGdGJHdHRSblZKWVRkNGRtODNNVzlIYldGamMzQk1jalZXWW04MVRXdzRZakJyZUhCS05rSmpVMEp4TVZwSlJIVlFURE42WkZnMVdWQlBlWE5wZUcxUlR5OVNSMjExZEc5cGRsSTFhMjR3Wm1SRldIRm1XRUZ0U1hGMmIybHBkbkZ6YW5nMlRFSm5XVTB5UVhOSVdYWjRMMmx3UjJkbVkxZG5PR2RxUjBWRWNuWXZNV0ZCWlVoaFFra3dUekZqT0VSQ1RVVnRORmhvZWxsR05VNTJiRWwwY210RFJrVnliaTlSWlVzclRsaDRiMFZ6U0VKbGNXTllVRTVaUWsxc1EyeFBXRlpGZEZkdlJqUlZXbmxtWkUwemJqQmhTREp3VTBWNU4yNVRVM0k0WVV0TU9VcGhjR0p1T0cxVGVHVlhlRkZ3UW1wclkzWTJaelF4V2s5RmVGWlFSMWxHZFRCU2FYUXlkblkwTW0xVFRtNVBaMXBvWWpoR2IxcHFWa2xIYUU1elVVRkdTa1V6ZEhRd2FHVkhhSGhPUVVwV2FtSktSSFpqYzNRelMxVjFSM0pzVW5ReVRFcERiR0V4UmtONU5HNUZMek5JWkVWTVNuSmhZMFJpSzNWdlNVRXpUQzlYZUc5bmNqRjBObFI0UkRsbmRTOVZkV1psZVRGRWFWcDBPVXBDTHpKb2J6azVaa0pEUkVncmFIVTFMek51Wm1JMFlYRXhkVGxCVnl0SFpqaGthRVptT1VzemMwZzVVeTlhYTNGT2JERk9hSE0zUjBWR1lVUk1hVTV1UlRad1RHdFJZMHB4ZDFKcVVVcDRUVWxYU1VWbWNqZzJVVGxzZFRCTlJuUTBLMDFtUzNsdVdYUlVXVU5OWWxWS01XTmhPRnBVWjNsUlEyTjJjbWhPWTI1WFVXTndUVWxKYjJ4QlZXNVlhamxHSzNsb1MwMDNVVkV4VEZoM1ZIQlhSMDEwVVRSME1qaGhSU3RhUkVWNWFrcDZUMDR6VWs1eFJUbHFTbHBuTWxOaFJHaHZSRGhUTm1NelRHUXpUR1YzWVUxVGFVTnRRMU00UzFWSlowUmxkRlp0UW05ek5rMHZNRWxKY0VOMWFXNHhUMUIzWlVNMVNuWkVUWEpQTUVsRU1tUTBiRTFEVUhWRldYaFpla3B3YTJWM2JIcE9abUpZVlZRck9FNU1helZUWTAxdmFVSk5ZV0ZEUWtsSGRUZHhXbmROVlhKWE5HbFphREpZVG1jME1HRXZiMVpoU25KamVGSkZTVzl2V0dweFZrNTVVM0JNZDNrMGMycFJjMVI1VGpWMU1tZ3hVV0V2TWt0Q1RIQjZaMnBQTVZwQlJYbGlVRVJ2SzNCVk9HMHdOM0JoVFM4dlZFMWxaRzlRTUdSU2JHZHRSU3RPTkZKd1kzcFFjV1JwYkhOWWVUQXJaMGsxZVVaQ1luQnBjR1ZaTkc5WFoweFlVbTB3V0ZoTWFsa3laMUp3ZFc5S0wzaEdkblJWY2xFMU0wdElUVVpaYjA1TWVsRXlMMmRrVVVrMk1EVjRaRFl3VGtVMlYwSlphVGRwZEc0NVdIQkNOWEp3UkU5WllsazNXVUZUV25jeVNEZFlXamRLZERScmJqWlVReTl3ZUVsUlNHeHFlVmxtUWpaNFV6VTBWVXRwVmpSWlNtNUhlQ3MxTmxreGJtRm9Va0ZHV0ZaTGIydE9jSEJ5ZFdSSGJFOXJObE5GVmxaUlRFWmxaRzF5U1U1R0wwWkphVm8wVVVsbFVXcHZia3h1YTI5YWN5OXRWVVp6YUU5cE1tbHlaVVZNWWxFd05GVk5ZM014YmpCeVJtaHdVMWN6VXpkMmJ5dERRVTVFVVdSUU16VnplRVpZTXpOR1JFVkRaRVYwTUdkS1YzTnFhRVJ6T1ZkV1F6SnlSemRpYTNoMWIxUlpNREEzYTFKU2IwUm1ZV3hKWVZwV2FVMDFZbGwyYldGeGJtVkVha3hqY201eGVGcFBOakp5Tm1KS1JtTjVUbXBDV1hsb2NucHNkRkV2TkVOU1NUVkZOekZEV1VFelprUkJQVDA9",
+          "title": "Star Wars: The Force Awakens (2015)"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/movie/tt2488496",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/movie/tt2488496"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt2488496",
+          "error": "net::ERR_ABORTED at https://vidsrc.dev/embed/movie/tt2488496"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/2488496",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=dn0896e52baf",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:08:04.514Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt2488496",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt3748528": {
+      "tmdbId": 330459,
+      "imdbId": "tt3748528",
+      "title": "Rogue One (2016)",
+      "type": "movie",
+      "franchise": "Star Wars",
+      "embeds": {
+        "vidsrcpm": {
+          "working": "",
+          "url": "https://vidsrc.pm/embed/movie/tt3748528",
+          "iframeSrc": "",
+          "title": "StreamEmbed - Free Video & File Hosting"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/tt3748528",
+          "iframeSrc": "",
+          "title": "StreamEmbed - Free Video & File Hosting"
+        },
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/tt3748528",
+          "iframeSrc": "https://vsembed.ru/embed/movie/tt3748528/",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/movie/tt3748528",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/movie/tt3748528"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/movies/view/3748528",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=x5zpvubpumv1",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [
+        {
+          "source": "wootly",
+          "label": "Wootly DVD",
+          "url": "https://ww1.goojara.to/go.php?url=eFQ3TGIwRm9xa3ExTU14bUVqdDRkZFRsV2ROTFdzSW1SMkdoM2N5MTFkYz0",
+          "goPhp": true
+        },
+        {
+          "source": "luluvdo",
+          "label": "luluvdo DVD",
+          "url": "https://ww1.goojara.to/go.php?url=NkRhbDRsRzhlNUZpaCs3bEYyL0M5dGhPQVpRejMwbHhkc09sRXZEUk5XbzJZWWFMUytjVmpXYjZwaHJmYkNEZA",
+          "goPhp": true
+        },
+        {
+          "source": "dood",
+          "label": "dood DVD",
+          "url": "https://ww1.goojara.to/go.php?url=S2FOR2lhdlZyVEJWN1A4Y0d1TkdhSDhqMmF1ay94TzBydVNVa1B4eTRLdG9RUEgrYzVROTZ5c2luMG0vWVkyMw",
+          "goPhp": true
+        }
+      ],
+      "lastChecked": "2026-05-21T00:08:10.473Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt3748528",
+        "type": "movie",
+        "season": 1,
+        "episode": 1,
+        "streams": [],
+        "error": "Not found on Goojara"
+      }
+    },
+    "tt0903747": {
+      "tmdbId": 1396,
+      "imdbId": "tt0903747",
+      "title": "Breaking Bad",
+      "type": "tv",
+      "franchise": "Breaking Bad",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/tv/tt0903747/1/1",
+          "iframeSrc": "https://brightpathsignals.com/embed/tv/tt0903747/1/1",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/tv/tt0903747/1/1",
+          "iframeSrc": "https://cloudnestra.com/rcp/ZGYzZTA5OTJjMjBlMjA2ZjE2ZjQwMDg2OTA5MDhhZjg6TDJsUlQzVndlbVZJUVdwVGVXaHBiVVpZVDNVMVRITm1USGs0VkhjMVJWaHFaa3BTWjJoNGFWSTJLMkV3UmxaUE5uWmpSRTVJWmt0YVoyRktWbkpvV0dVd1QwbDVOR0YyUkd4NGJsQmpNVWd3WkZvd1NtTndjRTFUY1ZCd1YyTnFXRlZyTkhkMFowNTZjMk42T1VORE9VeHRTaTlYWnpWdlIxbE9hMDE0ZGxaWGQwRnZObFUxWTFWcVJGbHFVWE5LY0VSRFRrWkdlR28xYm1kRlNuTkhNRXhvTjBwWU0zaDJTMU5PUVhaWVNIVkhVblIwTlVkUFZIQlhWRXRRZDJFMmVHbEhkalY0U21wMFZ6Um5SbkJLVFdSbkx6VTJZMmgxY1ZsbmJVZGhaV0pGYnpoQmNHcE9TMm8wY1hOTllscEdkMmhuTjJkNlRqVklVa1JDZHpSUU0yUTBkVWRuYTJGdU0wVmplakJIV25GWlJXUkZlWEpsVkU1c1NUWnpSbnB3TjFkTGFqa3pXVXMyYlhZNWNuVldhWEozU1dGWFJ5OWpNSEUxVG1aMlRIZFZUbWhEWW5VMGNrUllWVGt6UVVaM2MyTkZVMWRQU2xJdllYSnZiR1pOTlRCcUwwNUpLMDQ0TUZSYU1UQkhaM05JU21GQlUwTjJkM2x6V21sQlpITXJLME4wWkhkVlJYSjViMFprWlN0QlQzRk9hbUY2Y0c1WEszbGFNWGxvVm01amJtNURORGN6UTI1WVoyVmhjR2xVWTFwQk16UnlSWFp1TjNGek5sRldaRXh5TTFWaFNYWTRXVXQ0T0cwMlkzRkhjRGRYTm5wbVZUVjFOV3BhYjNkSVpFdGlWa2hoYXpaRVVrNWtjakpUWmxaWlRsWktXV3RPWkZOTFYyRTFNRFYzU2tKMVltaGlVVXQ2Y0VGQmVWUTBPRk5OV210VVptNXBUMmd3TUV3MlZHMVRTSGRrVmpkblozVk9hbmQ0UTBrMWJtTTNaa05SWlZRM2VWWlZXVFZhVFV4TlQwRmpNSEpCVjNKWU4zQkNOVkJJVGpWNGFFZEdjR2xzWnpjelpEZDRkRzVoT0VaWmVVdHROa0ZRWVZWc1JqZElOSE5DWldrd1ZsSk5hVVJISzFwbUwzQjZaVU5OUW1sdlMwbDFZMFUwVTBOeWRtSk9RMEpVTjJnM2VUSlJhakY2U2pSck1VNXhVM0IwVjBoc09ITkZUR0l2YWpCU09YaHBiWEk1VlU1bWRrTlBOblpOZVZFdk5rOVVTR2xWVlhoU09FbzVURXRKZVdzcmIweDNVRzVoVFVoeVIyczFPR1JPWVZWeFdXVXJkRzgzYlZsRlZ6UXJRMmhMZVZGbGJEQndkMFoyYkd4bFNIQnJRakUzYVdGdk1qRnBSR0pWVVZkclFtWm1LMkozSzNCM1pVZHlaRlJEYjAwelNVOUlWMkpzVDJvMlZXcHNkRWhVYVVwd2FHbHBSMG8xZG5Kb1lXNUJOakl3Wm5SUk1rUXhXRk5WV1VKdk0zbFBTWGc0ZEUwd2NHbDBSMGx2T1VsbFRGWnFUSE0yY0ZwbWEwdDFRWEpVVlRCeVRXVTJSblpDTm1wS1pVOTRTSE5EYVhrMmIySnFRMk5ET0hrMldsWkVPVTB3YjAxRmRUZDFjbkIzY1c1SFVuRXJkVWRSYURsRlp6Wk1MMUJKVlZKTmFGWnpiV2hVUlVWNFRrZFVhbGxMY1ZOamFqTTFkRzlRUldOM01YVXJRa040WjFOV1ZHbDVORGRhWjBkRVJWRm9Ra3RsUm1ONlRYaHZlamhKTDJSQ2RTdEhSREZNYW5sWGVVUmtiR3hEYjJRMk0wUnhNMmxpY0c1blpWRlFkMnhDU1cxRFdXOU5hRTFWV0hObU5YaFJaRmMzYXpSSlRteFdZa0kwVUZweE5FVk9NSG9yVjJOQ2FYRnFjRkpsU25WdFMzVXdURFZyWlRaWk1FbDBNbkJxWTBacU9YVlBTVzExTDBod1VFRkNWbTUxZERsQlIxSllTRGhFUmxKTk0zbGliMllyY25Bd1VFMDVPVEYzVlM5S1pETkZjbEJWTUN0UlRXVlBUalJwWlVveGVtWjFiMWxESzFOd2IwSXhNREpNYzI1NlRqVmxlbU5LT1d3MFlWRlRZVUpVY21SUlZtVndjbU5JZUVsTWFURXJSMDFrYVdoWlRscE5NbGRwZEZNdlFUTkJUMmxyVUU1bE1URm5XbTQwYkhWd1ZHcFVXVkZFY1d4dGNVZFRaalZGY2tZPQ--",
+          "title": "Breaking Bad (2008) S01E01"
+        },
+        "vidsrc2": {
+          "working": false,
+          "url": "https://vidsrc.to/embed/tv/tt0903747/1/1",
+          "error": "net::ERR_ABORTED at https://vidsrc.to/embed/tv/tt0903747/1/1"
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/tv/tt0903747/1/1",
+          "error": "net::ERR_ABORTED at https://vidsrc.dev/embed/tv/tt0903747/1/1"
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/shows/view/0903747",
+          "error": "net::ERR_ABORTED at https://www.lookmovie2.to/shows/view/0903747"
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:08:45.400Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0903747",
+        "type": "tv",
+        "season": 1,
+        "episode": 1,
+        "streams": [
+          {
+            "source": "wootly",
+            "label": "wootly hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvdood hdtvluluvdo hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvluluvdo hdtvluluvdo hdtvvidsrc \n\n\n\n\n\nfunction _(a){return document.getelementbyid(a)}\nfunction _a(a){return document.queryselectorall(a)}\nfunction _b(a,b){return a.getattribute(b)}\nvar w = window.location.href;\n$();\nfunction $() {var _0xe3c4=[\"\\x35\\x20\\x61\\x3d\\x38\\x28\\x6f\\x28\\x22\\x41\\x22\\x29\\x2c\\x22\\x36\\x2d\\x42\\x22\\x29\\x2c\\x62\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x34\\x29\\x2c\\x63\\x3d\\x61\\x2e\\x70\\x28\\x37\\x2c\\x33\\x29\\x2b\\x62\\x2c\\x64\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x32\\x29\\x3b\\x43\\x28\\x32\\x2c\\x73\\x28\\x29\\x7b\\x71\\x28\\x35\\x20\\x65\\x3d\\x74\\x2e\\x75\\x2e\\x44\\x28\\x22\\x20\\x22\\x29\\x2c\\x66\\x3d\\x65\\x5b\\x64\\x5b\\x30\\x5d\\x5d\\x2e\\x45\\x28\\x29\\x2c\\x67\\x3d\\x65\\x5b\\x64\\x5b\\x31\\x5d\\x5d\\x2c\\x68\\x3d\\x22\\x6f\\x22\\x2b\\x66\\x5b\\x62\\x5b\\x30\\x5d\\x5d\\x2c\\x69\\x3d\\x67\\x5b\\x63\\x5b\\x30\\x5d\\x5d\\x2c\\x6a\\x3d\\x31\\x2c\\x6c\\x3d\\x62\\x2e\\x39\\x3b\\x6a\\x3c\\x6c\\x3b\\x6a\\x2b\\x2b\\x29\\x68\\x2b\\x3d\\x66\\x5b\\x62\\x5b\\x6a\\x5d\\x5d\\x3b\\x71\\x28\\x35\\x20\\x6d\\x3d\\x31\\x2c\\x6e\\x3d\\x63\\x2e\\x39\\x3b\\x6d\\x3c\\x6e\\x3b\\x6d\\x2b\\x2b\\x29\\x69\\x2b\\x3d\\x67\\x5b\\x63\\x5b\\x6d\\x5d\\x5d\\x3b\\x22\\x22\\x3d\\x3d\\x46\\x28\\x68\\x29\\x26\\x26\\x47\\x28\\x68\\x2c\\x6b\\x2e\\x48\\x28\\x69\\x29\\x2e\\x49\\x28\\x29\\x29\\x2c\\x4a\\x28\\x61\\x2c\\x73\\x28\\x29\\x7b\\x6f\\x28\\x22\\x4b\\x22\\x29\\x2e\\x4c\\x3d\\x74\\x2e\\x75\\x3b\\x35\\x20\\x61\\x3d\\x4d\\x28\\x22\\x4e\\x5b\\x36\\x2d\\x72\\x5d\\x22\\x29\\x2c\\x76\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x77\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x4f\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x76\\x2c\\x77\\x29\\x3b\\x71\\x28\\x35\\x20\\x62\\x3d\\x30\\x2c\\x79\\x3d\\x61\\x2e\\x39\\x3b\\x62\\x3c\\x79\\x3b\\x62\\x2b\\x2b\\x29\\x7b\\x35\\x20\\x63\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x7a\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x50\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x63\\x2c\\x7a\\x29\\x7d\\x7d\\x29\\x7d\\x29\",\"\\x7c\",\"\\x73\\x70\\x6c\\x69\\x74\",\"\\x7c\\x7c\\x7c\\x7c\\x7c\\x76\\x61\\x72\\x7c\\x64\\x61\\x74\\x61\\x7c\\x7c\\x5f\\x62\\x7c\\x6c\\x65\\x6e\\x67\\x74\\x68\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x5f\\x7c\\x73\\x75\\x62\\x73\\x74\\x72\\x7c\\x66\\x6f\\x72\\x7c\\x69\\x64\\x7c\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x7c\\x74\\x68\\x69\\x73\\x7c\\x72\\x65\\x73\\x70\\x6f\\x6e\\x73\\x65\\x54\\x65\\x78\\x74\\x7c\\x62\\x61\\x7c\\x63\\x61\\x7c\\x68\\x6f\\x73\\x74\\x7c\\x65\\x61\\x7c\\x67\\x61\\x7c\\x73\\x68\\x64\\x7c\\x69\\x6e\\x73\\x7c\\x6b\\x77\\x7c\\x73\\x70\\x6c\\x69\\x74\\x7c\\x74\\x6f\\x4c\\x6f\\x77\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x67\\x43\\x6b\\x7c\\x63\\x43\\x6b\\x7c\\x61\\x6d\\x75\\x7c\\x74\\x6f\\x55\\x70\\x70\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x73\\x74\\x6d\\x7c\\x76\\x64\\x6f\\x7c\\x69\\x6e\\x6e\\x65\\x72\\x48\\x54\\x4d\\x4c\\x7c\\x5f\\x61\\x7c\\x62\\x75\\x74\\x74\\x6f\\x6e\\x7c\\x66\\x65\\x74\\x63\\x68\\x7c\\x61\\x6a\\x61\\x78\\x42\\x74\\x6e\",\"\",\"\\x66\\x72\\x6f\\x6d\\x43\\x68\\x61\\x72\\x43\\x6f\\x64\\x65\",\"\\x72\\x65\\x70\\x6c\\x61\\x63\\x65\",\"\\x5c\\x77\\x2b\",\"\\x5c\\x62\",\"\\x67\"];eval(function(_0xfb46x1,_0xfb46x2,_0xfb46x3,_0xfb46x4,_0xfb46x5,_0xfb46x6){_0xfb46x5= function(_0xfb46x3){return (_0xfb46x3 35?string[_0xe3c4[5]](_0xfb46x3+ 29):_0xfb46x3.tostring(36))};if(!_0xe3c4[4][_0xe3c4[6]](/^/,string)){while(_0xfb46x3--){_0xfb46x6[_0xfb46x5(_0xfb46x3)]= _0xfb46x4[_0xfb46x3]|| _0xfb46x5(_0xfb46x3)};_0xfb46x4= [function(_0xfb46x5){return _0xfb46x6[_0xfb46x5]}];_0xfb46x5= function(){return _0xe3c4[7]};_0xfb46x3= 1};while(_0xfb46x3--){if(_0xfb46x4[_0xfb46x3]){_0xfb46x1= _0xfb46x1[_0xe3c4[6]]( new regexp(_0xe3c4[8]+ _0xfb46x5(_0xfb46x3)+ _0xe3c4[8],_0xe3c4[9]),_0xfb46x4[_0xfb46x3])}};return _0xfb46x1}(_0xe3c4[0],52,52,_0xe3c4[3][_0xe3c4[2]](_0xe3c4[1]),0,{}))}\nvar _0x401f=['\\x5cw+','0\\x201=\\x222.3.4\\x22;0\\x205=6.7.8;9(1!=5){6.7=\\x22a://2.3.4/\\x22}','split','tostring','var|myurl|ww1|goojara|to|currenturl|window|location|hostname|if|https'];(function(_0x264734,_0x401fee){var _0x39cdc1=function(_0x264302){while(--_0x264302){_0x264734['push'](_0x264734['shift']());}};_0x39cdc1(++_0x401fee);}(_0x401f,0x104));var _0x39cd=function(_0x264734,_0x401fee){_0x264734=_0x264734-0x0;var _0x39cdc1=_0x401f[_0x264734];return _0x39cdc1;};'use strict';var _0xc262=[_0x39cd('0x1'),'|',_0x39cd('0x2'),_0x39cd('0x4'),'replace','',_0x39cd('0x0'),'\\x5cb','g'];eval(function(_0x22527f,_0x639167,_0x48bb03,_0x3f2df8,_0x479216,_0x142a36){_0x479216=function(_0x25edb3){return _0x25edb3[_0x39cd('0x3')](_0x639167);};if(!_0xc262[0x5][_0xc262[0x4]](/^/,string)){for(;_0x48bb03--;){_0x142a36[_0x479216(_0x48bb03)]=_0x3f2df8[_0x48bb03]||_0x479216(_0x48bb03);}_0x3f2df8=[function(_0x41be82){return _0x142a36[_0x41be82];}];_0x479216=function(){return _0xc262[0x6];};_0x48bb03=0x1;}for(;_0x48bb03--;){if(_0x3f2df8[_0x48bb03]){_0x22527f=_0x22527f[_0xc262[0x4]](new regexp(_0xc262[0x7]+_0x479216(_0x48bb03)+_0xc262[0x7],_0xc262[0x8]),_0x3f2df8[_0x48bb03]);}}return _0x22527f;}(_0xc262[0x0],0xb,0xb,_0xc262[0x3][_0xc262[0x2]](_0xc262[0x1]),0x0,{}));\nfunction stm(a, b) {\n    var c = _b(_(\"res\"),\"data-ins\"),\n        d = _b(_(\"vdo\"),\"data-page\"),\n        e = k.amu(d + c + a).touppercase(),\n        f = k.amu(d + a),\n        g = new xmlhttprequest;\n    g.onreadystatechange = function() {\n        4 == g.readystate && 200 == g.status && \"function\" == typeof b && b.apply(g)\n    };\n    var q = _(\"borg\")?0:_b(_(\"imdb\"),\"data-ubv\");\n    var h = w + \"?p=2&sig=\" + e + \"&exp=\" + c,\n        i = \"act=2&ogn=\" + d + \"&hash=\" + f + \"&ub=\"+q;\n    g.open(\"post\", h, !0), g.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\"), g.send(i)\n}\n\nfunction kw(c, b) {\n    var a = new xmlhttprequest;\n    a.onreadystatechange = function() {\n        4 == a.readystate && 200 == a.status && \"function\" === typeof b && b.apply(a)\n    };\n    a.open(\"post\", w + \"?p=\" + c, !0);\n    a.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\");\n    a.send(\"act=1\")\n}\n\nfunction fetch(a, b, c) {\n    var d = _(\"vidcon\"),\n        ischrome = window.chrome != null && window.navigator.vendor === \"google inc.\",\n        e = new xmlhttprequest;\n    e.onreadystatechange = function() {\n        if (4 == e.readystate && 200 == e.status) {\n            d.innerhtml = e.responsetext;\n            for (var b = document.queryselectorall(\"button[data-id]\"), c = 0, f = b.length; c 0&&(c_start=document.cookie.indexof(a+\"=\"),c_start!=-1)?(c_start=c_start+a.length+1,c_end=document.cookie.indexof(\";\",c_start),c_end==-1&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):\"\"} var k={amu:function(a,e){var f=object.assign({g:\"string\",h:\"hex\"},e);switch(f.g){default:case \"string\":a=k.i(a);break;case \"hex-bytes\":a=k.f(a)}var g=[1518500249,1859775393,2400959708,3395469782],b=[1732584193,4023233417,2562383102,271733878,3285377520];a+=string.fromcharcode(128);for(var l=math.ceil((a.length/4+2)/16),m=array(l),h=0;hd;d++)m[h][d]=a.charcodeat(64*h+4*d)c;c++)d[c]=m[h][c];for(c=16;80>c;c++)d[c]=k.a(d[c-3]^d[c-8]^d[c-14]^d[c-16],1);for(var n=b[0],p=b[1],q=b[2],r=b[3],u=b[4],c=0;80>c;c++)var t=math.floor(c/20),t=k.a(n,5)+k.c(t,p,q,r)+u+g[t]+d[c]>>>0,u=r,r=q,q=k.a(p,30)>>>0,p=n,n=t;b[0]=b[0]+n>>>0;b[1]=b[1]+p>>>0;b[2]=b[2]+q>>>0;b[3]=b[3]+r>>>0;b[4]=b[4]+u>>>0}for(g=0;g>>32-e},i:function(a){return unescape(encodeuricomponent(a))},f:function(a){a=a.replace(\" \",\"\");for(var e=\"\",f=0;f\n\n\r\ngoojara",
+            "hostUrl": null,
+            "status": "dead",
+            "directUrl": null
+          }
+        ]
+      }
+    },
+    "tt0944947": {
+      "tmdbId": 1399,
+      "imdbId": "tt0944947",
+      "title": "Game of Thrones",
+      "type": "tv",
+      "franchise": "Game of Thrones",
+      "embeds": {
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/tv/tt0944947/1/1",
+          "iframeSrc": "https://brightpathsignals.com/embed/tv/tt0944947/1/1",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": true,
+          "url": "https://vidsrcme.ru/embed/tv/tt0944947/1/1",
+          "iframeSrc": "https://cloudnestra.com/rcp/NjIyZWFmNWI4YTc3ZjI4NDgyNTE1MTk2ZTg0NGY2MzA6Y0ZoRFFWTkJOV3ROV0ZSNmVpOXFjamsxYlhaT05XcFFaSGRMVVVwWU5VWkdSMFZxVG5sbFYydGhkU3RISzJ4b05FbGxVR0p0YVhaaU0yNTVVMWMxU0ZweFkyYzViVVk0VjFSTlVFWkJSRVZ1Ym1sMmNscHFVRE5ZYkhsbGRsY3JaM0JYU0dVMFFrSkljelZ0U1RORmFtVkNaMFpWU1U5M1dXNHhVamhwVkRkQk9WWklLMFpITWxSck5sSlRORXBHUkZGSFFXNXdlR1JxZDFCd0wyTTBObFZaUldwbmVFWmhjRlZxU2pnNU5XaGhUMVJCTldaR1l6ZDBRbFZXVWk5WFJEbHZlR1JQVW5CalpsVnRLMGRHUWpab1l6bDFSbVFyVlZnNFpWTkxNMmRKZVhsRmExQnRjRlJWY0RBNE1HdzFORVZYSzFsNVdUUTVXR056T0U4M1owcHVPWE5YT0ZsR2VETlpSM050YlhaeVIxUjRjaXRtYldkcWNFMDJiVWRpYUhoNVMxcFZhVkZyYWxaNFpVTXplR2N4VW5wWFJIcEpVV3hVZFZSclRVNWhOekF4Um5FMk5rTmlSVVo0TDFwTGNEVTJaSFZGUW1kamJETXhUM2hSTWtwaVdrbGhRVEZ3V2pRNVFtMU5NRXhpTTI1R2VYaExWMXBQTWtWdGRqaDNkVTFvV0UxSmIzaDNjamx6T1ROV1JpOUliSGhVYkhFNVdqWmthVUZJUm5Ca2VESktUeTlPZW5GVVpYTnpZMjQyVlVWMFpFa3hNSFpsVGtOTk1EUm9NVzVhTWs1MWFGVlZTM0I2TVVaMU5tZGtkMnh2THpOd2EydDZWRmxLTUdaalN5OUZTM1lyYmpkV2VuRm1lREJqTmpJMlUxQmtWV0p4VFdjeVNrZG5hekpYVGtkUlEwOWpkRkZhUmxWdE9VcFhWMUJNUjJveVMxcHVWRXhUYVRZMWJGaEhiMW93UjFOV2FGVkVNR3AwWW5SVFNsVlZUVEpaY2xsSVZ6RlFaU3RZYVZsdGVsbGFMMHBZWldoa2R6Qm9kbGhHVDBOa1V6TjFUak5yTDNndlpVaDZNWGt6VEdoaFRqVklURGxPV0dSbE5XWTRNWFZNUlc4dlQySTJZbWhDTTBkTE5saFRUbUpqT0UxSE4yWllaSEFyWjBwVGJrUkJNa2cwU2pseldGVlFObEkzVFUxaFpGTkthemR4YTI1a1ZteDJXRlZVVkUxUWNHRlJaMUIzZHl0a1pHSXJaMlpIWTFSUlpUTkVPR0VyTWtORmEyUXJXRGhHWTBodFJqSlpVSGQzUW1NMlFuRktRbXQyWkdOV1ExbDZUek55YlV0WmQyOWpiRmh1TWxaSGNIRnhPWFJ0YTBOV01XMW9hVU42Y0dsUVJVUkZkbkZZTUZCUFNGZFFkSFZGZG1oaVozaHZkRzh3VTJGa05FNHdOa2c1ZVZaRFNXVkpTblZuWjI1cll6TnFXbU0xUkd3ekwzUTNUM05zYWlzclJsUndaRVZ4UWlzM1YxWjJWVU12ZUhObGNWcDFUR2hHY2pkVFJXUktVakpLWlVOaU1tY3pZMGRoUjNSQ09IRkVVSElyUTBseU5USndUeTlhY25CT00zUm1RWGxrT0Zwbk1URllVRVpJTlc5eFQwWkdaRGhLVXpoc1UzQTJiV1JVYVRsNFZrVnBTbTg0U1U1SmN6UnhSME5qUldabWF6TTRTbkJ5VTFOaGNtWlVWbkJYTjJodGF5OVVXV3RGZHpaMEt6QkJOblZSYkhSMVFWWmxZa3hhYVZCblVuaFJObVJtV2xwbUszVXZRMFE1Ym1OVE5VZ3JaVEExVmpoRVdWTjRSV1pDYmt0aVdWSm1jaXRrZGxnck1XVTJVblIzVW1Vd1dtSTFPUzgzWmtOaVNrTkZkQzh5VDBGemVsTnhWMUpLYm1oNFVUVmliVnBhTjBJNGIxaGhRVlU1UVd0blRscG9OREpZTm5sRlFrbHdNMjEzT1RkMFVUbHRZa1phVUZSeVlrNHZRbUZFVGxNMFRqRnlLMEl6SzJkSmJuRnlkVFJxY1dGb05EazNkRmRrTUhGWE9VUTVWRWd5VjFGME9HSkVRbHBXVG5KMUwxRmxNbEJ0VkVObU1FaDVOa3RCTW5oSGRWaHpUSFV2WnpaVWMzTjVWR054Unl0V1VqSm9jazFRY0RSeVdIRkpaSE5FVVUxU1FscHFNVE5xTkVkVU1EWlJjWFJDY0VjMGQwZzJjV1J3ZUZoYU5qZFVhVmxIUkRZNGJWRXdTRFpFWlVObEt6RlBlR3c1TnpBMFVrcG5QVDA9",
+          "title": "Game of Thrones (2011) S01E01"
+        },
+        "vidsrc2": {
+          "working": "",
+          "url": "https://vidsrc.to/embed/tv/tt0944947/1/1",
+          "iframeSrc": "",
+          "title": ""
+        },
+        "vidsrcdev": {
+          "working": false,
+          "url": "https://vidsrc.dev/embed/tv/tt0944947/1/1",
+          "error": "net::ERR_CONNECTION_TIMED_OUT at https://vidsrc.dev/embed/tv/tt0944947/1/1"
+        },
+        "lookmovie": {
+          "working": true,
+          "url": "https://www.lookmovie2.to/shows/view/0944947",
+          "iframeSrc": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ley5moUAAAAAJxloiuF--u_uS28aYUj-0E6tSfZ&co=aHR0cHM6Ly93d3cubG9va21vdmllMi50bzo0NDM.&hl=en&v=Br0hYqpfWeFzYCAXLD4UuCIV&size=invisible&anchor-ms=20000&execute-ms=30000&cb=qlooiwhakk2b",
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-21T00:08:52.262Z",
+      "idVerified": true,
+      "streamApi": {
+        "imdb": "tt0944947",
+        "type": "tv",
+        "season": 1,
+        "episode": 1,
+        "streams": [
+          {
+            "source": "wootly",
+            "label": "wootly hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvdood hdtvluluvdo hdtvluluvdo hdtvdood hdtvdood hdtvdood hdtvluluvdo hdtvluluvdo hdtvluluvdo hdtvvidsrc \n\n\n\n\n\nfunction _(a){return document.getelementbyid(a)}\nfunction _a(a){return document.queryselectorall(a)}\nfunction _b(a,b){return a.getattribute(b)}\nvar w = window.location.href;\n$();\nfunction $() {var _0xe3c4=[\"\\x35\\x20\\x61\\x3d\\x38\\x28\\x6f\\x28\\x22\\x41\\x22\\x29\\x2c\\x22\\x36\\x2d\\x42\\x22\\x29\\x2c\\x62\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x34\\x29\\x2c\\x63\\x3d\\x61\\x2e\\x70\\x28\\x37\\x2c\\x33\\x29\\x2b\\x62\\x2c\\x64\\x3d\\x61\\x2e\\x70\\x28\\x61\\x2e\\x39\\x2d\\x32\\x29\\x3b\\x43\\x28\\x32\\x2c\\x73\\x28\\x29\\x7b\\x71\\x28\\x35\\x20\\x65\\x3d\\x74\\x2e\\x75\\x2e\\x44\\x28\\x22\\x20\\x22\\x29\\x2c\\x66\\x3d\\x65\\x5b\\x64\\x5b\\x30\\x5d\\x5d\\x2e\\x45\\x28\\x29\\x2c\\x67\\x3d\\x65\\x5b\\x64\\x5b\\x31\\x5d\\x5d\\x2c\\x68\\x3d\\x22\\x6f\\x22\\x2b\\x66\\x5b\\x62\\x5b\\x30\\x5d\\x5d\\x2c\\x69\\x3d\\x67\\x5b\\x63\\x5b\\x30\\x5d\\x5d\\x2c\\x6a\\x3d\\x31\\x2c\\x6c\\x3d\\x62\\x2e\\x39\\x3b\\x6a\\x3c\\x6c\\x3b\\x6a\\x2b\\x2b\\x29\\x68\\x2b\\x3d\\x66\\x5b\\x62\\x5b\\x6a\\x5d\\x5d\\x3b\\x71\\x28\\x35\\x20\\x6d\\x3d\\x31\\x2c\\x6e\\x3d\\x63\\x2e\\x39\\x3b\\x6d\\x3c\\x6e\\x3b\\x6d\\x2b\\x2b\\x29\\x69\\x2b\\x3d\\x67\\x5b\\x63\\x5b\\x6d\\x5d\\x5d\\x3b\\x22\\x22\\x3d\\x3d\\x46\\x28\\x68\\x29\\x26\\x26\\x47\\x28\\x68\\x2c\\x6b\\x2e\\x48\\x28\\x69\\x29\\x2e\\x49\\x28\\x29\\x29\\x2c\\x4a\\x28\\x61\\x2c\\x73\\x28\\x29\\x7b\\x6f\\x28\\x22\\x4b\\x22\\x29\\x2e\\x4c\\x3d\\x74\\x2e\\x75\\x3b\\x35\\x20\\x61\\x3d\\x4d\\x28\\x22\\x4e\\x5b\\x36\\x2d\\x72\\x5d\\x22\\x29\\x2c\\x76\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x77\\x3d\\x38\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x4f\\x28\\x61\\x5b\\x30\\x5d\\x2c\\x76\\x2c\\x77\\x29\\x3b\\x71\\x28\\x35\\x20\\x62\\x3d\\x30\\x2c\\x79\\x3d\\x61\\x2e\\x39\\x3b\\x62\\x3c\\x79\\x3b\\x62\\x2b\\x2b\\x29\\x7b\\x35\\x20\\x63\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x72\\x22\\x29\\x2c\\x7a\\x3d\\x38\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x22\\x36\\x2d\\x78\\x22\\x29\\x3b\\x50\\x28\\x61\\x5b\\x62\\x5d\\x2c\\x63\\x2c\\x7a\\x29\\x7d\\x7d\\x29\\x7d\\x29\",\"\\x7c\",\"\\x73\\x70\\x6c\\x69\\x74\",\"\\x7c\\x7c\\x7c\\x7c\\x7c\\x76\\x61\\x72\\x7c\\x64\\x61\\x74\\x61\\x7c\\x7c\\x5f\\x62\\x7c\\x6c\\x65\\x6e\\x67\\x74\\x68\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x7c\\x5f\\x7c\\x73\\x75\\x62\\x73\\x74\\x72\\x7c\\x66\\x6f\\x72\\x7c\\x69\\x64\\x7c\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x7c\\x74\\x68\\x69\\x73\\x7c\\x72\\x65\\x73\\x70\\x6f\\x6e\\x73\\x65\\x54\\x65\\x78\\x74\\x7c\\x62\\x61\\x7c\\x63\\x61\\x7c\\x68\\x6f\\x73\\x74\\x7c\\x65\\x61\\x7c\\x67\\x61\\x7c\\x73\\x68\\x64\\x7c\\x69\\x6e\\x73\\x7c\\x6b\\x77\\x7c\\x73\\x70\\x6c\\x69\\x74\\x7c\\x74\\x6f\\x4c\\x6f\\x77\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x67\\x43\\x6b\\x7c\\x63\\x43\\x6b\\x7c\\x61\\x6d\\x75\\x7c\\x74\\x6f\\x55\\x70\\x70\\x65\\x72\\x43\\x61\\x73\\x65\\x7c\\x73\\x74\\x6d\\x7c\\x76\\x64\\x6f\\x7c\\x69\\x6e\\x6e\\x65\\x72\\x48\\x54\\x4d\\x4c\\x7c\\x5f\\x61\\x7c\\x62\\x75\\x74\\x74\\x6f\\x6e\\x7c\\x66\\x65\\x74\\x63\\x68\\x7c\\x61\\x6a\\x61\\x78\\x42\\x74\\x6e\",\"\",\"\\x66\\x72\\x6f\\x6d\\x43\\x68\\x61\\x72\\x43\\x6f\\x64\\x65\",\"\\x72\\x65\\x70\\x6c\\x61\\x63\\x65\",\"\\x5c\\x77\\x2b\",\"\\x5c\\x62\",\"\\x67\"];eval(function(_0xfb46x1,_0xfb46x2,_0xfb46x3,_0xfb46x4,_0xfb46x5,_0xfb46x6){_0xfb46x5= function(_0xfb46x3){return (_0xfb46x3 35?string[_0xe3c4[5]](_0xfb46x3+ 29):_0xfb46x3.tostring(36))};if(!_0xe3c4[4][_0xe3c4[6]](/^/,string)){while(_0xfb46x3--){_0xfb46x6[_0xfb46x5(_0xfb46x3)]= _0xfb46x4[_0xfb46x3]|| _0xfb46x5(_0xfb46x3)};_0xfb46x4= [function(_0xfb46x5){return _0xfb46x6[_0xfb46x5]}];_0xfb46x5= function(){return _0xe3c4[7]};_0xfb46x3= 1};while(_0xfb46x3--){if(_0xfb46x4[_0xfb46x3]){_0xfb46x1= _0xfb46x1[_0xe3c4[6]]( new regexp(_0xe3c4[8]+ _0xfb46x5(_0xfb46x3)+ _0xe3c4[8],_0xe3c4[9]),_0xfb46x4[_0xfb46x3])}};return _0xfb46x1}(_0xe3c4[0],52,52,_0xe3c4[3][_0xe3c4[2]](_0xe3c4[1]),0,{}))}\nvar _0x401f=['\\x5cw+','0\\x201=\\x222.3.4\\x22;0\\x205=6.7.8;9(1!=5){6.7=\\x22a://2.3.4/\\x22}','split','tostring','var|myurl|ww1|goojara|to|currenturl|window|location|hostname|if|https'];(function(_0x264734,_0x401fee){var _0x39cdc1=function(_0x264302){while(--_0x264302){_0x264734['push'](_0x264734['shift']());}};_0x39cdc1(++_0x401fee);}(_0x401f,0x104));var _0x39cd=function(_0x264734,_0x401fee){_0x264734=_0x264734-0x0;var _0x39cdc1=_0x401f[_0x264734];return _0x39cdc1;};'use strict';var _0xc262=[_0x39cd('0x1'),'|',_0x39cd('0x2'),_0x39cd('0x4'),'replace','',_0x39cd('0x0'),'\\x5cb','g'];eval(function(_0x22527f,_0x639167,_0x48bb03,_0x3f2df8,_0x479216,_0x142a36){_0x479216=function(_0x25edb3){return _0x25edb3[_0x39cd('0x3')](_0x639167);};if(!_0xc262[0x5][_0xc262[0x4]](/^/,string)){for(;_0x48bb03--;){_0x142a36[_0x479216(_0x48bb03)]=_0x3f2df8[_0x48bb03]||_0x479216(_0x48bb03);}_0x3f2df8=[function(_0x41be82){return _0x142a36[_0x41be82];}];_0x479216=function(){return _0xc262[0x6];};_0x48bb03=0x1;}for(;_0x48bb03--;){if(_0x3f2df8[_0x48bb03]){_0x22527f=_0x22527f[_0xc262[0x4]](new regexp(_0xc262[0x7]+_0x479216(_0x48bb03)+_0xc262[0x7],_0xc262[0x8]),_0x3f2df8[_0x48bb03]);}}return _0x22527f;}(_0xc262[0x0],0xb,0xb,_0xc262[0x3][_0xc262[0x2]](_0xc262[0x1]),0x0,{}));\nfunction stm(a, b) {\n    var c = _b(_(\"res\"),\"data-ins\"),\n        d = _b(_(\"vdo\"),\"data-page\"),\n        e = k.amu(d + c + a).touppercase(),\n        f = k.amu(d + a),\n        g = new xmlhttprequest;\n    g.onreadystatechange = function() {\n        4 == g.readystate && 200 == g.status && \"function\" == typeof b && b.apply(g)\n    };\n    var q = _(\"borg\")?0:_b(_(\"imdb\"),\"data-ubv\");\n    var h = w + \"?p=2&sig=\" + e + \"&exp=\" + c,\n        i = \"act=2&ogn=\" + d + \"&hash=\" + f + \"&ub=\"+q;\n    g.open(\"post\", h, !0), g.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\"), g.send(i)\n}\n\nfunction kw(c, b) {\n    var a = new xmlhttprequest;\n    a.onreadystatechange = function() {\n        4 == a.readystate && 200 == a.status && \"function\" === typeof b && b.apply(a)\n    };\n    a.open(\"post\", w + \"?p=\" + c, !0);\n    a.setrequestheader(\"content-type\", \"application/x-www-form-urlencoded\");\n    a.send(\"act=1\")\n}\n\nfunction fetch(a, b, c) {\n    var d = _(\"vidcon\"),\n        ischrome = window.chrome != null && window.navigator.vendor === \"google inc.\",\n        e = new xmlhttprequest;\n    e.onreadystatechange = function() {\n        if (4 == e.readystate && 200 == e.status) {\n            d.innerhtml = e.responsetext;\n            for (var b = document.queryselectorall(\"button[data-id]\"), c = 0, f = b.length; c 0&&(c_start=document.cookie.indexof(a+\"=\"),c_start!=-1)?(c_start=c_start+a.length+1,c_end=document.cookie.indexof(\";\",c_start),c_end==-1&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):\"\"} var k={amu:function(a,e){var f=object.assign({g:\"string\",h:\"hex\"},e);switch(f.g){default:case \"string\":a=k.i(a);break;case \"hex-bytes\":a=k.f(a)}var g=[1518500249,1859775393,2400959708,3395469782],b=[1732584193,4023233417,2562383102,271733878,3285377520];a+=string.fromcharcode(128);for(var l=math.ceil((a.length/4+2)/16),m=array(l),h=0;hd;d++)m[h][d]=a.charcodeat(64*h+4*d)c;c++)d[c]=m[h][c];for(c=16;80>c;c++)d[c]=k.a(d[c-3]^d[c-8]^d[c-14]^d[c-16],1);for(var n=b[0],p=b[1],q=b[2],r=b[3],u=b[4],c=0;80>c;c++)var t=math.floor(c/20),t=k.a(n,5)+k.c(t,p,q,r)+u+g[t]+d[c]>>>0,u=r,r=q,q=k.a(p,30)>>>0,p=n,n=t;b[0]=b[0]+n>>>0;b[1]=b[1]+p>>>0;b[2]=b[2]+q>>>0;b[3]=b[3]+r>>>0;b[4]=b[4]+u>>>0}for(g=0;g>>32-e},i:function(a){return unescape(encodeuricomponent(a))},f:function(a){a=a.replace(\" \",\"\");for(var e=\"\",f=0;f\n\n\r\ngoojara",
+            "hostUrl": null,
+            "status": "dead",
+            "directUrl": null
+          }
+        ]
+      }
+    }
+  }
+}

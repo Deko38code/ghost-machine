@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" fill="none">
+  <defs>
+    <linearGradient id="chromeBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="12%" stop-color="#a8b0b8"/>
+      <stop offset="25%" stop-color="#f4f4f4"/>
+      <stop offset="38%" stop-color="#788088"/>
+      <stop offset="50%" stop-color="#d0d4d8"/>
+      <stop offset="62%" stop-color="#606870"/>
+      <stop offset="75%" stop-color="#c8cdd2"/>
+      <stop offset="88%" stop-color="#889090"/>
+      <stop offset="100%" stop-color="#b0b8c0"/>
+    </linearGradient>
+    <linearGradient id="chromeShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.75)"/>
+      <stop offset="30%" stop-color="rgba(255,255,255,0.1)"/>
+      <stop offset="70%" stop-color="rgba(0,0,0,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
+    </linearGradient>
+    <radialGradient id="redEye" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#ff2200"/>
+      <stop offset="40%" stop-color="#dd0000"/>
+      <stop offset="80%" stop-color="#880000"/>
+      <stop offset="100%" stop-color="#440000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="eyeDot" cx="40%" cy="35%" r="40%">
+      <stop offset="0%" stop-color="#ff6644"/>
+      <stop offset="100%" stop-color="#cc0000"/>
+    </radialGradient>
+    <linearGradient id="teethGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0e4e8"/>
+      <stop offset="100%" stop-color="#909499"/>
+    </linearGradient>
+    <filter id="metalNoise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="4" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="eyeGlowF">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Skull cranium - chrome metallic -->
+  <path d="M50 6 C30 6 12 22 12 42 C12 54 17 61 22 66 C20 70 22 76 27 79 L30 85 C30 89 34 92 39 92 L39 82 C39 80 40 79 42 79 L46 79 L46 88 C46 91 50 93 54 93 L54 83 C54 81 55 80 58 80 L61 80 L61 88 C61 91 66 92 70 89 L70 85 C70 83 71 82 73 81 C78 78 82 72 80 66 C85 61 88 54 88 42 C88 22 70 6 50 6Z" 
+        fill="url(#chromeBody)" stroke="#667" stroke-width="0.7" filter="url(#metalNoise)"/>
+  <!-- Chrome shine overlay -->
+  <path d="M50 6 C30 6 12 22 12 42 C12 54 17 61 22 66 C20 70 22 76 27 79 L30 85 C30 89 34 92 39 92 L39 82 C39 80 40 79 42 79 L46 79 L46 88 C46 91 50 93 54 93 L54 83 C54 81 55 80 58 80 L61 80 L61 88 C61 91 66 92 70 89 L70 85 C70 83 71 82 73 81 C78 78 82 72 80 66 C85 61 88 54 88 42 C88 22 70 6 50 6Z" 
+        fill="url(#chromeShine)"/>
+  <!-- Forehead ridge detail -->
+  <path d="M30 32 L50 26 L70 32" stroke="#9aa0a6" stroke-width="0.5" fill="none" opacity="0.6"/>
+  <path d="M35 38 L50 33 L65 38" stroke="#9aa0a6" stroke-width="0.4" fill="none" opacity="0.4"/>
+  <!-- Cybernetic circuit lines -->
+  <path d="M50 10 L50 20 M42 14 L58 14 M38 18 L62 18" stroke="#00ff64" stroke-width="0.5" opacity="0.35" fill="none"/>
+  <circle cx="50" cy="14" r="1.2" fill="#00ff64" opacity="0.3"/>
+  <rect x="42" y="16" width="2" height="1.5" rx="0.3" fill="#00ff64" opacity="0.2"/>
+  <rect x="56" y="16" width="2" height="1.5" rx="0.3" fill="#00ff64" opacity="0.2"/>
+  <!-- Left eye socket - deep dark -->
+  <ellipse cx="36" cy="44" rx="10" ry="12" fill="#080808" stroke="#4a4e52" stroke-width="0.6"/>
+  <!-- Left eye glow -->
+  <ellipse cx="36" cy="44" rx="7" ry="9" fill="url(#redEye)" filter="url(#eyeGlowF)">
+    <animate attributeName="rx" values="7;5;7" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="ry" values="9;7;9" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.6;1" dur="1.8s" repeatCount="indefinite"/>
+  </ellipse>
+  <!-- Left eye core -->
+  <ellipse cx="35" cy="43" rx="3" ry="4" fill="url(#eyeDot)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="1.2s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="34" cy="41" rx="1.2" ry="1.5" fill="#ff8866" opacity="0.6"/>
+  <!-- Right eye socket -->
+  <ellipse cx="64" cy="44" rx="10" ry="12" fill="#080808" stroke="#4a4e52" stroke-width="0.6"/>
+  <!-- Right eye glow -->
+  <ellipse cx="64" cy="44" rx="7" ry="9" fill="url(#redEye)" filter="url(#eyeGlowF)">
+    <animate attributeName="rx" values="7;5;7" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="ry" values="9;7;9" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="opacity" values="1;0.6;1" dur="1.8s" repeatCount="indefinite" begin="0.3s"/>
+  </ellipse>
+  <!-- Right eye core -->
+  <ellipse cx="63" cy="43" rx="3" ry="4" fill="url(#eyeDot)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="1.2s" repeatCount="indefinite" begin="0.3s"/>
+  </ellipse>
+  <ellipse cx="62" cy="41" rx="1.2" ry="1.5" fill="#ff8866" opacity="0.6"/>
+  <!-- Nose cavity -->
+  <path d="M45 58 L50 65 L55 58Z" fill="#1a1a22" stroke="#555" stroke-width="0.3"/>
+  <path d="M47 60 L50 64 L53 60" stroke="#333" stroke-width="0.2" fill="none"/>
+  <!-- Cheekbone highlights -->
+  <path d="M20 54 Q26 50 30 54" stroke="#bbb" stroke-width="0.3" fill="none" opacity="0.5"/>
+  <path d="M70 54 Q74 50 80 54" stroke="#bbb" stroke-width="0.3" fill="none" opacity="0.5"/>
+  <!-- Upper teeth -->
+  <rect x="36" y="76" width="4.5" height="6" rx="1" fill="url(#teethGrad)" stroke="#778" stroke-width="0.3"/>
+  <rect x="42" y="75" width="4.5" height="7" rx="1" fill="url(#teethGrad)" stroke="#778" stroke-width="0.3"/>
+  <rect x="48" y="75" width="4.5" height="7.5" rx="1" fill="url(#teethGrad)" stroke="#778" stroke-width="0.3"/>
+  <rect x="54" y="75" width="4.5" height="7" rx="1" fill="url(#teethGrad)" stroke="#778" stroke-width="0.3"/>
+  <rect x="60" y="76" width="4.5" height="6" rx="1" fill="url(#teethGrad)" stroke="#778" stroke-width="0.3"/>
+  <!-- Scan line animation -->
+  <line x1="10" y1="44" x2="90" y2="44" stroke="#00ff64" stroke-width="0.4" opacity="0.1">
+    <animate attributeName="y1" values="10;85;10" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="10;85;10" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.05;0.2;0.05" dur="4s" repeatCount="indefinite"/>
+  </line>
+</svg>

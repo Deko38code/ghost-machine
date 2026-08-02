@@ -1,0 +1,59 @@
+{
+  "hits": [
+    {
+      "portal": "http://www.streamtv.to:8080/c/",
+      "mac": "00:1A:79:A3:96:BF",
+      "channels": "?",
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.329Z",
+      "found": "2026-08-02T16:09:36.329Z"
+    },
+    {
+      "portal": "http://www.streamtv.to:8080/c/",
+      "mac": "00:1A:79:BC:DE:16",
+      "channels": 280,
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.313Z",
+      "found": "2026-08-02T16:09:36.313Z"
+    },
+    {
+      "portal": "http://www.streamtv.to:8080/",
+      "mac": "00:1A:79:AA:BC:F2",
+      "channels": "?",
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.369Z",
+      "found": "2026-08-02T16:09:36.369Z"
+    },
+    {
+      "portal": "http://www.streamtv.to:8080",
+      "mac": "00:1A:79:A3:96:BF",
+      "channels": 280,
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.334Z",
+      "found": "2026-08-02T16:09:36.334Z"
+    },
+    {
+      "portal": "http://www.streamtv.to:8080/",
+      "mac": "00:1A:79:5E:BB:8D",
+      "channels": "?",
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.326Z",
+      "found": "2026-08-02T16:09:36.326Z"
+    },
+    {
+      "portal": "http://www.streamtv.to:8080/",
+      "mac": "00:1A:79:C4:20:C0",
+      "channels": "?",
+      "status": "hit",
+      "method": "localStorage-sync",
+      "lastChecked": "2026-08-02T16:09:36.374Z",
+      "found": "2026-08-02T16:09:36.374Z"
+    }
+  ],
+  "lastScan": null
+}

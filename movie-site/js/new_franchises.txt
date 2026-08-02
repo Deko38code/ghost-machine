@@ -1,0 +1,219 @@
+  // ═══ 2025-2026 NEW RELEASES ═══
+  fantastic4_2025:  { title: '🦸 Fantastic Four: First Steps (2025)',   type: 'tv',    ids: [82659] },
+  superman2025_v2:  { title: '🦸 Superman (2025)',                     type: 'movie', ids: [82659] },
+  jurassic_rebirth: { title: '🦕 Jurassic World Rebirth',             type: 'movie', ids: [985939] },
+  mi_dead_reckon2:  { title: '🕵️ MI: Dead Reckoning Part 2',          type: 'movie', ids: [575265] },
+  amateur2025:      { title: '🎯 The Amateur (2025)',                 type: 'movie', ids: [937288] },
+  snowwhite25:      { title: '🍎 Snow White (2025)',                   type: 'movie', ids: [453511] },
+  lilostitch25:     { title: '🧵 Lilo & Stitch (2025)',              type: 'movie', ids: [937288] },
+  warfare25:        { title: '⚔️ Warfare (2025)',                    type: 'movie', ids: [1072794] },
+  htuftyd25_v2:     { title: '🐉 How to Train Your Dragon (2025)',   type: 'movie', ids: [937155] },
+  frankenstein25:   { title: '🧟 Frankenstein (2025)',               type: 'movie', ids: [1045526] },
+  account2_v2:      { title: '📊 The Accountant 2 (2025)',          type: 'movie', ids: [1072794] },
+
+  // ═══ DC EXTENDED UNIVERSE ═══
+  dceu:             { title: '🦸 DC Extended Universe',              type: 'movie', ids: [49521, 424, 293167, 49026, 141052, 447404, 597231, 436969, 976573] },
+  wonderwoman:      { title: '👑 Wonder Woman',                       type: 'movie', ids: [49026, 464652] },
+  aquaman:          { title: '🌊 Aquaman',                            type: 'movie', ids: [293167, 571452] },
+  shazam:           { title: '⚡ Shazam!',                            type: 'movie', ids: [284053, 593643] },
+  flash_movie:      { title: '⚡ The Flash',                          type: 'movie', ids: [575265] },
+  blue_beetle:      { title: '🪲 Blue Beetle',                       type: 'movie', ids: [598279] },
+  black_adam:        { title: '🪨 Black Adam',                         type: 'movie', ids: [593643] },
+  suicide_squad:    { title: '💥 Suicide Squad',                     type: 'movie', ids: [424, 575265] },
+  man_of_steel:     { title: '🦸 Man of Steel',                      type: 'movie', ids: [49521] },
+  batman_v_superman:{ title: '🦇 Batman v Superman',                type: 'movie', ids: [424] },
+  justice_league:   { title: '🦸 Justice League',                    type: 'movie', ids: [141052] },
+  joker:            { title: '🃏 Joker',                             type: 'movie', ids: [475557, 667540] },
+  the_batman:       { title: '🦇 The Batman (2022)',                 type: 'movie', ids: [414844] },
+
+  // ═══ FAST & FURIOUS expanded ═══
+  fast9:            { title: '🏎️ Fast & Furious (9-10)',             type: 'movie', ids: [384018, 664767] },
+  hobbs_shaw:      { title: '💪 Hobbs & Shaw',                       type: 'movie', ids: [384018] },
+
+  // ═══ MONSTERVERSE ═══
+  monsterverse:     { title: '🦎 Monsterverse',                      type: 'movie', ids: [315637, 374612, 399566, 568012, 823464] },
+  godzilla:         { title: '🦎 Godzilla',                         type: 'movie', ids: [315637, 374612, 823464] },
+  kong:             { title: '🦍 King Kong',                          type: 'movie', ids: [399566, 568012] },
+
+  // ═══ STAR TREK movies ═══
+  startrek_movies:  { title: '🖖 Star Trek Movies',                  type: 'movie', ids: [186, 187, 189, 1895, 1893, 1894] },
+
+  // ═══ RESIDENT EVIL ═══
+  residentevil:     { title: '🧟 Resident Evil',                     type: 'movie', ids: [2048, 19152, 26250, 26251, 26252, 49049, 530250] },
+
+  // ═══ TOMB RAIDER ═══
+  tombraider:       { title: '🗡️ Tomb Raider',                        type: 'movie', ids: [338762, 559969] },
+
+  // ═══ MAZE RUNNER ═══
+  mazerunner:       { title: '🏃 Maze Runner',                       type: 'movie', ids: [198663, 291155, 394625] },
+
+  // ═══ DIVERGENT ═══
+  divergent:        { title: '🔮 Divergent',                         type: 'movie', ids: [250546, 262497, 328714] },
+
+  // ═══ TWILIGHT ═══
+  twilight:         { title: '🧛 Twilight Saga',                     type: 'movie', ids: [2105, 24428, 24430, 24431, 49212] },
+
+  // ═══ JACK REACHER ═══
+  reacher:          { title: '👊 Jack Reacher / Reacher',             type: 'movie', ids: [49526, 373511] },
+
+  // ═══ X-MEN ═══
+  xmen:             { title: '🧬 X-Men Universe',                    type: 'movie', ids: [36955, 36956, 36957, 556574, 12011, 556572, 244728, 353481, 244727] },
+
+  // ═══ KILLERS OF THE FLOWER MOON, POOR THINGS, etc. ═══
+  killers_flower:   { title: '💀 Killers of the Flower Moon',         type: 'movie', ids: [674324] },
+  poorthings:       { title: '🦋 Poor Things',                       type: 'movie', ids: [792307] },
+  holdovers:        { title: '🎄 The Holdovers',                      type: 'movie', ids: [840430] },
+  pastlives:        { title: '💫 Past Lives',                         type: 'movie', ids: [695418] },
+  anatomyfall:      { title: '🏔️ Anatomy of a Fall',                  type: 'movie', ids: [935190] },
+  saltburn:         { title: '🏰 Saltburn',                           type: 'movie', ids: [928519] },
+  bottoms:          { title: '🍑 Bottoms',                             type: 'movie', ids: [825726] },
+  ironclaw:         { title: '🤼 The Iron Claw',                     type: 'movie', ids: [795323] },
+  anyoneyoubut:     { title: '💕 Anyone But You',                    type: 'movie', ids: [799143] },
+  wonka:            { title: '🍫 Wonka',                              type: 'movie', ids: [840430] },
+  meangirls24:      { title: '🎀 Mean Girls (2024)',                 type: 'movie', ids: [928519] },
+  roadhouse24:      { title: '🥊 Road House (2024)',                  type: 'movie', ids: [786992] },
+  fallguy:          { title: '🎬 The Fall Guy',                       type: 'movie', ids: [928519] },
+  atlas:            { title: '🤖 Atlas',                               type: 'movie', ids: [930564] },
+  civilwar2024:     { title: '🏙️ Civil War (2024)',                  type: 'movie', ids: [870724] },
+  hitman:           { title: '🔫 Hit Man',                            type: 'movie', ids: [928519] },
+  deadpool_wolvie:  { title: '⚔️ Deadpool & Wolverine',              type: 'movie', ids: [533535] },
+  dune2:            { title: '🏜️ Dune: Part Two',                    type: 'movie', ids: [693134] },
+  insideout2_v2:    { title: '😊 Inside Out 2',                     type: 'movie', ids: [1022789] },
+
+  // ═══ 2023-2024 MORE HITS ═══
+  barbie:           { title: '💅 Barbie',                             type: 'movie', ids: [346698] },
+  oppenheimer2:     { title: '💣 Oppenheimer',                        type: 'movie', ids: [872585] },
+  killersmoon:      { title: '🪶 Killers of the Flower Moon',         type: 'movie', ids: [674324] },
+  maestro:          { title: '🎵 Maestro',                            type: 'movie', ids: [872585] },
+  maydecember:      { title: '🎭 May December',                      type: 'movie', ids: [923482] },
+  priscilla:        { title: '👑 Priscilla',                          type: 'movie', ids: [939810] },
+  napoleon:         { title: '⚔️ Napoleon',                           type: 'movie', ids: [758343] },
+  killerflm:        { title: '🎯 The Killer',                         type: 'movie', ids: [807081] },
+  flowermoon:       { title: '🌸 Killers of Flower Moon',             type: 'movie', ids: [674324] },
+  cobweb:           { title: '🕸️ Cobweb',                             type: 'movie', ids: [823484] },
+  blackberry:       { title: '📱 BlackBerry',                         type: 'movie', ids: [1015936] },
+  athena:           { title: '🏛️ Athena',                             type: 'movie', ids: [661870] },
+  decisiontoleave:  { title: '💔 Decision to Leave',                  type: 'movie', ids: [616037] },
+  everythingevery:  { title: '🥯 Everything Everywhere All at Once', type: 'movie', ids: [545611] },
+  topgun:           { title: '✈️ Top Gun',                            type: 'movie', ids: [361743, 614933] },
+  signal:           { title: '📡 Signal',                             type: 'tv',    ids: [76479] },
+
+  // ═══ TV SERIES - EXPANDED ═══
+  thebear:          { title: '👨‍🍳 The Bear',                        type: 'tv',    ids: [191129] },
+  beef:             { title: '🥩 Beef',                                type: 'tv',    ids: [114320] },
+  daisyjones:       { title: '🎸 Daisy Jones & The Six',             type: 'tv',    ids: [96565] },
+  reacher_tv:       { title: '👊 Reacher',                            type: 'tv',    ids: [93176] },
+  slowhorses:       { title: '🐑 Slow Horses',                       type: 'tv',    ids: [93484] },
+  yellowjackets:    { title: '🐝 Yellowjackets',                      type: 'tv',    ids: [93484] },
+  euphoria:         { title: '💊 Euphoria',                          type: 'tv',    ids: [84958] },
+  thebear2:         { title: '👨‍🍳 The Bear S2-3',                    type: 'tv',    ids: [191129] },
+  shogun_exp:       { title: '🏯 Shōgun Expanded',                    type: 'tv',    ids: [127532] },
+  fallout_exp:       { title: '☢️ Fallout Expanded',                  type: 'tv',    ids: [93484] },
+  lastofus_exp:     { title: '🧟 The Last of Us Expanded',            type: 'tv',    ids: [100088] },
+  house_dragon_exp: { title: '🐉 House of the Dragon Expanded',       type: 'tv',    ids: [94997] },
+  white_lotus_exp:  { title: '🌴 White Lotus Expanded',               type: 'tv',    ids: [93484] },
+  tedlasso_exp:     { title: '⚽ Ted Lasso Expanded',                 type: 'tv',    ids: [93484] },
+  severance_exp:    { title: '🧠 Severance Expanded',                 type: 'tv',    ids: [93484] },
+  true_detect_exp:  { title: '🔍 True Detective Expanded',            type: 'tv',    ids: [93484] },
+
+  // ═══ ANIME ═══
+  aot:              { title: '⚔️ Attack on Titan',                   type: 'tv',    ids: [1429] },
+  demon_slayer:     { title: '🗡️ Demon Slayer',                      type: 'tv',    ids: [85937] },
+  jujutsu_kaisen:   { title: '🔮 Jujutsu Kaisen',                    type: 'tv',    ids: [95479] },
+  chainsaw_man:     { title: '🪚 Chainsaw Man',                       type: 'tv',    ids: [114320] },
+  mha:              { title: '🦸 My Hero Academia',                   type: 'tv',    ids: [37854] },
+  onepunch:         { title: '👊 One Punch Man',                     type: 'tv',    ids: [63926] },
+  spy_family:        { title: '🕵️ Spy x Family',                      type: 'tv',    ids: [126362] },
+  naruto:           { title: '🍥 Naruto',                             type: 'tv',    ids: [46260] },
+  dragonball:       { title: '🉐 Dragon Ball',                         type: 'tv',    ids: [12971] },
+  one_piece:        { title: '🏴‍☠️ One Piece',                        type: 'tv',    ids: [37854] },
+  deathnote:        { title: '📓 Death Note',                         type: 'tv',    ids: [13916] },
+  cowboy_bebop:     { title: '🎷 Cowboy Bebop',                       type: 'tv',    ids: [30983] },
+  evaf:             { title: '🤖 Evangelion',                         type: 'tv',    ids: [82659] },
+  fullmetal:        { title: '⚙️ Fullmetal Alchemist',               type: 'tv',    ids: [26512] },
+  hunter_hxh:       { title: '🎯 Hunter x Hunter',                    type: 'tv',    ids: [37854] },
+  jojo:             { title: '🌟 JoJo\'s Bizarre Adventure',         type: 'tv',    ids: [37854] },
+  tokyoghoul:       { title: '👻 Tokyo Ghoul',                        type: 'tv',    ids: [37854] },
+  mobpsycho:        { title: '🌀 Mob Psycho 100',                     type: 'tv',    ids: [37854] },
+
+  // ═══ HORROR EXPANDED ═══
+  nightmare:        { title: '🛏️ A Nightmare on Elm Street',         type: 'movie', ids: [1022789, 1580, 1581, 1582, 24431] },
+  texas_chainsaw:   { title: '🪚 The Texas Chainsaw Massacre',       type: 'movie', ids: [50910, 278154, 50910] },
+  childs_play:      { title: '🧸 Child\'s Play',                     type: 'movie', ids: [1022789, 48491] },
+  finaldest:        { title: '💀 Final Destination',                  type: 'movie', ids: [1022789, 1580] },
+  saw_expanded:     { title: '🪚 Saw (Expanded)',                    type: 'movie', ids: [616037, 50910] },
+  hostel:           { title: '🏨 Hostel',                              type: 'movie', ids: [50910] },
+  cabin:            { title: '🏕️ Cabin in the Woods',                type: 'movie', ids: [1022789] },
+  sinister:         { title: '😈 Sinister',                           type: 'movie', ids: [674324] },
+
+  // ═══ STUDIO GHIBLI ═══
+  ghibli:           { title: '🏯 Studio Ghibli',                     type: 'movie', ids: [128, 614, 2048, 10346, 10515, 12453, 16645, 2048, 263485] },
+  spiritedaway:     { title: '🌊 Spirited Away',                      type: 'movie', ids: [129] },
+  totoro:           { title: '🌲 My Neighbor Totoro',                 type: 'movie', ids: [8392] },
+  mononoke:         { title: '🗡️ Princess Mononoke',                 type: 'movie', ids: [128] },
+  howlscastle:      { title: '🏰 Howl\'s Moving Castle',             type: 'movie', ids: [4935] },
+  kiki:             { title: '🧹 Kiki\'s Delivery Service',          type: 'movie', ids: [2048] },
+
+  // ═══ DIRECTOR COLLECTIONS ═══
+  nolan:             { title: '🎬 Christopher Nolan',                 type: 'movie', ids: [27205, 77338, 496243, 872585, 157336, 493522, 157336] },
+  kubrick:          { title: '🎬 Stanley Kubrick',                   type: 'movie', ids: [185, 424, 62, 526, 68932] },
+  scorsese:         { title: '🎬 Martin Scorsese',                   type: 'movie', ids: [674324, 76, 527633, 508442, 414844] },
+  tarantino_exp:    { title: '🎬 Quentin Tarantino Expanded',        type: 'movie', ids: [500, 680, 213, 346, 274, 539, 496243, 580489] },
+  spielberg:        { title: '🎬 Steven Spielberg',                 type: 'movie', ids: [603, 424, 68721, 501214, 157336] },
+  villeneuve:       { title: '🎬 Denis Villeneuve',                  type: 'movie', ids: [693134, 414844, 401478, 150540] },
+  coen:             { title: '🎬 Coen Brothers',                     type: 'movie', ids: [275, 496243, 424786] },
+  fincher:          { title: '🎬 David Fincher',                     type: 'movie', ids: [27205, 157336, 496243, 872585] },
+  refn:             { title: '🎬 Nicolas Winding Refn',              type: 'movie', ids: [157336, 496243] },
+    wes-anderson:   { title: '🎬 Wes Anderson',                      type: 'movie', ids: [10402, 9340, 496243, 150540] },
+  lynch:            { title: '🎬 David Lynch',                        type: 'movie', ids: [414844, 501214] },
+
+  // ═══ ACTION THRILLERS ═══
+  extraction:       { title: '💥 Extraction',                        type: 'movie', ids: [545611] },
+  oldguard:         { title: '⚔️ The Old Guard',                     type: 'movie', ids: [545611] },
+  nobody:           { title: '👊 Nobody',                             type: 'movie', ids: [346698] },
+  johnwick_exp:     { title: '🔫 John Wick (Expanded)',              type: 'movie', ids: [414844, 245891, 603692, 872585] },
+  equalizer_exp:    { title: '⚖️ Equalizer (Expanded)',              type: 'movie', ids: [156022, 414844, 157336] },
+  taken_exp:        { title: '🎯 Taken (Expanded)',                   type: 'movie', ids: [157336, 150540] },
+
+  // ═══ MORE HORROR ═══
+  conjuring_exp:   { title: '👻 Conjuring Universe (Expanded)',      type: 'movie', ids: [414844, 525741, 346698, 157336] },
+  insidious_exp:   { title: '👹 Insidious (Expanded)',               type: 'movie', ids: [525741, 346698] },
+    terrifier:      { title: '🤡 Terrifier',                            type: 'movie', ids: [528477] },
+    five_nights:    { title: '🐻 Five Nights at Freddy\'s',            type: 'movie', ids: [1022789] },
+    halloween_exp:  { title: '🎃 Halloween (Expanded)',               type: 'movie', ids: [157336, 414844, 245891] },
+
+  // ═══ SCI-FI ═══
+  dune_exp:        { title: '🏜️ Dune (Expanded)',                   type: 'movie', ids: [438631, 693134] },
+  alien_exp:       { title: '👽 Alien (Expanded)',                   type: 'movie', ids: [348, 680, 157336] },
+  matrix_exp:      { title: '💊 Matrix (Expanded)',                  type: 'movie', ids: [603, 604, 605, 695732] },
+  edge_tomorrow:   { title: '⏰ Edge of Tomorrow',                    type: 'movie', ids: [157336] },
+  arrival_exp:     { title: '👾 Arrival',                              type: 'movie', ids: [329] },
+  district9:       { title: '🛸 District 9',                           type: 'movie', ids: [157336] },
+  looper:          { title: '🔄 Looper',                               type: 'movie', ids: [157336] },
+  source_code:     { title: '💻 Source Code',                          type: 'movie', ids: [414844] },
+
+  // ═══ COMEDY ═══
+  superbad_exp:    { title: '🍺 Superbad & More Coming-of-Age',       type: 'movie', ids: [414844] },
+  hangover_exp:    { title: '🎰 The Hangover (Expanded)',             type: 'movie', ids: [414844, 157336] },
+    brides2:       { title: '👰 Bridesmaids',                         type: 'movie', ids: [414844] },
+    neighbors:      { title: '🏠 Neighbors',                           type: 'movie', ids: [414844] },
+    thisistheend:   { title: '🔥 This Is the End',                    type: 'movie', ids: [414844] },
+    game:           { title: '🎮 The Game',                            type: 'movie', ids: [157336] },
+
+  // ═══ ROMANCE ═══
+  notebook:        { title: '💕 The Notebook',                        type: 'movie', ids: [414844] },
+  la_la_land:      { title: '🎹 La La Land',                         type: 'movie', ids: [313369] },
+  before_sunrise:  { title: '🌅 Before Sunrise Trilogy',              type: 'movie', ids: [414844] },
+  pride_prejudice: { title: '📖 Pride & Prejudice',                   type: 'movie', ids: [414844] },
+
+  // ═══ DOCUMENTARIES ═══
+  planet_earth:    { title: '🌍 Planet Earth',                         type: 'tv',    ids: [37854] },
+  ourplanet:       { title: '🌊 Our Planet',                           type: 'tv',    ids: [37854] },
+  chefstable:      { title: '🍳 Chef\'s Table',                       type: 'tv',    ids: [37854] },
+
+  // ═══ MORE TV ═══
+  arc_decomp:      { title: '🧙 Arcane Expanded',                    type: 'tv',    ids: [94627] },
+  inv_expanded:     { title: '🦸 Invincible Expanded',               type: 'tv',    ids: [93484] },
+  boys_expanded:    { title: '💀 The Boys Expanded',                   type: 'tv',    ids: [76479] },
+  blacklist_exp:    { title: '🕵️ The Blacklist Expanded',             type: 'tv',    ids: [4626] },
+    dexter_exp:    { title: '🔪 Dexter Expanded',                      type: 'tv',    ids: [2478] },

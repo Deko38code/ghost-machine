@@ -1,0 +1,2007 @@
+{
+  "lastRun": "2026-06-01T00:30:06.475Z",
+  "schedule": "PM2 cron controls schedule",
+  "checked": 174,
+  "updated": 0,
+  "added": 0,
+  "artUpdated": 513,
+  "errors": [],
+  "shows": [
+    {
+      "title": "Spider-Noir",
+      "imdbId": "tt30460310",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Boroughs",
+      "imdbId": "tt27557289",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Berlin and the Lady with an Ermine",
+      "imdbId": "tt42178219",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Dutton Ranch",
+      "imdbId": "tt34991493",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "The Wonderfools",
+      "imdbId": "tt34440854",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Nemesis",
+      "imdbId": "tt36022742",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Off Campus",
+      "imdbId": "tt33546863",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "M.I.A.",
+      "imdbId": "tt33253070",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "Legends",
+      "imdbId": "tt33265765",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "Man on Fire",
+      "imdbId": "tt27331527",
+      "seasons": {
+        "1": 7
+      },
+      "totalEpisodes": 7
+    },
+    {
+      "title": "Should I Marry a Murderer?",
+      "imdbId": "tt41082351",
+      "seasons": {
+        "1": 3
+      },
+      "totalEpisodes": 3
+    },
+    {
+      "title": "Widow's Bay",
+      "imdbId": "tt33332385",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Half Man",
+      "imdbId": "tt32767294",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "If Wishes Could Kill",
+      "imdbId": "tt36104233",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Stranger Things: Tales from '85",
+      "imdbId": "tt27486290",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Hulk Hogan: Real American",
+      "imdbId": "tt41508977",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "Unchosen",
+      "imdbId": "tt31631142",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "Ronaldinho: The One and Only",
+      "imdbId": "tt37041367",
+      "seasons": {
+        "1": 3
+      },
+      "totalEpisodes": 3
+    },
+    {
+      "title": "Margo's Got Money Troubles",
+      "imdbId": "tt31137273",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Malcolm in the Middle: Life's Still Unfair",
+      "imdbId": "tt35466672",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "Perfect Crown",
+      "imdbId": "tt39333617",
+      "seasons": {
+        "1": 12
+      },
+      "totalEpisodes": 12
+    },
+    {
+      "title": "Big Mistakes",
+      "imdbId": "tt36957934",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Miniature Wife",
+      "imdbId": "tt31909098",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Trust Me: The False Prophet",
+      "imdbId": "tt40826311",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "The Testaments",
+      "imdbId": "tt10970762",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Star Wars: Maul - Shadow Lord",
+      "imdbId": "tt36594331",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Witch Hat Atelier",
+      "imdbId": "tt32550889",
+      "seasons": {
+        "1": 13
+      },
+      "totalEpisodes": 13
+    },
+    {
+      "title": "Something Very Bad Is Going to Happen",
+      "imdbId": "tt32937780",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Detective Hole",
+      "imdbId": "tt31810018",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "Bait",
+      "imdbId": "tt32252887",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "Radioactive Emergency",
+      "imdbId": "tt37041021",
+      "seasons": {
+        "1": 5
+      },
+      "totalEpisodes": 5
+    },
+    {
+      "title": "Imperfect Women",
+      "imdbId": "tt31937954",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Other Bennet Sister",
+      "imdbId": "tt37022512",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "The Madison",
+      "imdbId": "tt33204276",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "The Office",
+      "imdbId": "tt34231110",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Scarpetta",
+      "imdbId": "tt14786934",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Gone",
+      "imdbId": "tt39019156",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "Rooster",
+      "imdbId": "tt32420734",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "The Dinosaurs",
+      "imdbId": "tt32493765",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "Boyfriend on Demand",
+      "imdbId": "tt35848827",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Pursuit of Jade",
+      "imdbId": "tt35316225",
+      "seasons": {
+        "1": 40
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "Vladimir",
+      "imdbId": "tt35997699",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Young Sherlock",
+      "imdbId": "tt8599532",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "RJ Decker",
+      "imdbId": "tt37063558",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "Marshals",
+      "imdbId": "tt36849871",
+      "seasons": {
+        "1": 13
+      },
+      "totalEpisodes": 13
+    },
+    {
+      "title": "DTF St. Louis",
+      "imdbId": "tt34385331",
+      "seasons": {
+        "1": 7
+      },
+      "totalEpisodes": 7
+    },
+    {
+      "title": "Scrubs",
+      "imdbId": "tt40197357",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "CIA",
+      "imdbId": "tt35515227",
+      "seasons": {
+        "1": 12
+      },
+      "totalEpisodes": 12
+    },
+    {
+      "title": "56 Days",
+      "imdbId": "tt30412869",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Reality Check: Inside America's Next Top Model",
+      "imdbId": "tt39398591",
+      "seasons": {
+        "1": 3
+      },
+      "totalEpisodes": 3
+    },
+    {
+      "title": "From",
+      "imdbId": "tt9813792",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "Euphoria",
+      "imdbId": "tt8772296",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 8
+      },
+      "totalEpisodes": 24
+    },
+    {
+      "title": "Your Friends & Neighbors",
+      "imdbId": "tt30459041",
+      "seasons": {
+        "1": 9,
+        "2": 10
+      },
+      "totalEpisodes": 19
+    },
+    {
+      "title": "Rivals",
+      "imdbId": "tt21906238",
+      "seasons": {
+        "1": 8,
+        "2": 12
+      },
+      "totalEpisodes": 20
+    },
+    {
+      "title": "Virgin River",
+      "imdbId": "tt9077530",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 12,
+        "5": 12,
+        "6": 10,
+        "7": 10
+      },
+      "totalEpisodes": 74
+    },
+    {
+      "title": "Maximum Pleasure Guaranteed",
+      "imdbId": "tt35946742",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Hacks",
+      "imdbId": "tt11815682",
+      "seasons": {
+        "1": 10,
+        "2": 8,
+        "3": 9,
+        "4": 10,
+        "5": 10
+      },
+      "totalEpisodes": 47
+    },
+    {
+      "title": "The Pitt",
+      "imdbId": "tt31938062",
+      "seasons": {
+        "1": 15,
+        "2": 15
+      },
+      "totalEpisodes": 30
+    },
+    {
+      "title": "Yellowstone",
+      "imdbId": "tt4236770",
+      "seasons": {
+        "1": 9,
+        "2": 10,
+        "3": 10,
+        "4": 10,
+        "5": 14
+      },
+      "totalEpisodes": 53
+    },
+    {
+      "title": "Invincible",
+      "imdbId": "tt6741278",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8
+      },
+      "totalEpisodes": 32
+    },
+    {
+      "title": "Tom Clancy's Jack Ryan",
+      "imdbId": "tt5057054",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 6
+      },
+      "totalEpisodes": 30
+    },
+    {
+      "title": "The Rookie",
+      "imdbId": "tt7587890",
+      "seasons": {
+        "1": 20,
+        "2": 20,
+        "3": 14,
+        "4": 22,
+        "5": 22,
+        "6": 10,
+        "7": 18,
+        "8": 18,
+        "9": 18
+      },
+      "totalEpisodes": 162
+    },
+    {
+      "title": "Mating Season",
+      "imdbId": "tt14690136",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "For All Mankind",
+      "imdbId": "tt7772588",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10,
+        "5": 10
+      },
+      "totalEpisodes": 50
+    },
+    {
+      "title": "Beef",
+      "imdbId": "tt14403178",
+      "seasons": {
+        "1": 10,
+        "2": 8
+      },
+      "totalEpisodes": 18
+    },
+    {
+      "title": "Daredevil: Born Again",
+      "imdbId": "tt18923754",
+      "seasons": {
+        "1": 9,
+        "2": 8
+      },
+      "totalEpisodes": 17
+    },
+    {
+      "title": "Outlander",
+      "imdbId": "tt3006802",
+      "seasons": {
+        "1": 16,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 12,
+        "6": 8,
+        "7": 16,
+        "8": 10
+      },
+      "totalEpisodes": 101
+    },
+    {
+      "title": "MobLand",
+      "imdbId": "tt31510819",
+      "seasons": {
+        "1": 10,
+        "2": 10
+      },
+      "totalEpisodes": 20
+    },
+    {
+      "title": "Tracker",
+      "imdbId": "tt13875494",
+      "seasons": {
+        "1": 13,
+        "2": 20,
+        "3": 22
+      },
+      "totalEpisodes": 55
+    },
+    {
+      "title": "Attack on Titan",
+      "imdbId": "tt2560140",
+      "seasons": {
+        "1": 25,
+        "2": 12,
+        "3": 22,
+        "4": 30
+      },
+      "totalEpisodes": 89
+    },
+    {
+      "title": "Person of Interest",
+      "imdbId": "tt1839578",
+      "seasons": {
+        "1": 23,
+        "2": 22,
+        "3": 23,
+        "4": 22,
+        "5": 13
+      },
+      "totalEpisodes": 103
+    },
+    {
+      "title": "Sheriff Country",
+      "imdbId": "tt32268630",
+      "seasons": {
+        "1": 20
+      },
+      "totalEpisodes": 20
+    },
+    {
+      "title": "The Chestnut Man",
+      "imdbId": "tt10834220",
+      "seasons": {
+        "1": 6,
+        "2": 6
+      },
+      "totalEpisodes": 12
+    },
+    {
+      "title": "Elsbeth",
+      "imdbId": "tt26591110",
+      "seasons": {
+        "1": 10,
+        "2": 20,
+        "3": 20
+      },
+      "totalEpisodes": 50
+    },
+    {
+      "title": "The Sopranos",
+      "imdbId": "tt0141842",
+      "seasons": {
+        "1": 13,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 13,
+        "6": 21
+      },
+      "totalEpisodes": 86
+    },
+    {
+      "title": "Citadel",
+      "imdbId": "tt9794044",
+      "seasons": {
+        "1": 6,
+        "2": 7
+      },
+      "totalEpisodes": 13
+    },
+    {
+      "title": "Better Call Saul",
+      "imdbId": "tt3032476",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10,
+        "5": 10,
+        "6": 13
+      },
+      "totalEpisodes": 63
+    },
+    {
+      "title": "Berlin",
+      "imdbId": "tt16288804",
+      "seasons": {
+        "1": 8,
+        "2": 8
+      },
+      "totalEpisodes": 16
+    },
+    {
+      "title": "9-1-1",
+      "imdbId": "tt7235466",
+      "seasons": {
+        "1": 10,
+        "2": 18,
+        "3": 18,
+        "4": 14,
+        "5": 18,
+        "6": 18,
+        "7": 10,
+        "8": 18,
+        "9": 18
+      },
+      "totalEpisodes": 142
+    },
+    {
+      "title": "Suits",
+      "imdbId": "tt1632701",
+      "seasons": {
+        "1": 12,
+        "2": 16,
+        "3": 16,
+        "4": 16,
+        "5": 16,
+        "6": 16,
+        "7": 16,
+        "8": 16,
+        "9": 10
+      },
+      "totalEpisodes": 134
+    },
+    {
+      "title": "Re: Zero - Starting Life in Another World",
+      "imdbId": "tt5607616",
+      "seasons": {
+        "1": 25,
+        "2": 25,
+        "3": 16,
+        "4": 19
+      },
+      "totalEpisodes": 85
+    },
+    {
+      "title": "Mad Men",
+      "imdbId": "tt0804503",
+      "seasons": {
+        "1": 13,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 13,
+        "6": 13,
+        "7": 14
+      },
+      "totalEpisodes": 92
+    },
+    {
+      "title": "Daredevil",
+      "imdbId": "tt3322312",
+      "seasons": {
+        "1": 13,
+        "2": 13,
+        "3": 13
+      },
+      "totalEpisodes": 39
+    },
+    {
+      "title": "Law & Order",
+      "imdbId": "tt0098844",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 22,
+        "4": 22,
+        "5": 23,
+        "6": 23,
+        "7": 23,
+        "8": 24,
+        "9": 24,
+        "10": 24,
+        "11": 24,
+        "12": 24,
+        "13": 24,
+        "14": 24,
+        "15": 24,
+        "16": 22,
+        "17": 22,
+        "18": 18,
+        "19": 22,
+        "20": 23,
+        "21": 10,
+        "22": 22,
+        "23": 13,
+        "24": 22,
+        "25": 21
+      },
+      "totalEpisodes": 544
+    },
+    {
+      "title": "High Potential",
+      "imdbId": "tt22091076",
+      "seasons": {
+        "1": 13,
+        "2": 18
+      },
+      "totalEpisodes": 31
+    },
+    {
+      "title": "Monarch: Legacy of Monsters",
+      "imdbId": "tt17220216",
+      "seasons": {
+        "1": 10,
+        "2": 10
+      },
+      "totalEpisodes": 20
+    },
+    {
+      "title": "Georgie & Mandy's First Marriage",
+      "imdbId": "tt31589662",
+      "seasons": {
+        "1": 22,
+        "2": 22
+      },
+      "totalEpisodes": 44
+    },
+    {
+      "title": "Chernobyl",
+      "imdbId": "tt7366338",
+      "seasons": {
+        "1": 5
+      },
+      "totalEpisodes": 5
+    },
+    {
+      "title": "Lord of the Flies",
+      "imdbId": "tt27557666",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "Shameless",
+      "imdbId": "tt1586680",
+      "seasons": {
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+        "6": 12,
+        "7": 12,
+        "8": 12,
+        "9": 14,
+        "10": 12,
+        "11": 12
+      },
+      "totalEpisodes": 134
+    },
+    {
+      "title": "Avatar: The Last Airbender",
+      "imdbId": "tt9018736",
+      "seasons": {
+        "1": 8,
+        "2": 7
+      },
+      "totalEpisodes": 15
+    },
+    {
+      "title": "Pluribus",
+      "imdbId": "tt22202452",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "Band of Brothers",
+      "imdbId": "tt0185906",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "House",
+      "imdbId": "tt0412142",
+      "seasons": {
+        "1": 22,
+        "2": 24,
+        "3": 24,
+        "4": 16,
+        "5": 24,
+        "6": 21,
+        "7": 23,
+        "8": 22
+      },
+      "totalEpisodes": 176
+    },
+    {
+      "title": "Believe Me",
+      "imdbId": "tt36789130",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "FBI",
+      "imdbId": "tt7491982",
+      "seasons": {
+        "1": 22,
+        "2": 19,
+        "3": 15,
+        "4": 21,
+        "5": 23,
+        "6": 13,
+        "7": 22,
+        "8": 22
+      },
+      "totalEpisodes": 157
+    },
+    {
+      "title": "Slow Horses",
+      "imdbId": "tt5875444",
+      "seasons": {
+        "1": 6,
+        "2": 6,
+        "3": 6,
+        "4": 6,
+        "5": 6
+      },
+      "totalEpisodes": 30
+    },
+    {
+      "title": "Smallville",
+      "imdbId": "tt0279600",
+      "seasons": {
+        "1": 21,
+        "2": 23,
+        "3": 22,
+        "4": 22,
+        "5": 22,
+        "6": 22,
+        "7": 20,
+        "8": 22,
+        "9": 21,
+        "10": 21
+      },
+      "totalEpisodes": 216
+    },
+    {
+      "title": "The X-Files",
+      "imdbId": "tt0106179",
+      "seasons": {
+        "1": 24,
+        "2": 25,
+        "3": 24,
+        "4": 24,
+        "5": 20,
+        "6": 22,
+        "7": 22,
+        "8": 21,
+        "9": 20,
+        "10": 6,
+        "11": 10
+      },
+      "totalEpisodes": 218
+    },
+    {
+      "title": "Fargo",
+      "imdbId": "tt2802850",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 11,
+        "5": 10
+      },
+      "totalEpisodes": 51
+    },
+    {
+      "title": "My Hero Academia",
+      "imdbId": "tt5626028",
+      "seasons": {
+        "1": 13,
+        "2": 25,
+        "3": 25,
+        "4": 25,
+        "5": 25,
+        "6": 25,
+        "7": 21,
+        "8": 11
+      },
+      "totalEpisodes": 170
+    },
+    {
+      "title": "Midsomer Murders",
+      "imdbId": "tt0118401",
+      "seasons": {
+        "1": 5,
+        "2": 4,
+        "3": 4,
+        "4": 6,
+        "5": 4,
+        "6": 5,
+        "7": 6,
+        "8": 8,
+        "9": 8,
+        "10": 8,
+        "11": 7,
+        "12": 7,
+        "13": 8,
+        "14": 8,
+        "15": 6,
+        "16": 5,
+        "17": 4,
+        "18": 6,
+        "19": 6,
+        "20": 6,
+        "21": 4,
+        "22": 6,
+        "23": 4,
+        "24": 4,
+        "25": 4
+      },
+      "totalEpisodes": 143
+    },
+    {
+      "title": "Homeland",
+      "imdbId": "tt1796960",
+      "seasons": {
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+        "6": 12,
+        "7": 12,
+        "8": 12
+      },
+      "totalEpisodes": 96
+    },
+    {
+      "title": "Malcolm in the Middle",
+      "imdbId": "tt0212671",
+      "seasons": {
+        "1": 16,
+        "2": 25,
+        "3": 22,
+        "4": 22,
+        "5": 22,
+        "6": 22,
+        "7": 22
+      },
+      "totalEpisodes": 151
+    },
+    {
+      "title": "Young Sheldon",
+      "imdbId": "tt6226232",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 21,
+        "4": 18,
+        "5": 22,
+        "6": 22,
+        "7": 14
+      },
+      "totalEpisodes": 141
+    },
+    {
+      "title": "Bones",
+      "imdbId": "tt0460627",
+      "seasons": {
+        "1": 22,
+        "2": 21,
+        "3": 15,
+        "4": 26,
+        "5": 22,
+        "6": 23,
+        "7": 13,
+        "8": 24,
+        "9": 24,
+        "10": 22,
+        "11": 22,
+        "12": 12
+      },
+      "totalEpisodes": 246
+    },
+    {
+      "title": "Modern Family",
+      "imdbId": "tt1442437",
+      "seasons": {
+        "1": 24,
+        "2": 24,
+        "3": 24,
+        "4": 24,
+        "5": 24,
+        "6": 24,
+        "7": 22,
+        "8": 22,
+        "9": 22,
+        "10": 22,
+        "11": 18
+      },
+      "totalEpisodes": 250
+    },
+    {
+      "title": "Banshee",
+      "imdbId": "tt2017109",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 8
+      },
+      "totalEpisodes": 38
+    },
+    {
+      "title": "Castle",
+      "imdbId": "tt1219024",
+      "seasons": {
+        "1": 10,
+        "2": 24,
+        "3": 24,
+        "4": 23,
+        "5": 24,
+        "6": 23,
+        "7": 23,
+        "8": 22
+      },
+      "totalEpisodes": 173
+    },
+    {
+      "title": "It's Always Sunny in Philadelphia",
+      "imdbId": "tt0472954",
+      "seasons": {
+        "1": 7,
+        "2": 10,
+        "3": 15,
+        "4": 13,
+        "5": 12,
+        "6": 13,
+        "7": 13,
+        "8": 10,
+        "9": 10,
+        "10": 10,
+        "11": 10,
+        "12": 10,
+        "13": 10,
+        "14": 10,
+        "15": 8,
+        "16": 8,
+        "17": 8
+      },
+      "totalEpisodes": 177
+    },
+    {
+      "title": "The Middle",
+      "imdbId": "tt1442464",
+      "seasons": {
+        "1": 24,
+        "2": 24,
+        "3": 24,
+        "4": 24,
+        "5": 24,
+        "6": 24,
+        "7": 24,
+        "8": 23,
+        "9": 24
+      },
+      "totalEpisodes": 215
+    },
+    {
+      "title": "The Night Agent",
+      "imdbId": "tt13918776",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10
+      },
+      "totalEpisodes": 30
+    },
+    {
+      "title": "Bridgerton",
+      "imdbId": "tt8740790",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8
+      },
+      "totalEpisodes": 32
+    },
+    {
+      "title": "Avatar: The Last Airbender",
+      "imdbId": "tt0417299",
+      "seasons": {
+        "1": 20,
+        "2": 20,
+        "3": 21
+      },
+      "totalEpisodes": 61
+    },
+    {
+      "title": "La Casa de los Espíritus",
+      "imdbId": "tt33022938",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Hunting Party",
+      "imdbId": "tt21906554",
+      "seasons": {
+        "1": 10,
+        "2": 13
+      },
+      "totalEpisodes": 23
+    },
+    {
+      "title": "The Lincoln Lawyer",
+      "imdbId": "tt13833978",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "The Vampire Diaries",
+      "imdbId": "tt1405406",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 22,
+        "4": 23,
+        "5": 22,
+        "6": 22,
+        "7": 22,
+        "8": 16
+      },
+      "totalEpisodes": 171
+    },
+    {
+      "title": "The Americans",
+      "imdbId": "tt2149175",
+      "seasons": {
+        "1": 13,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 13,
+        "6": 10
+      },
+      "totalEpisodes": 75
+    },
+    {
+      "title": "Ted",
+      "imdbId": "tt14824792",
+      "seasons": {
+        "1": 7,
+        "2": 8
+      },
+      "totalEpisodes": 15
+    },
+    {
+      "title": "The Crown",
+      "imdbId": "tt4786824",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10,
+        "5": 10,
+        "6": 10
+      },
+      "totalEpisodes": 60
+    },
+    {
+      "title": "Lucifer",
+      "imdbId": "tt4052886",
+      "seasons": {
+        "1": 13,
+        "2": 18,
+        "3": 26,
+        "4": 10,
+        "5": 16,
+        "6": 10
+      },
+      "totalEpisodes": 93
+    },
+    {
+      "title": "Bloodhounds",
+      "imdbId": "tt26315487",
+      "seasons": {
+        "1": 8,
+        "2": 7
+      },
+      "totalEpisodes": 15
+    },
+    {
+      "title": "Shogun",
+      "imdbId": "tt2788316",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "It's Not Like That",
+      "imdbId": "tt34691775",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Spartacus",
+      "imdbId": "tt1442449",
+      "seasons": {
+        "1": 13,
+        "2": 10,
+        "3": 10
+      },
+      "totalEpisodes": 33
+    },
+    {
+      "title": "Gilmore Girls",
+      "imdbId": "tt0238784",
+      "seasons": {
+        "1": 21,
+        "2": 22,
+        "3": 22,
+        "4": 22,
+        "5": 22,
+        "6": 22,
+        "7": 22
+      },
+      "totalEpisodes": 153
+    },
+    {
+      "title": "Ahsoka",
+      "imdbId": "tt13622776",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Everyone Is Doing Great",
+      "imdbId": "tt7082442",
+      "seasons": {
+        "1": 8,
+        "2": 8
+      },
+      "totalEpisodes": 16
+    },
+    {
+      "title": "Saturday Night Live",
+      "imdbId": "tt0072562",
+      "seasons": {
+        "1": 24,
+        "2": 22,
+        "3": 20,
+        "4": 20,
+        "5": 20,
+        "6": 13,
+        "7": 20,
+        "8": 20,
+        "9": 19,
+        "10": 17,
+        "11": 18,
+        "12": 20,
+        "13": 13,
+        "14": 20,
+        "15": 20,
+        "16": 20,
+        "17": 20,
+        "18": 20,
+        "19": 20,
+        "20": 20,
+        "21": 20,
+        "22": 20,
+        "23": 20,
+        "24": 19,
+        "25": 20,
+        "26": 20,
+        "27": 20,
+        "28": 20,
+        "29": 20,
+        "30": 20,
+        "31": 19,
+        "32": 20,
+        "33": 12,
+        "34": 22,
+        "35": 22,
+        "36": 22,
+        "37": 22,
+        "38": 21,
+        "39": 21,
+        "40": 21,
+        "41": 21,
+        "42": 21,
+        "43": 21,
+        "44": 21,
+        "45": 18,
+        "46": 20,
+        "47": 21,
+        "48": 18,
+        "49": 20,
+        "50": 21,
+        "51": 20
+      },
+      "totalEpisodes": 1009
+    },
+    {
+      "title": "3 Body Problem",
+      "imdbId": "tt13016388",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Day of the Jackal",
+      "imdbId": "tt24053860",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Grimm",
+      "imdbId": "tt1830617",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 22,
+        "4": 22,
+        "5": 22,
+        "6": 13
+      },
+      "totalEpisodes": 123
+    },
+    {
+      "title": "Normal People",
+      "imdbId": "tt9059760",
+      "seasons": {
+        "1": 12
+      },
+      "totalEpisodes": 12
+    },
+    {
+      "title": "Chicago P.D.",
+      "imdbId": "tt2805096",
+      "seasons": {
+        "1": 15,
+        "2": 23,
+        "3": 23,
+        "4": 23,
+        "5": 22,
+        "6": 22,
+        "7": 20,
+        "8": 16,
+        "9": 22,
+        "10": 22,
+        "11": 13,
+        "12": 22,
+        "13": 21
+      },
+      "totalEpisodes": 264
+    },
+    {
+      "title": "Lioness",
+      "imdbId": "tt13111078",
+      "seasons": {
+        "1": 8,
+        "2": 8
+      },
+      "totalEpisodes": 16
+    },
+    {
+      "title": "The West Wing",
+      "imdbId": "tt0200276",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 21,
+        "4": 23,
+        "5": 22,
+        "6": 22,
+        "7": 22
+      },
+      "totalEpisodes": 154
+    },
+    {
+      "title": "Seeking Persephone",
+      "imdbId": "tt29666911",
+      "seasons": {
+        "1": 4
+      },
+      "totalEpisodes": 4
+    },
+    {
+      "title": "Veronica Mars",
+      "imdbId": "tt0412253",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 20,
+        "4": 8
+      },
+      "totalEpisodes": 72
+    },
+    {
+      "title": "Solo Leveling",
+      "imdbId": "tt21209876",
+      "seasons": {
+        "1": 12,
+        "2": 13
+      },
+      "totalEpisodes": 25
+    },
+    {
+      "title": "The Man in the High Castle",
+      "imdbId": "tt1740299",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "Regular Show: Lost Tapes",
+      "imdbId": "tt32604054",
+      "seasons": {
+        "1": 22
+      },
+      "totalEpisodes": 22
+    },
+    {
+      "title": "Arcane",
+      "imdbId": "tt11126994",
+      "seasons": {
+        "1": 9,
+        "2": 9
+      },
+      "totalEpisodes": 18
+    },
+    {
+      "title": "The Way Home",
+      "imdbId": "tt20221678",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "Blue Bloods",
+      "imdbId": "tt1595859",
+      "seasons": {
+        "1": 22,
+        "2": 22,
+        "3": 23,
+        "4": 22,
+        "5": 22,
+        "6": 22,
+        "7": 22,
+        "8": 22,
+        "9": 22,
+        "10": 19,
+        "11": 16,
+        "12": 20,
+        "13": 21,
+        "14": 18
+      },
+      "totalEpisodes": 293
+    },
+    {
+      "title": "Mr Inbetween",
+      "imdbId": "tt7472896",
+      "seasons": {
+        "1": 6,
+        "2": 11,
+        "3": 9
+      },
+      "totalEpisodes": 26
+    },
+    {
+      "title": "Vinland Saga",
+      "imdbId": "tt10233448",
+      "seasons": {
+        "1": 24,
+        "2": 24
+      },
+      "totalEpisodes": 48
+    },
+    {
+      "title": "Demon Slayer: Kimetsu no Yaiba",
+      "imdbId": "tt9335498",
+      "seasons": {
+        "1": 26,
+        "2": 7,
+        "3": 11,
+        "4": 11,
+        "5": 8
+      },
+      "totalEpisodes": 63
+    },
+    {
+      "title": "Dark Winds",
+      "imdbId": "tt15017118",
+      "seasons": {
+        "1": 6,
+        "2": 6,
+        "3": 8,
+        "4": 8,
+        "5": 2
+      },
+      "totalEpisodes": 30
+    },
+    {
+      "title": "Secret Service",
+      "imdbId": "tt32477632",
+      "seasons": {
+        "1": 5
+      },
+      "totalEpisodes": 5
+    },
+    {
+      "title": "Black Bird",
+      "imdbId": "tt4301160",
+      "seasons": {
+        "1": 6
+      },
+      "totalEpisodes": 6
+    },
+    {
+      "title": "Battlestar Galactica",
+      "imdbId": "tt0407362",
+      "seasons": {
+        "1": 13,
+        "2": 20,
+        "3": 20,
+        "4": 20
+      },
+      "totalEpisodes": 73
+    },
+    {
+      "title": "Westworld",
+      "imdbId": "tt0475784",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 8,
+        "4": 8
+      },
+      "totalEpisodes": 36
+    },
+    {
+      "title": "Sullivan's Crossing",
+      "imdbId": "tt21064598",
+      "seasons": {
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10
+      },
+      "totalEpisodes": 40
+    },
+    {
+      "title": "Abbott Elementary",
+      "imdbId": "tt14218830",
+      "seasons": {
+        "1": 13,
+        "2": 22,
+        "3": 14,
+        "4": 22,
+        "5": 22
+      },
+      "totalEpisodes": 93
+    },
+    {
+      "title": "The Lord of the Rings: The Rings of Power",
+      "imdbId": "tt7631058",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 1
+      },
+      "totalEpisodes": 17
+    },
+    {
+      "title": "Will Trent",
+      "imdbId": "tt17543592",
+      "seasons": {
+        "1": 13,
+        "2": 10,
+        "3": 18,
+        "4": 18
+      },
+      "totalEpisodes": 59
+    },
+    {
+      "title": "Mindhunter",
+      "imdbId": "tt5290382",
+      "seasons": {
+        "1": 10,
+        "2": 9
+      },
+      "totalEpisodes": 19
+    },
+    {
+      "title": "How to Get to Heaven from Belfast",
+      "imdbId": "tt31709373",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "The Gentlemen",
+      "imdbId": "tt13210838",
+      "seasons": {
+        "1": 8
+      },
+      "totalEpisodes": 8
+    },
+    {
+      "title": "Interview with the Vampire",
+      "imdbId": "tt3960394",
+      "seasons": {
+        "1": 7,
+        "2": 8,
+        "3": 7
+      },
+      "totalEpisodes": 22
+    },
+    {
+      "title": "Memory of a Killer",
+      "imdbId": "tt35707374",
+      "seasons": {
+        "1": 10
+      },
+      "totalEpisodes": 10
+    },
+    {
+      "title": "Two and a Half Men",
+      "imdbId": "tt0369179",
+      "seasons": {
+        "1": 24,
+        "2": 24,
+        "3": 24,
+        "4": 24,
+        "5": 19,
+        "6": 24,
+        "7": 22,
+        "8": 16,
+        "9": 24,
+        "10": 23,
+        "11": 22,
+        "12": 16
+      },
+      "totalEpisodes": 262
+    },
+    {
+      "title": "The Cleaning Lady",
+      "imdbId": "tt11188682",
+      "seasons": {
+        "1": 10,
+        "2": 12,
+        "3": 12,
+        "4": 12
+      },
+      "totalEpisodes": 46
+    },
+    {
+      "title": "Sex Education",
+      "imdbId": "tt7767422",
+      "seasons": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8
+      },
+      "totalEpisodes": 32
+    },
+    {
+      "title": "Psych",
+      "imdbId": "tt0491738",
+      "seasons": {
+        "1": 15,
+        "2": 16,
+        "3": 16,
+        "4": 16,
+        "5": 16,
+        "6": 16,
+        "7": 16,
+        "8": 10
+      },
+      "totalEpisodes": 121
+    },
+    {
+      "title": "The Four Seasons",
+      "imdbId": "tt30826447",
+      "seasons": {
+        "1": 8,
+        "2": 8
+      },
+      "totalEpisodes": 16
+    },
+    {
+      "title": "One Tree Hill",
+      "imdbId": "tt0368530",
+      "seasons": {
+        "1": 22,
+        "2": 23,
+        "3": 22,
+        "4": 21,
+        "5": 18,
+        "6": 24,
+        "7": 22,
+        "8": 22,
+        "9": 13
+      },
+      "totalEpisodes": 187
+    },
+    {
+      "title": "The Amazing Digital Circus",
+      "imdbId": "tt27610198",
+      "seasons": {
+        "1": 9
+      },
+      "totalEpisodes": 9
+    },
+    {
+      "title": "Rescue Me",
+      "imdbId": "tt0381798",
+      "seasons": {
+        "1": 13,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 22,
+        "6": 10,
+        "7": 9
+      },
+      "totalEpisodes": 93
+    },
+    {
+      "title": "S.W.A.T.",
+      "imdbId": "tt6111130",
+      "seasons": {
+        "1": 22,
+        "2": 23,
+        "3": 21,
+        "4": 18,
+        "5": 22,
+        "6": 22,
+        "7": 13,
+        "8": 22
+      },
+      "totalEpisodes": 163
+    },
+    {
+      "title": "The Flash",
+      "imdbId": "tt3107288",
+      "seasons": {
+        "1": 23,
+        "2": 23,
+        "3": 23,
+        "4": 23,
+        "5": 22,
+        "6": 19,
+        "7": 18,
+        "8": 20,
+        "9": 13
+      },
+      "totalEpisodes": 184
+    },
+    {
+      "title": "Fringe",
+      "imdbId": "tt1119644",
+      "seasons": {
+        "1": 20,
+        "2": 23,
+        "3": 22,
+        "4": 22,
+        "5": 13
+      },
+      "totalEpisodes": 100
+    },
+    {
+      "title": "Jury Duty Presents",
+      "imdbId": "tt22074164",
+      "seasons": {
+        "1": 8,
+        "2": 8
+      },
+      "totalEpisodes": 16
+    }
+  ],
+  "catalogs": [
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2026",
+      "count": 45
+    },
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2026&skip=100",
+      "count": 37
+    },
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2026&skip=200",
+      "count": 0
+    },
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2025",
+      "count": 49
+    },
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2025&skip=100",
+      "count": 50
+    },
+    {
+      "type": "movie",
+      "id": "year",
+      "extra": "genre=2025&skip=200",
+      "count": 50
+    },
+    {
+      "type": "movie",
+      "id": "top",
+      "extra": null,
+      "count": 47
+    },
+    {
+      "type": "movie",
+      "id": "top",
+      "extra": "skip=100",
+      "count": 48
+    },
+    {
+      "type": "movie",
+      "id": "top",
+      "extra": "skip=200",
+      "count": 50
+    },
+    {
+      "type": "series",
+      "id": "year",
+      "extra": "genre=2026",
+      "count": 50
+    },
+    {
+      "type": "series",
+      "id": "year",
+      "extra": "genre=2026&skip=100",
+      "count": 0
+    },
+    {
+      "type": "series",
+      "id": "top",
+      "extra": null,
+      "count": 50
+    },
+    {
+      "type": "series",
+      "id": "top",
+      "extra": "skip=100",
+      "count": 50
+    },
+    {
+      "type": "series",
+      "id": "top",
+      "extra": "skip=200",
+      "count": 50
+    }
+  ]
+}

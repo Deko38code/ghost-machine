@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build output
+dist/
+.astro/
+
+# Environment & secrets
+.env
+server/.env
+*.env
+server/google-oauth-client.json
+client_secret_*.apps.googleusercontent.com.json
+
+# Data files (runtime generated)
+data/
+server/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Hakster runtime
+.hakster/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Archives
+*.zip
+
+# Logs
+*.log
+pm-*.log
+
+# Large model files
+gpt-oss-120b/
+
+# Kiro
+.kiro/pentest-agents/
+*.bak*
+.kiro/
+pentest-agents/
+
+# Scrape caches & test artifacts
+.firecrawl/
+test-results/
+.git.broken/
+.git.old-root/
+logs/
+cli/.phantom-ai-config.json
+.serena/

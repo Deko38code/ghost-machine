@@ -1,0 +1,702 @@
+[
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt0145487",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt4154756",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt0800080",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Marvel Cinematic Universe"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt8111088",
+    "franchises": [
+      "Star Wars TV",
+      "The Mandalorian"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt6146586",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.232Z",
+    "type": "dup_imdb",
+    "imdb": "tt10366206",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.233Z",
+    "type": "dup_imdb",
+    "imdb": "tt4633694",
+    "franchises": [
+      "Spider-Man",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.233Z",
+    "type": "dup_imdb",
+    "imdb": "tt0057076",
+    "franchises": [
+      "James Bond",
+      "James Bond"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.233Z",
+    "type": "dup_imdb",
+    "imdb": "tt0062512",
+    "franchises": [
+      "James Bond",
+      "James Bond"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:33:34.233Z",
+    "type": "dup_imdb",
+    "imdb": "tt1431045",
+    "franchises": [
+      "Deadpool & Wolverine",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.178Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt3501632",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Marvel Cinematic Universe"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt4154756",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt0076759",
+    "franchises": [
+      "Star Wars",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt0080684",
+    "franchises": [
+      "Star Wars",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt8111088",
+    "franchises": [
+      "Star Wars TV",
+      "The Mandalorian"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt6146586",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt10366206",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.179Z",
+    "type": "dup_imdb",
+    "imdb": "tt10838180",
+    "franchises": [
+      "The Matrix",
+      "Redbox Picks"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt4633694",
+    "franchises": [
+      "Spider-Man",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt10872600",
+    "franchises": [
+      "Spider-Man",
+      "Redbox Picks"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt0120737",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt0167260",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt0082971",
+    "franchises": [
+      "Indiana Jones",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.180Z",
+    "type": "dup_imdb",
+    "imdb": "tt1431045",
+    "franchises": [
+      "Deadpool & Wolverine",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:38:41.188Z",
+    "issues": 55,
+    "details": [
+      "DUP IMDB tt0848228: Marvel Cinematic Universe→The Avengers (2012) | Spider-Man→The Avengers (2012)",
+      "DUP IMDB tt3501632: Marvel Cinematic Universe→Black Panther (2018) | Marvel Cinematic Universe→Black Panther (2018)",
+      "DUP IMDB tt4154756: Marvel Cinematic Universe→Infinity War (2018) | Spider-Man→Spider-Man: No Way Home (2021)",
+      "DUP IMDB tt0076759: Star Wars→A New Hope (1977) | Blockbuster Classics→Pulp Fiction (1994)",
+      "DUP IMDB tt0080684: Star Wars→Empire Strikes Back (1980) | Blockbuster Classics→The Dark Knight (2008)",
+      "DUP IMDB tt8111088: Star Wars TV→The Mandalorian | The Mandalorian→The Mandalorian",
+      "DUP IMDB tt6146586: John Wick→John Wick 3 (2019) | Rocky & Creed→Creed II (2018)",
+      "DUP IMDB tt10366206: John Wick→John Wick 4 (2023) | Rocky & Creed→Creed III (2023)",
+      "DUP IMDB tt10838180: The Matrix→The Matrix Resurrections (2021) | Redbox Picks→The Unholy (2021)",
+      "DUP IMDB tt0316654: Spider-Man→Spider-Man 2 (2004) | Spider-Man→Spider-Man 2 (2004)",
+      "DUP IMDB tt4633694: Spider-Man→Spider-Man: Far from Home (2019) | Deadpool & Wolverine→Deadpool 2 (2018)",
+      "DUP IMDB tt10872600: Spider-Man→Spider-Man: No Way Home (2021) | Redbox Picks→Tom Clancys Without Remorse (2021)",
+      "DUP IMDB tt0120737: Lord of the Rings→The Fellowship of the Ring (2001) | Blockbuster Classics→The Matrix Reloaded (2003)",
+      "DUP IMDB tt0167260: Lord of the Rings→The Return of the King (2003) | Blockbuster Classics→LOTR: Return of the King (2003)",
+      "DUP IMDB tt0082971: Indiana Jones→Raiders of the Lost Ark (1981) | Blockbuster Classics→Forrest Gump (1994)",
+      "DUP IMDB tt1431045: Deadpool & Wolverine→Deadpool (2016) | Deadpool & Wolverine→The Wolverine (2013)",
+      "DUP TMDB 122: Lord of the Rings→The Fellowship of the Ring (2001) | Blockbuster Classics→LOTR: Return of the King (2003)",
+      "DUP TMDB 155: Batman→The Dark Knight (2008) | Blockbuster Classics→The Dark Knight (2008)",
+      "DUP TMDB 274: Hannibal Lecter→The Silence of the Lambs (1991) | Blockbuster Classics→The Matrix (1999)",
+      "DUP TMDB 280: Terminator→Terminator 2: Judgment Day (1991) | Blockbuster Classics→Scarface (1983)"
+    ],
+    "entryCount": 252,
+    "coverCount": 68
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt3501632",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Marvel Cinematic Universe"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt4154756",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt0076759",
+    "franchises": [
+      "Star Wars",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt0080684",
+    "franchises": [
+      "Star Wars",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt8111088",
+    "franchises": [
+      "Star Wars TV",
+      "The Mandalorian"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt6146586",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt10366206",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.338Z",
+    "type": "dup_imdb",
+    "imdb": "tt10838180",
+    "franchises": [
+      "The Matrix",
+      "Redbox Picks"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt4633694",
+    "franchises": [
+      "Spider-Man",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt10872600",
+    "franchises": [
+      "Spider-Man",
+      "Redbox Picks"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt0120737",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt0167260",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt0082971",
+    "franchises": [
+      "Indiana Jones",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:44:27.339Z",
+    "type": "dup_imdb",
+    "imdb": "tt1431045",
+    "franchises": [
+      "Deadpool & Wolverine",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt3501632",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Marvel Cinematic Universe"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt4154756",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt8111088",
+    "franchises": [
+      "Star Wars TV",
+      "The Mandalorian"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt6146586",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt10366206",
+    "franchises": [
+      "John Wick",
+      "Rocky & Creed"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.597Z",
+    "type": "dup_imdb",
+    "imdb": "tt0133093",
+    "franchises": [
+      "The Matrix",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.598Z",
+    "type": "dup_imdb",
+    "imdb": "tt10838180",
+    "franchises": [
+      "The Matrix",
+      "Redbox Picks"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt4633694",
+    "franchises": [
+      "Spider-Man",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt0468569",
+    "franchises": [
+      "Batman",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt0120737",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt0167260",
+    "franchises": [
+      "Lord of the Rings",
+      "Blockbuster Classics"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:48:40.599Z",
+    "type": "dup_imdb",
+    "imdb": "tt1431045",
+    "franchises": [
+      "Deadpool & Wolverine",
+      "Deadpool & Wolverine"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:53:56.346Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:53:56.346Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:53:56.346Z",
+    "type": "dup_imdb",
+    "imdb": "tt10872600",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:55:48.891Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:55:48.892Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:55:48.892Z",
+    "type": "dup_imdb",
+    "imdb": "tt10872600",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T17:55:49.253Z",
+    "type": "cache_synced",
+    "added": 185
+  },
+  {
+    "time": "2026-05-21T18:33:08.831Z",
+    "type": "dup_imdb",
+    "imdb": "tt0848228",
+    "franchises": [
+      "Marvel Cinematic Universe",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T18:33:08.831Z",
+    "type": "dup_imdb",
+    "imdb": "tt0316654",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T18:33:08.832Z",
+    "type": "dup_imdb",
+    "imdb": "tt10872600",
+    "franchises": [
+      "Spider-Man",
+      "Spider-Man"
+    ],
+    "action": "flagged"
+  },
+  {
+    "time": "2026-05-21T18:33:08.854Z",
+    "type": "cache_synced",
+    "added": 2
+  }
+]

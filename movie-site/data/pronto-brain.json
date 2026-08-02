@@ -1,0 +1,432 @@
+{
+  "version": 1,
+  "lastLearned": "2026-06-06T07:10:02.081Z",
+  "learnCount": 4,
+  "sourceReliability": {
+    "vidsrcpm": 90,
+    "vidsrcme": 60,
+    "vidsrc2": 50,
+    "vidsrcdev": 15,
+    "lookmovie": 80,
+    "goojara": 0
+  },
+  "genreFranchiseMap": {
+    "comedy": [
+      "National Lampoon"
+    ],
+    "slapstick": [
+      "National Lampoon"
+    ],
+    "family": [
+      "National Lampoon"
+    ],
+    "superhero": [
+      "The Boys",
+      "Marvel Cinematic Universe"
+    ],
+    "dark comedy": [
+      "The Boys"
+    ],
+    "action": [
+      "The Boys",
+      "Marvel Cinematic Universe"
+    ],
+    "sci-fi": [
+      "Marvel Cinematic Universe",
+      "Stranger Things",
+      "Star Wars"
+    ],
+    "horror": [
+      "Stranger Things"
+    ],
+    "80s nostalgia": [
+      "Stranger Things"
+    ],
+    "space": [
+      "Star Wars"
+    ],
+    "adventure": [
+      "Star Wars"
+    ],
+    "crime": [
+      "Breaking Bad"
+    ],
+    "drama": [
+      "Breaking Bad",
+      "Game of Thrones"
+    ],
+    "thriller": [
+      "Breaking Bad"
+    ],
+    "fantasy": [
+      "Game of Thrones"
+    ],
+    "political": [
+      "Game of Thrones"
+    ]
+  },
+  "franchiseGenreTags": {
+    "National Lampoon": [
+      "comedy",
+      "slapstick",
+      "family"
+    ],
+    "The Boys": [
+      "superhero",
+      "dark comedy",
+      "action"
+    ],
+    "Marvel Cinematic Universe": [
+      "superhero",
+      "action",
+      "sci-fi"
+    ],
+    "Stranger Things": [
+      "sci-fi",
+      "horror",
+      "80s nostalgia"
+    ],
+    "Star Wars": [
+      "sci-fi",
+      "space",
+      "adventure"
+    ],
+    "Breaking Bad": [
+      "crime",
+      "drama",
+      "thriller"
+    ],
+    "Game of Thrones": [
+      "fantasy",
+      "drama",
+      "political"
+    ]
+  },
+  "peoplePatterns": {},
+  "yearTrends": {},
+  "franchisePairs": {
+    "superhero": [
+      "Marvel Cinematic Universe",
+      "Spider-Man",
+      "The Boys",
+      "DC Universe"
+    ],
+    "galactic": [
+      "Star Wars",
+      "Star Trek"
+    ],
+    "crime_drama": [
+      "Breaking Bad",
+      "Peaky Blinders",
+      "Ozark",
+      "Game of Thrones"
+    ],
+    "comedy_classic": [
+      "National Lampoon"
+    ],
+    "action_franchise": [
+      "Fast & Furious",
+      "Mission Impossible",
+      "John Wick",
+      "Die Hard",
+      "James Bond"
+    ],
+    "fantasy_epic": [
+      "Lord of the Rings",
+      "Game of Thrones",
+      "Harry Potter"
+    ],
+    "retro_nostalgia": [
+      "Stranger Things",
+      "The Goonies",
+      "Back to the Future"
+    ],
+    "dark_subversive": [
+      "The Boys",
+      "Breaking Bad",
+      "Peaky Blinders"
+    ]
+  },
+  "movieKnowledge": {},
+  "genreRankings": [
+    {
+      "rank": 1,
+      "genre": "unknown",
+      "score": 2055
+    },
+    {
+      "rank": 2,
+      "genre": "sci-fi",
+      "score": 30
+    },
+    {
+      "rank": 3,
+      "genre": "superhero",
+      "score": 20
+    },
+    {
+      "rank": 4,
+      "genre": "action",
+      "score": 20
+    },
+    {
+      "rank": 5,
+      "genre": "drama",
+      "score": 20
+    },
+    {
+      "rank": 6,
+      "genre": "comedy",
+      "score": 10
+    },
+    {
+      "rank": 7,
+      "genre": "slapstick",
+      "score": 10
+    },
+    {
+      "rank": 8,
+      "genre": "family",
+      "score": 10
+    },
+    {
+      "rank": 9,
+      "genre": "dark comedy",
+      "score": 10
+    },
+    {
+      "rank": 10,
+      "genre": "horror",
+      "score": 10
+    },
+    {
+      "rank": 11,
+      "genre": "80s nostalgia",
+      "score": 10
+    },
+    {
+      "rank": 12,
+      "genre": "space",
+      "score": 10
+    },
+    {
+      "rank": 13,
+      "genre": "adventure",
+      "score": 10
+    },
+    {
+      "rank": 14,
+      "genre": "crime",
+      "score": 10
+    },
+    {
+      "rank": 15,
+      "genre": "thriller",
+      "score": 10
+    }
+  ],
+  "sourceGenreAffinity": {
+    "vidsrcpm": {
+      "National Lampoon": 100,
+      "The Boys": 100,
+      "Marvel Cinematic Universe": 80,
+      "Stranger Things": 100,
+      "Star Wars": 80,
+      "Breaking Bad": 100,
+      "Game of Thrones": 100
+    },
+    "vidsrcme": {
+      "National Lampoon": 50,
+      "The Boys": 100,
+      "Marvel Cinematic Universe": 60,
+      "Stranger Things": 0,
+      "Star Wars": 60,
+      "Breaking Bad": 100,
+      "Game of Thrones": 100
+    },
+    "vidsrc2": {
+      "National Lampoon": 50,
+      "The Boys": 0,
+      "Marvel Cinematic Universe": 80,
+      "Stranger Things": 100,
+      "Star Wars": 40,
+      "Breaking Bad": 0,
+      "Game of Thrones": 0
+    },
+    "vidsrcdev": {
+      "National Lampoon": 50,
+      "The Boys": 0,
+      "Marvel Cinematic Universe": 0,
+      "Stranger Things": 0,
+      "Star Wars": 0,
+      "Breaking Bad": 0,
+      "Game of Thrones": 0
+    },
+    "lookmovie": {
+      "National Lampoon": 83,
+      "The Boys": 0,
+      "Marvel Cinematic Universe": 100,
+      "Stranger Things": 100,
+      "Star Wars": 80,
+      "Breaking Bad": 0,
+      "Game of Thrones": 100
+    }
+  },
+  "decadeGenres": {
+    "1970s": [
+      "disaster",
+      "grindhouse",
+      "new hollywood",
+      "kung fu"
+    ],
+    "1980s": [
+      "slasher",
+      "action",
+      "sci-fi",
+      "teen comedy",
+      "fantasy"
+    ],
+    "1990s": [
+      "indie",
+      "tarantino",
+      "cgi",
+      "disney renaissance",
+      "thriller"
+    ],
+    "2000s": [
+      "superhero",
+      "franchise",
+      "reality",
+      "found footage",
+      "pixar"
+    ],
+    "2010s": [
+      "mcu",
+      "streaming",
+      "dark superhero",
+      "nostalgia",
+      "true crime"
+    ],
+    "2020s": [
+      "ai",
+      "multiverse",
+      "reboot",
+      "limited series",
+      "retro horror"
+    ]
+  },
+  "watchPatterns": {
+    "topGenres": [
+      {
+        "genre": "unknown",
+        "watches": 411
+      }
+    ],
+    "topFranchises": [
+      {
+        "franchise": "other",
+        "watches": 411
+      }
+    ],
+    "peakWatchHours": [
+      {
+        "hour": 16,
+        "watches": 57
+      },
+      {
+        "hour": 11,
+        "watches": 48
+      },
+      {
+        "hour": 17,
+        "watches": 41
+      },
+      {
+        "hour": 1,
+        "watches": 32
+      },
+      {
+        "hour": 23,
+        "watches": 29
+      }
+    ],
+    "genreTransitions": {}
+  },
+  "predictions": {
+    "trendingGenres": [
+      {
+        "genre": "sci-fi",
+        "franchiseCount": 3,
+        "reliability": 3
+      },
+      {
+        "genre": "superhero",
+        "franchiseCount": 2,
+        "reliability": 3
+      },
+      {
+        "genre": "action",
+        "franchiseCount": 2,
+        "reliability": 3
+      },
+      {
+        "genre": "drama",
+        "franchiseCount": 2,
+        "reliability": 3
+      },
+      {
+        "genre": "comedy",
+        "franchiseCount": 1,
+        "reliability": 3
+      }
+    ],
+    "hotFranchises": [
+      {
+        "franchise": "National Lampoon",
+        "liveStreams": 20
+      },
+      {
+        "franchise": "Marvel Cinematic Universe",
+        "liveStreams": 16
+      },
+      {
+        "franchise": "Star Wars",
+        "liveStreams": 13
+      },
+      {
+        "franchise": "Stranger Things",
+        "liveStreams": 3
+      },
+      {
+        "franchise": "Game of Thrones",
+        "liveStreams": 3
+      }
+    ],
+    "sourceShifts": {
+      "vidsrcpm": {
+        "current": 90,
+        "trend": "up"
+      },
+      "vidsrcme": {
+        "current": 60,
+        "trend": "up"
+      },
+      "vidsrc2": {
+        "current": 50,
+        "trend": "up"
+      },
+      "vidsrcdev": {
+        "current": 15,
+        "trend": "up"
+      },
+      "lookmovie": {
+        "current": 80,
+        "trend": "up"
+      },
+      "goojara": {
+        "current": 0,
+        "trend": "down"
+      }
+    }
+  }
+}

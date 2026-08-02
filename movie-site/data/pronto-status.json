@@ -1,0 +1,179 @@
+{
+  "agent": "Pronto",
+  "version": "1.0",
+  "status": "complete",
+  "startedAt": "2026-05-21T00:01:29.521Z",
+  "franchises": [
+    "National Lampoon",
+    "The Boys",
+    "Marvel Cinematic Universe",
+    "Stranger Things",
+    "Star Wars",
+    "Breaking Bad",
+    "Game of Thrones"
+  ],
+  "totalItems": 20,
+  "checkedItems": 20,
+  "liveStreams": 59,
+  "deadStreams": 41,
+  "goojaraLinks": 20,
+  "results": {
+    "National Lampoon": {
+      "type": "movie",
+      "items": {
+        "tt0085995": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0089670": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0097958": {
+          "verified": true,
+          "liveEmbeds": 5,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0118995": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0077975": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0283111": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "The Boys": {
+      "type": "tv",
+      "items": {
+        "tt1190634": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 5,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Marvel Cinematic Universe": {
+      "type": "movie",
+      "items": {
+        "tt0371746": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt0145487": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt4154756": {
+          "verified": true,
+          "liveEmbeds": 4,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt4154796": {
+          "verified": false,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt2395427": {
+          "verified": false,
+          "liveEmbeds": 4,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Stranger Things": {
+      "type": "tv",
+      "items": {
+        "tt4574334": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Star Wars": {
+      "type": "movie",
+      "items": {
+        "tt0076759": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0080684": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt0086190": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        },
+        "tt2488496": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        },
+        "tt3748528": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 3,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Breaking Bad": {
+      "type": "tv",
+      "items": {
+        "tt0903747": {
+          "verified": true,
+          "liveEmbeds": 2,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    },
+    "Game of Thrones": {
+      "type": "tv",
+      "items": {
+        "tt0944947": {
+          "verified": true,
+          "liveEmbeds": 3,
+          "goojaraCount": 0,
+          "goojaraLive": 0
+        }
+      }
+    }
+  },
+  "completedAt": "2026-05-21T00:09:17.887Z",
+  "elapsedSeconds": 468
+}

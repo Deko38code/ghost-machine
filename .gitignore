@@ -1,0 +1,21 @@
+.aider*
+.env
+.firecrawl/
+
+# Ignore everything by default
+*
+
+# Whitelist project directories
+!haksterAi/
+!haksterAi/**
+!movie-site/
+!movie-site/**
+!src/
+!src/**
+!public/
+!public/**
+!phantom-ide.html
+!README.md
+
+# Re-allow git operations (needed even when ignoring everything)
+!.gitignore

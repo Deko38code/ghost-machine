@@ -1,0 +1,107 @@
+{
+  "lastRun": "2026-05-20T23:27:53.881Z",
+  "franchises": {},
+  "imdbMap": {},
+  "checked": {
+    "tmdb_299524_movie": {
+      "tmdbId": 299524,
+      "imdbId": null,
+      "type": "movie",
+      "embedSources": {
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/299524",
+          "videoSrc": null,
+          "iframeSrc": "https://vsembed.ru/embed/movie/299524/",
+          "title": ""
+        },
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/299524",
+          "videoSrc": null,
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/299524",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/299524",
+          "videoSrc": null,
+          "iframeSrc": null,
+          "title": "404 Not Found"
+        },
+        "vidsrcdev": {
+          "working": true,
+          "url": "https://vidsrc.dev/embed/movie/299524",
+          "videoSrc": null,
+          "iframeSrc": "https://resultsfastfind.com/sr/754870121/SAFEFRAME.html?ule=882&1A_P=-&1uVAAA=&3RsP=3ju&3x1=sQ-u-%28CE%21%282Dm%212%28%29D%21W%291s%21-VPE-2%28Vs18%28&6x=-mmWC-Wm8mWCQ%29C2%28%28-&99R1=%7B%2299VV%22%3A%22eY%22%2C%2299Vbt%22%3A%22A31u9b3%22%2C%2299xy%22%3A%22%22%2C%22999V%22%3A%22Zw%22%2C%2299Bxy%22%3A%22%22%7D&9D1_S1=&9V=Zw&9xBu=--%282cQEW&A9ys=-&D1_S1=&Dsu=&Du=8&Dx1=&Dx16%29=&JDx1=&M9yujP=%21-&MX1=2&P9=&R%29btyu=1A3Rs&V16=%2AC%29C%29&VV=eY&V_x1=Q%29W2EmmC%28&Vbyx1=&VqjA%29=3962ixjbV&VqjAC=&Vx1=EZemn%29h%29G&X1y_=8&X1y_Vj9b=&_uzM_R=qbby%3A%2F%2F6x19_VL1u6%3Fi9R9uj%3D-&b9Vu=d-%29C%28&htmlsrc=1&jAu__=-&jb6=&kkdd=n%21%7C3%7CH9%2AnA&qbby9=-&s13Asxj=&s16=&s1b%29=&s1b-=&sDPR~x1=6%29&sVb=arSMzzBjM_wpPp2cX_pBzujC_urcrrPCrsC&syZM=&t19y_=&tDjiVViucy=&tpid=&tyRy=&uV_x1=&v1=&v~_P=&x9x1=8&xjbVR=EK5JIm%285T%3Avr%2A%7C%21uE5%3AMxxLMxMLhWLMM&yx1=&~9qy=8&~R9by=8&eobd=&eoac=RvYbkNvbY&eoch=_rqz_q&ure=1#vgd_sc=CA&acl=&aclp=&cl=&clp=&hvsid=00001779319707725012373606407254&l2type=dmola&lp=%7B%22ppvi%22%3A%222152686530776017283%22%2C%22wlstp%22%3A%220%22%7D&matchstring=&pvl=%7B%22nmerr%22%3A%221%22%7D&pvlp=&sbdrId=&verid=&acid=undefined&mprpslog=Ld73zIwNUDMmEq1lk1Yvxj_Zdtmm2PzupmpcwBDMEBkz7RRcrte2_mT-t9XeNsx7odWHrTvm-t4mi5lmcfkX-uJAxmJnhcM7KCOVe9CHCVCSONxKIDyfJyHEmURdCsSgBqi8Ec4K0pV923GXJu1EZGn4MyWaU5P_uLdHo8bbWQ27z2p3N2sqQYxNQPRnoOffmg9_2oAmuYA%3D&tchkpts=%7B%22prel2%22%3A1779319708367%7D&stime=1779319708367&l3d=%257B%2522l2host%2522%253A%2522https%253A%252F%252Fresultsfastfind.com%252Fsr%252F754870121%252FSAFEFRAME.html%253F%2525212M%253D%2526%252521DVfD%253D%2526%252521FD%253D%2526%252521FDQp%253D%2526%252521M%253D~%2526%252528aD%253DN%2526%252528h%252529MES%253D.A%2526%252529FD%253D%25262%252521Sy5FD%253DQp%25262%2525299%252528%253D%252624L%253D6_f%252528BBYE%252528V-uSuNCaVuYBMExVM_C__Sx_2x%25262DLA%253D%25262DLp%253D%25262DQ%253D%25262Diw2FE%253D%252644%253Dme%25264DQ%253Dgxpxp%25264FD%253Dn9mljpspT%25264L%252529FD%253D%25264OEwp%253DihQN1FEL4%25264OEwx%253D%25264VFD%253DtpoNnllxW%25265hO%252529%253D~%25265yhL%252529%253D~%2526DM4www%253D%2526ELQ%253D%2526EwMVV%253DA%2526FEL4y%253DnGRrJlWR3%25253Aq_g%25257C.MnR%25253A%252528FFd%252528F%252528dsod%252528%252528%2526FhFD%253D~%2526Lh4M%253DZApxW%2526M4VFD%253D%2526OLL%252529h%253DA%2526QF%253DAlloxAol~loxtpxNWWA%2526Sh%253D%2526VMB%252528Vy%253DOLL%252529%25253A%25252F%25252FQFDhV4dDMQ%25253F1hyhME%25253DA%2526aD%252529V%253D~%2526aD%252529V4EhL%253D%2526b%252521E1441MC%252529%253D%2526b%252529y%252529%253D%2526bDh%252529V%253D%2526h%252521DVfD%253D%2526h4%253D9-%2526hFYM%253DAAWNCtno%2526hhyD%253D%25257B%252522hh44%252522%25253A%252522me%252522%25252C%252522hh4Lb%252522%25253A%252522wiDMhLi%252522%25252C%252522hhF%252529%252522%25253A%252522%252522%25252C%252522hhh4%252522%25253A%2525229-%252522%25252C%252522hhYF%252529%252522%25253A%252522%252522%25257D%2526htmlsrc%253D1%2526iFD%253D2tAMAWxn.WN%252521l.NWp%252521.opD2.A4SnANW42D~W%2526iy2S%253DiEM%2526kkdd%253D3W%25257CW%25257C3n%25252A9huAH%2526q5VS%253D%2526qD%253D%2526r%252521FD%253D%2526tpid%253D%2526wh%2525292%253DA%2526ypLb%252529M%253DDwiy2%2522%252C%2522be%2522%253A%25220%2522%252C%2522nmerr%2522%253A%25221%2522%257D",
+          "title": ""
+        },
+        "embed2skin": {
+          "working": true,
+          "url": "https://2embed.skin/embed/movie/299524",
+          "videoSrc": null,
+          "iframeSrc": "https://resultsfastfind.com/sr/754870121/SAFEFRAME.html?ule=882&1A_P=-&1uVAAA=&3RsP=3ju&3x1=sQ-u-%28CE%21%282Dm%212%28%29D%21W%291s%21-VPE-2%28Vs18%28&6x=-mmWC-Wm8mWCQ%29C2%28%28-&99R1=%7B%2299VV%22%3A%22eY%22%2C%2299Vbt%22%3A%22A31u9b3%22%2C%2299xy%22%3A%22%22%2C%22999V%22%3A%22Zw%22%2C%2299Bxy%22%3A%22%22%7D&9D1_S1=&9V=Zw&9xBu=--%282cQEW&A9ys=-&D1_S1=&Dsu=&Du=8&Dx1=&Dx16%29=&JDx1=&M9yujP=%21-&MX1=2&P9=&R%29btyu=1A3Rs&V16=%2AC%29C%29&VV=eY&V_x1=Q%29W2EmmC%28&Vbyx1=&VqjA%29=3962ixjbV&VqjAC=&Vx1=EZemn%29h%29G&X1y_=8&X1y_Vj9b=&_uzM_R=qbby%3A%2F%2F6x19_VL1u6%3Fi9R9uj%3D-&b9Vu=d-%29C%28&htmlsrc=1&jAu__=-&jb6=&kkdd=n%21%7C3%7CH9%2AnA&qbby9=-&s13Asxj=&s16=&s1b%29=&s1b-=&sDPR~x1=6%29&sVb=arSMzzBjM_wpPp2cX_pBzujC_urcrrPCrsC&syZM=&t19y_=&tDjiVViucy=&tpid=&tyRy=&uV_x1=&v1=&v~_P=&x9x1=8&xjbVR=EK5JIm%285T%3Avr%2A%7C%21uE5%3AMxxLMxMLhWLMM&yx1=&~9qy=8&~R9by=8&eobd=&eoac=RvYbkNvbY&eoch=_rqz_q&ure=1#vgd_sc=CA&acl=&aclp=&cl=&clp=&hvsid=00001779319707725012373606407254&l2type=dmola&lp=%7B%22ppvi%22%3A%222152686530776017283%22%2C%22wlstp%22%3A%220%22%7D&matchstring=&pvl=%7B%22nmerr%22%3A%221%22%7D&pvlp=&sbdrId=&verid=&acid=undefined&mprpslog=Ld73zIwNUDMmEq1lk1Yvxj_Zdtmm2PzupmpcwBDMEBkz7RRcrte2_mT-t9XeNsx7odWHrTvm-t4mi5lmcfkX-uJAxmJnhcM7KCOVe9CHCVCSONxKIDyfJyHEmURdCsSgBqi8Ec4K0pV923GXJu1EZGn4MyWaU5P_uLdHo8bbWQ27z2p3N2sqQYxNQPRnoOffmg9_2oAmuYA%3D&tchkpts=%7B%22prel2%22%3A1779319711467%7D&stime=1779319711467&l3d=%257B%2522l2host%2522%253A%2522https%253A%252F%252Fresultsfastfind.com%252Fsr%252F754870121%252FSAFEFRAME.html%253F%2525212M%253D%2526%252521DVfD%253D%2526%252521FD%253D%2526%252521FDQp%253D%2526%252521M%253D~%2526%252528aD%253DN%2526%252528h%252529MES%253D.A%2526%252529FD%253D%25262%252521Sy5FD%253DQp%25262%2525299%252528%253D%252624L%253D6_f%252528BBYE%252528V-uSuNCaVuYBMExVM_C__Sx_2x%25262DLA%253D%25262DLp%253D%25262DQ%253D%25262Diw2FE%253D%252644%253Dme%25264DQ%253Dgxpxp%25264FD%253Dn9mljpspT%25264L%252529FD%253D%25264OEwp%253DihQN1FEL4%25264OEwx%253D%25264VFD%253DtpoNnllxW%25265hO%252529%253D~%25265yhL%252529%253D~%2526DM4www%253D%2526ELQ%253D%2526EwMVV%253DA%2526FEL4y%253DnGRrJlWR3%25253Aq_g%25257C.MnR%25253A%252528FFd%252528F%252528dsod%252528%252528%2526FhFD%253D~%2526Lh4M%253DZApxW%2526M4VFD%253D%2526OLL%252529h%253DA%2526QF%253DAlloxAol~loxtpxNWWA%2526Sh%253D%2526VMB%252528Vy%253DOLL%252529%25253A%25252F%25252FQFDhV4dDMQ%25253F1hyhME%25253DA%2526aD%252529V%253D~%2526aD%252529V4EhL%253D%2526b%252521E1441MC%252529%253D%2526b%252529y%252529%253D%2526bDh%252529V%253D%2526h%252521DVfD%253D%2526h4%253D9-%2526hFYM%253DAAWNCtno%2526hhyD%253D%25257B%252522hh44%252522%25253A%252522me%252522%25252C%252522hh4Lb%252522%25253A%252522wiDMhLi%252522%25252C%252522hhF%252529%252522%25253A%252522%252522%25252C%252522hhh4%252522%25253A%2525229-%252522%25252C%252522hhYF%252529%252522%25253A%252522%252522%25257D%2526htmlsrc%253D1%2526iFD%253D2tAMAWxn.WN%252521l.NWp%252521.opD2.A4SnANW42D~W%2526iy2S%253DiEM%2526kkdd%253D3W%25257CW%25257C3n%25252A9huAH%2526q5VS%253D%2526qD%253D%2526r%252521FD%253D%2526tpid%253D%2526wh%2525292%253DA%2526ypLb%252529M%253DDwiy2%2522%252C%2522be%2522%253A%25220%2522%252C%2522nmerr%2522%253A%25221%2522%257D",
+          "title": ""
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/movies/view/299524",
+          "videoSrc": null,
+          "iframeSrc": null,
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-20T23:28:04.704Z"
+    },
+    "tmdb_299519_movie": {
+      "tmdbId": 299519,
+      "imdbId": null,
+      "type": "movie",
+      "embedSources": {
+        "vidsrc2": {
+          "working": true,
+          "url": "https://vidsrc.to/embed/movie/299519",
+          "videoSrc": null,
+          "iframeSrc": "https://vsembed.ru/embed/movie/299519/",
+          "title": ""
+        },
+        "vidsrcpm": {
+          "working": true,
+          "url": "https://vidsrc.pm/embed/movie/299519",
+          "videoSrc": null,
+          "iframeSrc": "https://brightpathsignals.com/embed/movie/299519",
+          "title": "Player"
+        },
+        "vidsrcme": {
+          "working": "",
+          "url": "https://vidsrcme.ru/embed/movie/299519",
+          "videoSrc": null,
+          "iframeSrc": null,
+          "title": "404 Not Found"
+        },
+        "vidsrcdev": {
+          "working": "",
+          "url": "https://vidsrc.dev/embed/movie/299519",
+          "videoSrc": null,
+          "iframeSrc": null,
+          "title": "vidsrc.dev - This website is for sale! - vidsrc Resources and Information."
+        },
+        "embed2skin": {
+          "working": false,
+          "url": "https://2embed.skin/embed/movie/299519",
+          "error": "Execution context was destroyed, most likely because of a navigation."
+        },
+        "lookmovie": {
+          "working": false,
+          "url": "https://www.lookmovie2.to/movies/view/299519",
+          "videoSrc": null,
+          "iframeSrc": null,
+          "title": "Page not found."
+        }
+      },
+      "goojara": [],
+      "lastChecked": "2026-05-20T23:28:35.311Z"
+    }
+  }
+}

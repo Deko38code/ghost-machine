@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- Skull body -->
+  <path d="M100 10C55 10 20 50 20 95C20 130 40 155 60 170C65 174 68 180 68 187L68 195C68 200 72 204 77 204L123 204C128 204 132 200 132 195L132 187C132 180 135 174 140 170C160 155 180 130 180 95C180 50 145 10 100 10Z" fill="#1a1a2e" stroke="#e50914" stroke-width="3"/>
+  <!-- Skull face highlight -->
+  <path d="M100 22C62 22 34 56 34 95C34 125 50 147 68 160C74 164 78 170 78 178L78 188C78 192 81 195 85 195L115 195C119 195 122 192 122 188L122 178C122 170 126 164 132 160C150 147 166 125 166 95C166 56 138 22 100 22Z" fill="#16213e" stroke="none"/>
+  <!-- Left eye socket -->
+  <ellipse id="skull-eye-socket-left" cx="72" cy="90" rx="22" ry="25" fill="#0a0a15" stroke="#e50914" stroke-width="2"/>
+  <!-- Left eye glow (JS toggles class: green/red) -->
+  <g id="skull-eye-group-left" class="skull-eye-red">
+    <ellipse id="skull-eye-left" cx="72" cy="90" rx="14" ry="16" fill="#e50914" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="rx" values="14;10;14" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="16;12;16" dur="1.5s" repeatCount="indefinite"/>
+    </ellipse>
+    <!-- Left eye inner glow -->
+    <ellipse id="skull-eye-inner-left" cx="72" cy="90" rx="6" ry="7" fill="#ff4444" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.8s" repeatCount="indefinite"/>
+    </ellipse>
+    <!-- Left eye flare -->
+    <ellipse cx="72" cy="90" rx="18" ry="20" fill="url(#eyeGlowLeft)" opacity="0.5"/>
+  </g>
+  <!-- Right eye socket -->
+  <ellipse id="skull-eye-socket-right" cx="128" cy="90" rx="22" ry="25" fill="#0a0a15" stroke="#e50914" stroke-width="2"/>
+  <!-- Right eye glow -->
+  <g id="skull-eye-group-right" class="skull-eye-red">
+    <ellipse id="skull-eye-right" cx="128" cy="90" rx="14" ry="16" fill="#e50914" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.5s" repeatCount="indefinite" begin="0.15s"/>
+      <animate attributeName="rx" values="14;10;14" dur="1.5s" repeatCount="indefinite" begin="0.15s"/>
+      <animate attributeName="ry" values="16;12;16" dur="1.5s" repeatCount="indefinite" begin="0.15s"/>
+    </ellipse>
+    <!-- Right eye inner glow -->
+    <ellipse id="skull-eye-inner-right" cx="128" cy="90" rx="6" ry="7" fill="#ff4444" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.8s" repeatCount="indefinite" begin="0.1s"/>
+    </ellipse>
+    <!-- Right eye flare -->
+    <ellipse cx="128" cy="90" rx="18" ry="20" fill="url(#eyeGlowRight)" opacity="0.5"/>
+  </g>
+  <!-- Nose -->
+  <path d="M95 115L100 125L105 115Z" fill="#0a0a15" stroke="#e50914" stroke-width="1.5"/>
+  <!-- Upper teeth -->
+  <rect x="78" y="138" width="8" height="14" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="88" y="138" width="8" height="14" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="98" y="138" width="8" height="14" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="108" y="138" width="8" height="14" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <!-- Lower teeth -->
+  <rect x="82" y="152" width="7" height="11" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="91" y="152" width="7" height="11" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="100" y="152" width="7" height="11" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <rect x="109" y="152" width="7" height="11" rx="2" fill="#1a1a2e" stroke="#e50914" stroke-width="1"/>
+  <!-- Jaw line -->
+  <path d="M66 165Q100 180 134 165" fill="none" stroke="#e50914" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Outer glow ring -->
+  <circle id="skull-glow-ring" cx="100" cy="100" r="90" fill="none" stroke="#e50914" stroke-width="1" opacity="0.3">
+    <animate attributeName="r" values="88;92;88" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Scanline effect -->
+  <rect x="20" y="0" width="160" height="2" fill="#e50914" opacity="0.08">
+    <animate attributeName="y" values="0;220;0" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <!-- Corner accents -->
+  <path d="M20 30L20 10L40 10" fill="none" stroke="#e50914" stroke-width="2" opacity="0.6"/>
+  <path d="M180 30L180 10L160 10" fill="none" stroke="#e50914" stroke-width="2" opacity="0.6"/>
+  <path d="M20 200L20 215L40 215" fill="none" stroke="#e50914" stroke-width="2" opacity="0.6"/>
+  <path d="M180 200L180 215L160 215" fill="none" stroke="#e50914" stroke-width="2" opacity="0.6"/>
+  <!-- Gradient definitions for eye glow -->
+  <defs>
+    <radialGradient id="eyeGlowLeft" cx="72" cy="90" r="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#e50914" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#e50914" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="eyeGlowRight" cx="128" cy="90" r="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#e50914" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#e50914" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="eyeGlowLeftGreen" cx="72" cy="90" r="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00ff64" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#00ff64" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="eyeGlowRightGreen" cx="128" cy="90" r="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00ff64" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#00ff64" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

@@ -1,0 +1,18 @@
+// VLC Stalker Profile — 45s buffering fix
+// Load with: vlc --vlm-conf stalker-vlc.vlm
+// Or via Lua HTTP: echo "setup StalkerFix input 'URL'" | curl -s http://127.0.0.1:8585/requests/vlm_cmd.xml -d @ -u :flixchill
+
+new StalkerFix broadcast enabled
+setup StalkerFix input "#null"
+setup StalkerFix output "#null"
+setup StalkerFix option network-caching=600
+setup StalkerFix option live-caching=0
+setup StalkerFix option file-caching=50
+setup StalkerFix option clock-synchro=0
+setup StalkerFix option no-drop-late-frames
+setup StalkerFix option no-skip-frames
+setup StalkerFix option avcodec-hw=any
+setup StalkerFix option avcodec-threads=2
+setup StalkerFix option rtsp-tcp
+setup StalkerFix option no-video-title-show
+setup StalkerFix option no-sub-autodetect-file

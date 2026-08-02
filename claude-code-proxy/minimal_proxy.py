@@ -20,20 +20,20 @@ OLLAMA_URL = "http://localhost:11434/api/chat"
 # Speed-optimized model routing
 # Fast models for simple tasks, powerful models for complex ones
 MODEL_MAP = {
-    "claude-sonnet-4-5": "glm-5.2:cloud",
-    "claude-opus-4-5": "kimi-k2.7-code:cloud",
-    "claude-haiku-3-5": "glm-5.1:cloud",
-    "gpt-4.1": "glm-5.2:cloud",
-    "gpt-4.1-mini": "glm-5.1:cloud",
-    "gemini-2.5-pro": "kimi-k2.7-code:cloud",
-    "gemini-2.5-flash": "glm-5.1:cloud",
+ "claude-sonnet-4-5": "glm-5.2:cloud",
+ "claude-opus-4-5": "kimi-k2.7-code:cloud",
+ "claude-haiku-3-5": "glm-5.1:cloud",
+ "gpt-4.1": "glm-5.2:cloud",
+ "gpt-4.1-mini": "glm-5.1:cloud",
+ "gemini-2.5-pro": "kimi-k2.7-code:cloud",
+ "gemini-2.5-flash": "glm-5.1:cloud",
 }
 
 # Speed tiers — auto-select fastest model that can handle the task
 SPEED_MODELS = {
-    "ultrafast": "glm-5.1:cloud",      # simple questions, greetings, status checks
-    "fast": "glm-5.2:cloud",           # code generation, general tasks
-    "power": "kimi-k2.7-code:cloud",   # complex reasoning, multi-step tasks
+    "ultrafast": "qwen2.5:0.5b", # simple questions, greetings, status checks
+    "fast": "qwen2.5:0.5b", # code generation, general tasks
+    "power": "qwen2.5:0.5b", # complex reasoning, multi-step tasks    # complex reasoning, multi-step tasks,   # complex reasoning, multi-step tasks
 }
 
 # Complexity indicators in the prompt
@@ -260,7 +260,7 @@ async def messages(request: Request):
             media_type="text/event-stream",
         )
 
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=300) as client:
         resp = await client.post(OLLAMA_URL, json=payload)
         data = resp.json()
 
@@ -280,7 +280,7 @@ async def _stream_response(payload, model):
 
     accumulated = ""
     try:
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=300) as client:
             async with client.stream("POST", OLLAMA_URL, json=payload) as resp:
                 async for line in resp.aiter_lines():
                     if not line.strip():

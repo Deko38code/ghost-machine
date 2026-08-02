@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineVault — Your Movie Universe</title>
+  <link rel="stylesheet" href="css/style.css?v=367">
+  <link rel="stylesheet" href="css/components.css?v=366">
+  <style>#search-input{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}</style>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Preconnect to streaming embed sources for faster movie loading -->
+  <link rel="dns-prefetch" href="https://player.videasy.net">
+  <link rel="dns-prefetch" href="https://vidbinge.dev">
+  <link rel="dns-prefetch" href="https://vidsrc.pm">
+  <link rel="dns-prefetch" href="https://vidsrcme.ru">
+  <link rel="dns-prefetch" href="https://vidsrc.to">
+  <link rel="dns-prefetch" href="https://www.embedrev.com">
+  <link rel="dns-prefetch" href="https://flicky.host">
+  <link rel="dns-prefetch" href="https://vidlink.pro">
+  <link rel="dns-prefetch" href="https://embed.smashystream.com">
+  <link rel="dns-prefetch" href="https://multiembed.mov">
+  <link rel="dns-prefetch" href="https://vidsrc.su">
+  <link rel="dns-prefetch" href="https://2embed.cc">
+  <link rel="dns-prefetch" href="https://2embed.skin">
+  <link rel="preconnect" href="https://player.videasy.net" crossorigin>
+  <link rel="preconnect" href="https://vidbinge.dev" crossorigin>
+  <link rel="preconnect" href="https://vidsrc.pm" crossorigin>
+  <link rel="preconnect" href="https://vidsrcme.ru" crossorigin>
+  <!-- Mobile-optimized: full preconnect (DNS+TCP+TLS) for top sources -->
+  <link rel="preconnect" href="https://vidsrc.to" crossorigin>
+  <link rel="preconnect" href="https://www.embedrev.com" crossorigin>
+  <link rel="preconnect" href="https://flicky.host" crossorigin>
+  <link rel="preconnect" href="https://embed.smashystream.com" crossorigin>
+  <link rel="preconnect" href="https://vidsrc.su" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap&font-display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="/node_modules/xterm/css/xterm.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon" style="display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;overflow:hidden;border-radius:50%;background:#000;border:2px solid rgba(229,9,20,0.6);box-shadow:0 0 22px rgba(229,9,20,0.4),0 0 60px rgba(229,9,20,0.15);position:relative"><img src="/assets/icons/macattack-skull.png" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0;opacity:0"><video src="/assets/macattack/intro.mp4" autoplay muted loop playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.1);position:relative;z-index:1;filter:brightness(10) contrast(2) saturate(2);border-radius:50%"></video></span>
+      <span class="brand-text" style="font-weight:1000;letter-spacing:-1px;font-size:2rem;line-height:1">Flix&amp;chill</span>
+      <span id="movie-counter" style="font-size:0.65rem;background:rgba(255,255,255,0.12);color:#aaa;padding:2px 7px;border-radius:10px;margin-left:6px;letter-spacing:0.03em"></span>
+    </div>
+    <div class="nav-search">
+      <input type="text" id="search-input" placeholder="AI Search: marvel, scary horror, the boys, crime 2024..." autocomplete="off" spellcheck="true" style="color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;background:#0d0d14!important;caret-color:#fff;">
+      <script>document.getElementById('search-input').addEventListener('input',function(){this.style.cssText='color:#fff!important;-webkit-text-fill-color:#fff!important;';});</script>
+      <button id="search-btn" type="button" aria-label="Search">🔍</button>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link active" data-page="home">Home</a>
+      <a href="#" class="nav-link" data-page="trending">Trending</a>
+      <a href="#" class="nav-link" data-page="discover">Discover</a>
+      <a href="#" class="nav-link" data-page="watchlist">Watchlist</a>
+      <a href="#" class="nav-link" data-page="archive">🎞️ Free Movies</a>
+      <a href="#" class="nav-link" data-page="livetv">📺 Live TV</a>
+      <a href="#" class="nav-link" data-page="logs">📋 Logs</a>
+      <a href="#" class="nav-link" data-page="ai">🧠 AI</a>
+      <a href="#" class="nav-link" data-page="watchdog">💀 MacAttack</a>
+    </div>
+    <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section id="hero">
+    <div class="hero-backdrop" id="hero-backdrop"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-badge" id="hero-badge">🔥 TRENDING</div>
+      <h1 class="hero-title" id="hero-title">Welcome to Flix&amp;chill</h1>
+      <p class="hero-overview" id="hero-overview">AI-powered movie & TV search. Streaming links auto-found. Watch anything. Remember everything.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="hero-play">▶ Watch Now</button>
+        <button class="btn btn-secondary" id="hero-info">ℹ️ More Info</button>
+        <button class="btn btn-accent" id="hero-list">＋ Watchlist</button>
+      </div>
+      <div class="hero-meta" id="hero-meta"></div>
+    </div>
+  </section>
+
+  <!-- CONTINUE WATCHING (auto-resume) -->
+  <section class="content-section" id="continue-section" style="display:none">
+    <h2 class="section-title">▶️ Continue Watching</h2>
+    <div class="movie-row" id="continue-row"></div>
+    <button class="scroll-btn scroll-left" data-row="continue-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="continue-row">›</button>
+  </section>
+
+  <!-- TRENDING NOW -->
+  <section class="content-section" id="trending-section">
+    <h2 class="section-title">🔥 Trending Now</h2>
+    <div class="movie-row" id="trending-row"></div>
+    <button class="scroll-btn scroll-left" data-row="trending-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="trending-row">›</button>
+  </section>
+
+  <!-- TOP RATED -->
+  <section class="content-section" id="top-rated-section">
+    <h2 class="section-title">⭐ Top Rated</h2>
+    <div class="movie-row" id="top-rated-row"></div>
+    <button class="scroll-btn scroll-left" data-row="top-rated-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="top-rated-row">›</button>
+  </section>
+
+  <!-- CURATED PICKS -->
+  <section class="content-section" id="curated-section">
+    <h2 class="section-title">💎 Curated Picks</h2>
+    <div class="movie-row" id="curated-row"></div>
+    <button class="scroll-btn scroll-left" data-row="curated-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="curated-row">›</button>
+  </section>
+
+  <!-- TOP NEW MOVIES -->
+  <section class="content-section" id="new2025-section">
+    <h2 class="section-title">🆕 Top New Movies</h2>
+    <div class="movie-row" id="new2025-row"></div>
+    <button class="scroll-btn scroll-left" data-row="new2025-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="new2025-row">›</button>
+  </section>
+
+  <!-- MORE NEW HITS -->
+  <section class="content-section" id="new2026-section">
+    <h2 class="section-title">🔥 More New Hits</h2>
+    <div class="movie-row" id="new2026-row"></div>
+    <button class="scroll-btn scroll-left" data-row="new2026-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="new2026-row">›</button>
+  </section>
+
+  <!-- TV TRENDING -->
+  <section class="content-section" id="tv-trending-section">
+    <h2 class="section-title">📺 Trending TV Shows</h2>
+    <div class="movie-row" id="tv-trending-row"></div>
+    <button class="scroll-btn scroll-left" data-row="tv-trending-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="tv-trending-row">›</button>
+  </section>
+
+  <!-- TV POPULAR -->
+  <section class="content-section" id="tv-popular-section">
+    <h2 class="section-title">📡 Popular Series</h2>
+    <div class="movie-row" id="tv-popular-row"></div>
+    <button class="scroll-btn scroll-left" data-row="tv-popular-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="tv-popular-row">›</button>
+  </section>
+
+  <!-- FRANCHISES -->
+  <section class="content-section" id="franchise-marvel-section">
+    <h2 class="section-title">🦸 Marvel Universe</h2>
+    <div class="movie-row" id="franchise-marvel-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-marvel-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-marvel-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-spiderman-section">
+    <h2 class="section-title">🕷️ Spider-Man</h2>
+    <div class="movie-row" id="franchise-spiderman-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-spiderman-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-spiderman-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-mib-section">
+    <h2 class="section-title">🕶️ Men in Black</h2>
+    <div class="movie-row" id="franchise-mib-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-mib-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-mib-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-theboys-section">
+    <h2 class="section-title">💥 The Boys</h2>
+    <div class="movie-row" id="franchise-theboys-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-theboys-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-theboys-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-antman-section">
+    <h2 class="section-title">🐜 Ant-Man</h2>
+    <div class="movie-row" id="franchise-antman-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-antman-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-antman-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-csiny-section">
+    <h2 class="section-title">🔬 CSI: NY</h2>
+    <div class="movie-row" id="franchise-csiny-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-csiny-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-csiny-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-csicyber-section">
+    <h2 class="section-title">💻 CSI: Cyber</h2>
+    <div class="movie-row" id="franchise-csicyber-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-csicyber-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-csicyber-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-csi-section">
+    <h2 class="section-title">🔍 CSI: Vegas</h2>
+    <div class="movie-row" id="franchise-csi-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-csi-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-csi-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-livepd-section">
+    <h2 class="section-title">🚔 Live PD & Crime TV</h2>
+    <div class="movie-row" id="franchise-livepd-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-livepd-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-livepd-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-trutv-section">
+    <h2 class="section-title">📺 True Crime & Investigation</h2>
+    <div class="movie-row" id="franchise-trutv-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-trutv-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-trutv-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-bond-section">
+    <h2 class="section-title">🍸 James Bond</h2>
+    <div class="movie-row" id="franchise-bond-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-bond-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-bond-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-starwars-section">
+    <h2 class="section-title">⚔️ Star Wars</h2>
+    <div class="movie-row" id="franchise-starwars-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-starwars-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-starwars-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-lotr-section">
+    <h2 class="section-title">💍 Lord of the Rings</h2>
+    <div class="movie-row" id="franchise-lotr-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-lotr-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-lotr-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-johnwick-section">
+    <h2 class="section-title">🔫 John Wick</h2>
+    <div class="movie-row" id="franchise-johnwick-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-johnwick-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-johnwick-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-jurassic-section">
+    <h2 class="section-title">🦕 Jurassic Park</h2>
+    <div class="movie-row" id="franchise-jurassic-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-jurassic-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-jurassic-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-terminator-section">
+    <h2 class="section-title">🤖 Terminator</h2>
+    <div class="movie-row" id="franchise-terminator-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-terminator-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-terminator-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-mission-section">
+    <h2 class="section-title">🕵️ Mission: Impossible</h2>
+    <div class="movie-row" id="franchise-mission-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-mission-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-mission-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-rocky-section">
+    <h2 class="section-title">🥊 Rocky & Creed</h2>
+    <div class="movie-row" id="franchise-rocky-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-rocky-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-rocky-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-batman-section">
+    <h2 class="section-title">🦇 Batman</h2>
+    <div class="movie-row" id="franchise-batman-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-batman-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-batman-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-matrix-section">
+    <h2 class="section-title">💊 The Matrix</h2>
+    <div class="movie-row" id="franchise-matrix-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-matrix-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-matrix-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-diehard-section">
+    <h2 class="section-title">🏢 Die Hard</h2>
+    <div class="movie-row" id="franchise-diehard-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-diehard-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-diehard-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-hunger-section">
+    <h2 class="section-title">🏹 Hunger Games</h2>
+    <div class="movie-row" id="franchise-hunger-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-hunger-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-hunger-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-pirates-section">
+    <h2 class="section-title">🏴‍☠️ Pirates of the Caribbean</h2>
+    <div class="movie-row" id="franchise-pirates-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-pirates-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-pirates-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-indiana-section">
+    <h2 class="section-title">🤠 Indiana Jones</h2>
+    <div class="movie-row" id="franchise-indiana-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-indiana-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-indiana-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-aliens-section">
+    <h2 class="section-title">👽 Alien Universe</h2>
+    <div class="movie-row" id="franchise-aliens-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-aliens-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-aliens-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-transformers-section">
+    <h2 class="section-title">🚗 Transformers</h2>
+    <div class="movie-row" id="franchise-transformers-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-transformers-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-transformers-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-backfuture-section">
+    <h2 class="section-title">⚡ Back to the Future</h2>
+    <div class="movie-row" id="franchise-backfuture-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-backfuture-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-backfuture-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-breaking-section">
+    <h2 class="section-title">🧪 Breaking Bad Universe</h2>
+    <div class="movie-row" id="franchise-breaking-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-breaking-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-breaking-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-stranger-section">
+    <h2 class="section-title">👾 Stranger Things</h2>
+    <div class="movie-row" id="franchise-stranger-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-stranger-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-stranger-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-got-section">
+    <h2 class="section-title">🐉 Game of Thrones</h2>
+    <div class="movie-row" id="franchise-got-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-got-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-got-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-saw-section">
+    <h2 class="section-title">🪚 Saw Collection</h2>
+    <div class="movie-row" id="franchise-saw-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-saw-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-saw-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-it-section">
+    <h2 class="section-title">🎈 IT Duology</h2>
+    <div class="movie-row" id="franchise-it-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-it-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-it-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-bourne-section">
+    <h2 class="section-title">🔫 Bourne Franchise</h2>
+    <div class="movie-row" id="franchise-bourne-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-bourne-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-bourne-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-ocean-section">
+    <h2 class="section-title">💰 Oceans Heist Collection</h2>
+    <div class="movie-row" id="franchise-ocean-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-ocean-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-ocean-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-taken-section">
+    <h2 class="section-title">👤 Taken Trilogy</h2>
+    <div class="movie-row" id="franchise-taken-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-taken-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-taken-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-topgun-section">
+    <h2 class="section-title">✈️ Top Gun</h2>
+    <div class="movie-row" id="franchise-topgun-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-topgun-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-topgun-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-madmax-section">
+    <h2 class="section-title">🔥 Mad Max</h2>
+    <div class="movie-row" id="franchise-madmax-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-madmax-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-madmax-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-creed-section">
+    <h2 class="section-title">🥊 Creed Series</h2>
+    <div class="movie-row" id="franchise-creed-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-creed-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-creed-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-spiderman-holland-section">
+    <h2 class="section-title">🕷️ Spider-Man (MCU)</h2>
+    <div class="movie-row" id="franchise-spiderman-holland-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-spiderman-holland-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-spiderman-holland-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-ghibli-section">
+    <h2 class="section-title">⛩️ Studio Ghibli</h2>
+    <div class="movie-row" id="franchise-ghibli-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-ghibli-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-ghibli-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-korean-section">
+    <h2 class="section-title">🇰🇷 Korean Cinema</h2>
+    <div class="movie-row" id="franchise-korean-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-korean-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-korean-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-bestpicture-section">
+    <h2 class="section-title">🏆 Best Picture Winners</h2>
+    <div class="movie-row" id="franchise-bestpicture-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-bestpicture-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-bestpicture-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-crime-section">
+    <h2 class="section-title">🔫 Crime Classics</h2>
+    <div class="movie-row" id="franchise-crime-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-crime-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-crime-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-mob-section">
+    <h2 class="section-title">🎩 Mob &amp; Gangster</h2>
+    <div class="movie-row" id="franchise-mob-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-mob-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-mob-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-war-section">
+    <h2 class="section-title">🎖️ War Films</h2>
+    <div class="movie-row" id="franchise-war-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-war-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-war-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-romcom-section">
+    <h2 class="section-title">💕 Rom-Com Collection</h2>
+    <div class="movie-row" id="franchise-romcom-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-romcom-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-romcom-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-releases2025-section">
+    <h2 class="section-title">🆕 2025 New Releases</h2>
+    <div class="movie-row" id="franchise-releases2025-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-releases2025-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-releases2025-row">›</button>
+  </section>
+
+  <section class="content-section" id="franchise-releases2024-section">
+    <h2 class="section-title">🎬 2024 Blockbusters</h2>
+    <div class="movie-row" id="franchise-releases2024-row"></div>
+    <button class="scroll-btn scroll-left" data-row="franchise-releases2024-row">‹</button>
+    <button class="scroll-btn scroll-right" data-row="franchise-releases2024-row">›</button>
+  </section>
+
+  <!-- WATCHLIST -->
+  <section class="content-section" id="watchlist-section" style="display:none">
+    <h2 class="section-title">📌 My Watchlist</h2>
+    <div class="watchlist-organizer" aria-label="Watchlist organizer">
+      <div class="watchlist-search-wrap">
+        <span class="watchlist-search-icon">🔎</span>
+        <input type="search" id="watchlist-search" placeholder="Filter saved movies..." autocomplete="off">
+      </div>
+      <select id="watchlist-type-filter" aria-label="Filter by type">
+        <option value="all">All</option>
+        <option value="movie">Movies</option>
+        <option value="tv">TV</option>
+      </select>
+      <select id="watchlist-sort" aria-label="Sort watchlist">
+        <option value="added-desc">Newest Added</option>
+        <option value="added-asc">Oldest Added</option>
+        <option value="title-asc">Title A-Z</option>
+        <option value="year-desc">Newest Year</option>
+        <option value="rating-desc">Top Rated</option>
+      </select>
+      <span id="watchlist-count" class="watchlist-count"></span>
+    </div>
+    <div class="movie-grid" id="watchlist-grid"></div>
+    <div class="empty-state" id="watchlist-empty">
+      <span class="empty-icon">🎬</span>
+      <p>Your watchlist is empty</p>
+      <p class="empty-sub">Browse movies and click ＋ to add them</p>
+    </div>
+  </section>
+
+  <!-- SEARCH RESULTS -->
+
+  <!-- Free Movies -->
+  <section class="content-section" id="archive-section" style="display:none">
+    <h2 class="section-title">🎞️ Free Movies</h2>
+    <!-- Category tabs for browsing free movies -->
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:16px" id="archive-cat-tabs">
+      <button class="archive-cat-btn active" data-acat="popular" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:#e50914;color:#fff;font-size:0.82rem;cursor:pointer;font-weight:600">🔥 Popular</button>
+      <button class="archive-cat-btn" data-acat="action" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">💥 Action</button>
+      <button class="archive-cat-btn" data-acat="horror" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">👻 Horror</button>
+      <button class="archive-cat-btn" data-acat="comedy" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">😂 Comedy</button>
+      <button class="archive-cat-btn" data-acat="scifi" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🚀 Sci-Fi</button>
+      <button class="archive-cat-btn" data-acat="drama" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🎭 Drama</button>
+      <button class="archive-cat-btn" data-acat="noir" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🕵️ Film Noir</button>
+      <button class="archive-cat-btn" data-acat="western" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🤠 Western</button>
+      <button class="archive-cat-btn" data-acat="animation" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🎨 Animation</button>
+      <button class="archive-cat-btn" data-acat="documentary" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">📚 Documentary</button>
+      <button class="archive-cat-btn" data-acat="musical" style="padding:6px 14px;border-radius:20px;border:1px solid #333;background:transparent;color:#aaa;font-size:0.82rem;cursor:pointer">🎵 Musical</button>
+    </div>
+    <div style="margin-bottom:12px;color:var(--text-muted);font-size:0.9rem">Use the top search bar to find movies in the bank.</div>
+    <div class="movie-grid" id="archive-grid"></div>
+    <div class="empty-state" id="archive-empty" style="display:none">
+      <span class="empty-icon">🎞️</span>
+      <p>No results — try another category</p>
+    </div>
+  </section>
+  <section class="content-section" id="search-section" style="display:none">
+    <h2 class="section-title" id="search-title">🔍 Search Results</h2>
+    <div class="movie-grid" id="search-grid"></div>
+    <div class="empty-state" id="search-empty">
+      <span class="empty-icon">🔭</span>
+      <p>No movies found</p>
+      <p class="empty-sub">Try: "marvel", "scary horror 2024", "the boys", "crime drama"</p>
+    </div>
+  </section>
+
+  <!-- MOVIE LOGS -->
+  <section class="content-section" id="logs-section" style="display:none">
+    <h2 class="section-title">📋 Movie Activity Logs</h2>
+    <div id="db-stats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:#111;border-radius:8px;border:1px solid #222;">
+      <div style="text-align:center"><div id="stat-total" style="font-size:1.8rem;font-weight:700;color:#e50914;">—</div><div style="font-size:0.75rem;color:#aaa;">Total Titles</div></div>
+      <div style="text-align:center"><div id="stat-movies" style="font-size:1.8rem;font-weight:700;color:#f5a623;">—</div><div style="font-size:0.75rem;color:#aaa;">Movies</div></div>
+      <div style="text-align:center"><div id="stat-tv" style="font-size:1.8rem;font-weight:700;color:#4caf50;">—</div><div style="font-size:0.75rem;color:#aaa;">TV Shows</div></div>
+      <div style="text-align:center"><div id="stat-posters" style="font-size:1.8rem;font-weight:700;color:#2196f3;">—</div><div style="font-size:0.75rem;color:#aaa;">With Posters</div></div>
+      <div style="text-align:center;margin-left:auto"><div id="stat-updated" style="font-size:0.8rem;color:#666;margin-top:8px;">—</div><div style="font-size:0.75rem;color:#aaa;">Last Updated</div></div>
+    </div>
+    <div class="logs-controls">
+      <button class="log-filter-btn active" data-type="">All</button>
+      <button class="log-filter-btn" data-type="watch">▶ Watched</button>
+      <button class="log-filter-btn" data-type="add">＋ Added</button>
+      <button class="log-filter-btn" data-type="update">✏️ Updated</button>
+      <button class="log-filter-btn log-clear-btn" data-type="clear" style="margin-left:auto;">🗑️ Clear</button>
+    </div>
+    <div class="logs-list" id="logs-list">
+      <div class="logs-empty">No activity yet. Watch a movie to see logs here.</div>
+    </div>
+  </section>
+
+
+
+  <!-- GENRES -->
+  <section class="content-section" id="genres-section">
+    <h2 class="section-title">🎭 Browse by Genre</h2>
+    <div class="genre-row" id="genre-row"></div>
+  </section>
+
+  <!-- MOVIE DETAIL MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="movie-modal">
+      <button class="modal-close" id="modal-close">✕</button>
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-body">
+        <div class="modal-poster">
+          <img id="modal-poster-img" src="" alt="">
+        </div>
+        <div class="modal-info">
+          <h2 id="modal-title"></h2>
+          <div class="modal-meta" id="modal-meta"></div>
+          <p class="modal-overview" id="modal-overview"></p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="modal-trailer">▶ Play Now</button>
+            <button class="btn btn-accent" id="modal-watchlist">＋ Watchlist</button>
+          </div>
+          <div class="modal-cast" id="modal-cast"></div>
+          <div class="modal-sources" id="modal-sources"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVIE PLAYER OVERLAY -->
+  <div class="player-overlay" id="player-overlay">
+    <div class="player-container">
+      <!-- Header -->
+      <div class="player-header">
+        <div class="player-title">
+          <span class="live-dot"></span>
+          <span id="player-title-text">Loading...</span>
+        </div>
+        <button class="player-close" id="player-close">✕</button>
+      </div>
+
+      <!-- Video area -->
+      <div class="player-video-wrap" id="player-video-wrap"></div>
+
+      <!-- MacAttack Skull Spinner — celludroid video -->
+      <div class="spinner-overlay" id="player-spinner">
+        <div class="spinner-scanline"></div>
+        <div class="skull-spinner-wrap">
+          <video class="skull-spinner-video" src="/assets/macattack/intro.mp4" muted loop playsinline webkit-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto"></video>
+        </div>
+        <div class="spinner-text" id="spinner-text">CONNECTING...</div>
+      </div>
+
+      <!-- Source tabs — auto-fallback sources -->
+      <div class="player-source-tabs" id="player-source-tabs">
+        <button class="source-tab active" data-source="videasy">⚡ Videasy</button>
+        <button class="source-tab" data-source="vidbinge">🎬 VidBinge</button>
+        <button class="source-tab" data-source="vidsrcpm">PM</button>
+        <button class="source-tab" data-source="vidsrcme">📡 Me</button>
+        <button class="source-tab" data-source="vidsrc2">VidSrc</button>
+        <button class="source-tab" data-source="embedrev">🔁 Rev</button>
+        <button class="source-tab" data-source="flicky">🎞 Flicky</button>
+        <button class="source-tab" data-source="vidlink">🔗 Link</button>
+        <button class="source-tab" data-source="smashy">💥 Smashy</button>
+        <button class="source-tab" data-source="multiembed">🔗 Multi</button>
+        <button class="source-tab" data-source="embed2">2️⃣ 2Embed</button>
+        <button class="source-tab" data-source="embed2skin">🎭 Skin</button>
+        <button class="source-tab" data-source="playmogo">🎬 Playmogo</button>
+        <button class="source-tab source-tab-url" data-source="direct" title="Paste any URL">🔗 Direct URL</button>
+        <button class="source-tab source-tab-portal" data-source="portal" title="Portal stream fallback">💀 Portal</button>
+      </div>
+
+      <!-- Direct URL input (hidden until Direct URL tab clicked) -->
+      <div class="direct-url-bar" id="direct-url-bar" style="display:none;">
+        <input type="text" id="direct-url-input" placeholder="Paste any video URL (playmogo, cagefreemovie, vidsrc, etc.)" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:14px;">
+        <button id="direct-url-go" style="padding:6px 14px;border-radius:6px;border:none;background:var(--accent,#e50914);color:#fff;cursor:pointer;font-size:14px;">▶ Go</button>
+      </div>
+
+      <!-- Controls bar -->
+      <div class="player-controls" id="player-controls">
+        <button class="player-ctrl-btn" id="player-prev-btn" title="Previous Episode">⏮</button>
+        <button class="player-ctrl-btn" id="player-back-btn" title="Back 10 seconds">↺10</button>
+        <button class="player-ctrl-btn" id="player-play-btn" title="Play/Pause">▶</button>
+        <button class="player-ctrl-btn" id="player-forward-btn" title="Forward 30 seconds">30↻</button>
+        <button class="player-ctrl-btn" id="player-next-btn" title="Next Episode">⏭</button>
+        <div class="player-progress-wrap" id="player-progress-wrap" title="Skip through movie">
+          <div class="player-progress-bar" id="player-progress"></div>
+        </div>
+        <span class="player-time" id="player-time">0:00 / 0:00</span>
+        <div class="player-volume-wrap">
+          <button class="player-ctrl-btn" id="player-vol-btn" title="Volume">🔊</button>
+          <input type="range" class="player-volume-slider" id="player-vol-slider" min="0" max="100" value="80">
+        </div>
+        <button class="player-ctrl-btn" id="player-vlc-btn" title="Open in VLC">🎯</button>
+        <button class="player-ctrl-btn" id="player-fullscreen-btn" title="Toggle fullscreen">⛶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE TV SECTION (Stalker Portal Channels) -->
+  <section class="content-section" id="livetv-section" style="display:none">
+    <div class="livetv-header">
+      <h2 class="section-title">📺 Live TV — Cable &amp; Streaming</h2>
+      <button class="btn btn-primary livetv-guide-btn" onclick="showChannelGuide()" title="Open full channel guide">📋 Guide</button>
+    </div>
+    <div id="bore-tunnel-bar" style="margin-bottom:12px;padding:0.4rem 0.8rem;background:rgba(0,255,65,0.08);border:1px solid rgba(0,255,65,0.3);border-radius:8px;font-size:0.75rem;color:#00ff41;display:flex;align-items:center;gap:0.5rem;justify-content:center;cursor:pointer" onclick="copyTunnelUrl()" title="Click to copy tunnel URL">
+      <span style="width:6px;height:6px;border-radius:50%;background:#00ff41;box-shadow:0 0 6px #00ff41;animation:pulse-dot 2s infinite"></span>
+      <span id="bore-url-text">Loading tunnel...</span>
+    </div>
+    <style>@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}</style>
+    <div id="livetv-video-panel" style="display:flex;flex-direction:column;min-height:360px;margin-bottom:16px;border:1px solid rgba(0,229,255,0.22);border-radius:8px;overflow:hidden;background:#05070c">
+      <div id="livetv-video-wrap" style="background:#000;flex:1;min-height:320px;display:flex;align-items:center;justify-content:center;color:#687486;font-size:0.9rem;position:relative;overflow:hidden">
+        Select a channel or IPTV source to play.
+      </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;padding:0.35rem 0.7rem;background:#0a0f1a;border-top:1px solid rgba(0,229,255,0.18)">
+        <span id="livetv-video-url" style="font-size:0.72rem;color:#7f95a8;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Lucida Console',monospace">No video loaded</span>
+      </div>
+    </div>
+    <div class="livetv-category-tabs" id="livetv-category-tabs">
+      <!-- Populated dynamically -->
+    </div>
+    <h3 class="livetv-subtitle" id="livetv-channels-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span>Live Channels</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button id="livetv-sidebar-toggle" class="livetv-ctrl-btn" title="Hide/Show Portal Panel">📂</button>
+      </div>
+    </h3>
+    <!-- Alpha quick-jump bar -->
+    <div class="livetv-alpha-bar" id="livetv-alpha-bar"></div>
+    <!-- Scrollable channels area with arrows -->
+    <div class="livetv-channels-scroll-wrap" id="livetv-channels-scroll-wrap">
+      <button class="livetv-scroll-arrow livetv-scroll-up" id="livetv-scroll-up" title="Scroll up">▲</button>
+      <div class="livetv-channels-grid" id="livetv-channels-grid"></div>
+      <button class="livetv-scroll-arrow livetv-scroll-down" id="livetv-scroll-down" title="Scroll down">▼</button>
+    </div>
+    <div class="livetv-empty" id="livetv-empty">
+      <span class="empty-icon">📺</span>
+      <p>Click Load Channels to fetch from portal</p>
+    </div>
+
+    <!-- ═══ MAC PORTAL SOURCE BAR ═══ -->
+    <div id="stalker-source-bar" style="margin-bottom:12px;padding:0.55rem 0.9rem;background:rgba(0,255,100,0.06);border:1px solid rgba(0,255,100,0.25);border-radius:8px;font-size:0.82rem;color:#00ff64;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+      <span style="font-weight:700;white-space:nowrap">💀 MAC Portal</span>
+      <input id="livetv-portal-host-input" type="text" value="http://evilvir.us.streamtv.to:8080" placeholder="http://portal.example.com:8080" style="flex:2;min-width:180px;padding:4px 7px;border-radius:5px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.78rem;font-family:'Lucida Console',monospace">
+      <input id="livetv-portal-mac-input" type="text" value="00:1A:79:A3:96:BF" placeholder="00:1A:79:XX:XX:XX" style="flex:1;min-width:140px;padding:4px 7px;border-radius:5px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.78rem;font-family:'Lucida Console',monospace">
+      <button id="livetv-portal-load-btn" style="padding:4px 14px;border-radius:6px;border:none;background:#00aa44;color:#fff;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap">🔄 Load Channels</button>
+      <button id="stalker-portal-vlc-btn" style="padding:4px 12px;border-radius:6px;border:1px solid #ff6600;background:rgba(255,102,0,0.15);color:#ff6600;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;display:none" title="Open last channel in VLC">🎯 VLC</button>
+      <span id="stalker-portal-vlc-status" style="color:#0f0;font-size:0.7rem;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis"></span>
+      <span id="stalker-channel-count" style="color:#ffd700;font-weight:600;white-space:nowrap">0 channels</span>
+      <span style="font-size:0.72rem;color:#555">Host: <span id="stalker-source-host" style="color:#9fb3c8">evilvir.us.streamtv.to:8080</span></span>
+      <span style="font-size:0.72rem;color:#555">MAC: <span id="stalker-source-mac" style="color:#9fb3c8">00:1A:79:A3:96:BF</span></span>
+      <span id="livetv-portal-video-url" style="display:none"></span>
+      <button id="stalker-load-btn" style="display:none">hidden</button>
+    </div>
+
+    <!-- ═══ PORTAL SIDEBAR ═══ -->
+    <div id="livetv-portal-panel" style="margin-bottom:16px">
+      <div style="width:100%;max-width:320px;background:#0a0f1a;border:1px solid #1a2a3a;border-radius:8px;display:flex;flex-direction:column;overflow:hidden">
+        <button class="livetv-scroll-arrow livetv-scroll-up" data-scroll-target="livetv-portal-playlist-grid" title="Scroll up">▲</button>
+        <div id="livetv-portal-playlist-grid" style="overflow-y:auto;max-height:400px;padding:0.25rem;font-size:0.75rem;color:var(--text-muted)">
+          Enter Host + MAC and click Load Channels.
+        </div>
+        <button class="livetv-scroll-arrow livetv-scroll-down" data-scroll-target="livetv-portal-playlist-grid" title="Scroll down">▼</button>
+        <div style="height:3px;background:#1a2a3a"><div id="livetv-portal-progress" style="width:0%;height:100%;background:#00ff64;transition:width 0.3s"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ FREE LIVE TV — iptv-org ═══ -->
+    <div id="livetv-free-section" style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.08);padding-top:20px">
+      <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="color:#ffd700;font-size:1.1rem;margin:0">📡 iptv-org Free Live TV</h3>
+        <span style="font-size:0.72rem;color:#888;background:rgba(255,215,0,0.1);padding:2px 8px;border-radius:4px">No subscription required</span>
+      </div>
+
+      <!-- iptv-org Source -->
+      <div id="iptv-source-bar" style="margin-bottom:10px;padding:0.6rem 1rem;background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:8px;font-size:0.82rem;color:#ffd700;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+        <span style="font-weight:600">📡 iptv-org</span>
+        <span id="iptv-channel-count" style="color:#00ff41;font-weight:600">0 channels</span>
+        <select id="iptv-category-filter" style="padding:3px 8px;border-radius:5px;background:#1a1a2e;color:#ffd700;border:1px solid rgba(255,215,0,0.3);font-size:0.78rem;max-width:180px">
+          <option value="us-english">🇺🇸 Most USA English</option>
+          <option value="us">🇺🇸 All US Channels</option>
+          <option value="news">📰 News</option>
+          <option value="movies">🎬 Movies</option>
+          <option value="sports">⚽ Sports</option>
+          <option value="music">🎵 Music</option>
+          <option value="kids">🧒 Kids</option>
+          <option value="entertainment">🎭 Entertainment</option>
+          <option value="documentary">📖 Documentary</option>
+          <option value="education">🎓 Education</option>
+        </select>
+        <button id="iptv-load-btn" style="padding:4px 14px;border-radius:6px;border:1px solid #ffd700;background:#ffd700;color:#000;font-size:0.78rem;cursor:pointer;font-weight:700;margin-left:auto">📡 Load iptv-org</button>
+      </div>
+
+      <h4 id="iptv-channels-title" style="color:#ffd700;font-size:0.9rem;margin:16px 0 8px;display:none">📡 iptv-org Channels</h4>
+      <div class="livetv-channels-scroll-wrap">
+        <button class="livetv-scroll-arrow livetv-scroll-up" data-scroll-target="iptv-channels-grid" title="Scroll up">▲</button>
+        <div class="livetv-channels-grid" id="iptv-channels-grid"></div>
+        <button class="livetv-scroll-arrow livetv-scroll-down" data-scroll-target="iptv-channels-grid" title="Scroll down">▼</button>
+      </div>
+      <div id="iptv-loading" style="text-align:center;padding:1.5rem;color:#ffd700;display:none">
+        <div style="display:inline-block;width:28px;height:28px;border:3px solid rgba(255,215,0,0.2);border-top-color:#ffd700;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+        <span style="margin-left:8px;font-size:0.85rem">Loading iptv-org channels...</span>
+      </div>
+      <div id="iptv-empty" style="text-align:center;padding:1rem;color:#555;font-size:0.82rem;display:none">No iptv-org channels loaded yet</div>
+    </div>
+  </section>
+
+  <!-- AI ASSISTANT PANEL -->
+  <section class="content-section" id="ai-section" style="display:none">
+    <h2 class="section-title">🧠 CineVault AI Assistant</h2>
+    <div class="ai-panel">
+      <div class="ai-chat" id="ai-chat">
+        <div class="ai-msg ai-system">💀 <strong>CineVault AI</strong> — Ask me anything about movies, TV shows, genres, or what to watch next. I can search the catalog, recommend based on mood, and find streaming links.</div>
+      </div>
+      <div class="ai-input-row">
+        <input type="text" id="ai-input" class="ai-input" placeholder="Ask: What should I watch? / Find action movies / The Boys Season 3..." autocomplete="off">
+        <button class="btn btn-primary" id="ai-send">🧠 Ask</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WATCHDOG SECTION -->
+  <section class="content-section" id="watchdog-section" style="display:none">
+    <h2 class="section-title">💀 MacAttack</h2>
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+      <div class="macattack-skull-container" style="width:120px;height:120px;min-width:120px;border-radius:50%;overflow:hidden">
+        <div class="macattack-skull-glow-ring"></div>
+        <img class="macattack-skull-fallback" src="/assets/icons/macattack-skull-chrome.svg" alt="" aria-hidden="true">
+        <video class="macattack-skull-svg macattack-skull-video" src="/assets/macattack/intro.mp4" muted loop playsinline preload="none"></video>
+      </div>
+      <div>
+        <div style="font-size:1.5rem;font-weight:800;background:linear-gradient(90deg,#00ff64,#00cc44);-webkit-background-clip:text;-webkit-text-fill-color:transparent">MACATTACK PORTAL</div>
+        <div style="color:var(--text-muted);font-size:0.85rem">IPTV stalker portal scanner &amp; player</div>
+      </div>
+    </div>
+    <p style="color:var(--text-muted);margin-bottom:1rem">Load portals, scan MACs, and play channel playlists from the MacAttack console.</p>
+
+    <!-- MacAttack Desktop App — Full Console -->
+    <div id="wd-macattack-bar" style="background:linear-gradient(135deg,#0a0f1a,#0d1520);border:1px solid #00ff6433;border-radius:12px;padding:1.2rem;margin-bottom:1.5rem;box-shadow:0 0 20px #00ff6411,inset 0 0 30px #00ff6408">
+      <!-- Header bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+        <div style="display:flex;align-items:center;gap:0.8rem">
+          <!-- Terminator Skull — spinning chrome with electric current -->
+          <div class="macattack-skull-container" id="macattack-skull">
+            <div class="macattack-skull-glow-ring"></div>
+            <div class="macattack-skull-electric">
+              <span class="electric-arc e1"></span>
+              <span class="electric-arc e2"></span>
+              <span class="electric-arc e3"></span>
+              <span class="electric-arc e4"></span>
+              <span class="electric-arc e5"></span>
+              <span class="electric-arc e6"></span>
+            </div>
+            <img class="macattack-skull-fallback" src="/assets/icons/macattack-skull-chrome.svg" alt="" aria-hidden="true">
+            <video class="macattack-skull-svg macattack-skull-video" src="/assets/macattack/intro.mp4" muted loop playsinline preload="none"></video>
+          </div>
+          <div>
+            <h3 style="margin:0;font-size:1.1rem" class="macattack-skull-title">MacAttack <span class="macattack-version">v6.0</span></h3>
+            <div style="color:var(--text-muted);font-size:0.75rem">IPTV stalker portal scanner &amp; player</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span id="wd-macattack-status" style="font-size:0.8rem;padding:2px 10px;border-radius:4px;background:#333;color:#aaa">Checking...</span>
+
+          <button class="btn btn-secondary" id="wd-macattack-clearlogs" style="font-size:0.85rem;padding:4px 14px" title="Clear console logs">🗑️ Clear</button>
+        </div>
+      </div>
+      <!-- PID/Uptime/CPU/MEM stats -->
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.8rem">
+        <div>PID: <strong id="wd-macattack-pid" style="color:#aaa">—</strong></div>
+        <div>Uptime: <strong id="wd-macattack-uptime" style="color:#aaa">—</strong></div>
+        <div>CPU: <strong id="wd-macattack-cpu" style="color:#aaa">—</strong></div>
+        <div>MEM: <strong id="wd-macattack-mem" style="color:#aaa">—</strong></div>
+      </div>
+      <div id="ma-debug-strip" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.8rem;padding:0.45rem 0.7rem;border:1px solid #00ff4122;border-radius:8px;background:rgba(6,10,18,0.72);font-size:0.76rem;">
+        <span style="color:#7bd4ff;font-weight:700;letter-spacing:.08em;">DEBUG</span>
+        <span id="ma-debug-phase" style="color:#ffd166;">idle</span>
+        <span id="ma-debug-detail" style="color:#9fb3c8;min-width:180px;flex:1;">waiting for action</span>
+        <span id="ma-debug-stream" style="color:#00ff64;">stream: none</span>
+      </div>
+
+      <!-- ═══ TABS: Scanner | Player | Proxies ═══ -->
+      <div id="ma-tab-bar" style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0.8rem">
+        <button class="ma-tab-btn ma-tab-active" data-ma-tab="scanner" style="padding:0.65rem 1.3rem;cursor:pointer;background:transparent;border:none;border-bottom:2px solid #00ff64;color:#00ff64;font-size:1rem;font-weight:700">💀 Scanner</button>
+        <button class="ma-tab-btn" data-ma-tab="player" style="padding:0.65rem 1.3rem;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-size:1rem;font-weight:700">📺 Player</button>
+        <button class="ma-tab-btn" data-ma-tab="proxies" style="padding:0.8rem 1.55rem;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-size:1.06rem;font-weight:800">🛡️ Proxies</button>
+        <button class="ma-tab-btn" data-ma-tab="settings" style="padding:0.65rem 1.3rem;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-size:1rem;font-weight:700">⚙️ Settings</button>
+        <button class="ma-tab-btn" data-ma-tab="terminal" style="padding:0.65rem 1.3rem;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-size:1rem;font-weight:700">🖥️ Terminal</button>
+      </div>
+
+
+      <!-- ═══ SCANNER TAB ═══ -->
+      <div id="ma-tab-scanner" class="ma-tab-content" style="display:block">
+        <!-- Row 1: IPTV Link + Speed + Start/Stop (matches desktop's combined_layout) -->
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-bottom:0.6rem">
+          <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">IPTV link:</label>
+          <input id="ma-iptv-link" type="text" value="http://evilvir.us.streamtv.to:8080/c/" placeholder="http://evilvir.us.streamtv.to:8080/c/" style="flex:1;min-width:220px;padding:5px 8px;border-radius:6px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.82rem;font-family:'Lucida Console',monospace">
+          <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">Speed:</label>
+          <input id="ma-speed" type="range" min="1" max="100" value="10" style="width:100px;accent-color:#00ff64">
+          <span id="ma-speed-val" style="font-size:0.82rem;color:#00ff64;min-width:1.5rem">10</span>
+          <button id="ma-start-btn" style="padding:5px 16px;border-radius:6px;border:none;background:#00aa44;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer">▶ Start</button>
+          <button id="ma-stop-btn" style="padding:5px 16px;border-radius:6px;border:none;background:#aa3333;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;opacity:0.5" disabled>⏹ Stop</button>
+        </div>
+
+        <!-- Row 2: Type + Prefix + Hits + Current MAC (matches desktop's dropdown_label_layout) -->
+        <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-bottom:0.6rem">
+          <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">Type:</label>
+          <select id="ma-type" style="padding:4px 8px;border-radius:6px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.82rem;font-family:'Lucida Console',monospace">
+            <option value="Autodetect">Autodetect</option>
+            <option value="Portal">Portal</option>
+            <option value="Stalker_Portal">Stalker_Portal</option>
+          </select>
+
+          <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">Prefix:</label>
+          <select id="ma-prefix" style="padding:4px 8px;border-radius:6px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.82rem;font-family:'Lucida Console',monospace">
+            <option value="00:1A:79:" selected>00:1A:79: (default)</option>
+            <option value="00:1B:79:">00:1B:79:</option>
+            <option value="00:2A:79:">00:2A:79:</option>
+            <option value="00:A1:79:">00:A1:79:</option>
+            <option value="00:2A:01:">00:2A:01:</option>
+            <option value="00:1C:19:">00:1C:19:</option>
+            <option value="04:D6:AA:">04:D6:AA:</option>
+            <option value="10:27:BE:">10:27:BE:</option>
+            <option value="11:33:01:">11:33:01:</option>
+            <option value="1A:00:6A:">1A:00:6A:</option>
+            <option value="1A:00:FB:">1A:00:FB:</option>
+            <option value="33:44:CF:">33:44:CF:</option>
+            <option value="55:93:EA:">55:93:EA:</option>
+            <option value="A0:BB:3E:">A0:BB:3E:</option>
+            <option value="D4:CF:F9:">D4:CF:F9:</option>
+          </select>
+
+          <span id="ma-hits" style="font-size:0.85rem;color:#ffd166;font-weight:600;padding:2px 10px;background:#1a1a2e;border-radius:4px;border:1px solid #555">Hits: 0</span>
+          <span id="ma-current-mac" style="font-size:0.8rem;color:#00ff64;font-family:'Lucida Console',monospace;flex:1"></span>
+        </div>
+
+        <!-- Output LOG (matches desktop) -->
+        <div style="margin-bottom:0.3rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+            <span style="font-size:0.8rem;font-weight:600;color:#7bd4ff">Output LOG</span>
+          </div>
+          <div id="wd-macattack-output" style="background:#10273d;border:6px solid #2E2E2E;border-radius:6px;padding:0.6rem;font-family:'Lucida Console',monospace;font-size:0.78rem;color:#cfe;min-height:160px;max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all">Results will appear here.</div>
+        </div>
+
+        <!-- FOUND MACS List (clickable hit list) -->
+        <div style="margin-bottom:0.3rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+            <span style="font-size:0.8rem;font-weight:600;color:#00ff64">💀 Found MACs</span>
+            <button id="ma-clear-hits-btn" style="font-size:0.7rem;color:#ff6b6b;background:none;border:1px solid #ff6b6b;border-radius:4px;padding:1px 8px;cursor:pointer">Clear</button>
+          </div>
+          <div id="ma-hit-list" style="background:#0a1a0a;border:2px solid #00ff64;border-radius:6px;padding:0.5rem;font-family:'Lucida Console',monospace;font-size:0.78rem;color:#cfe;min-height:80px;max-height:200px;overflow-y:auto">
+            <div style="color:#555;font-style:italic">No hits yet — start scanning...</div>
+          </div>
+        </div>
+
+        <!-- Error LOG (matches desktop) -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+            <span style="font-size:0.8rem;font-weight:600;color:#ff6b6b">Error LOG</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">It's normal for errors to appear here.</span>
+          </div>
+          <div id="wd-macattack-errors" style="background:#451e1c;border-left:6px solid #2E2E2E;border-right:6px solid #2E2E2E;border-radius:6px;padding:0.6rem;font-family:'Lucida Console',monospace;font-size:0.78rem;color:grey;min-height:80px;max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-all"></div>
+        </div>
+
+
+      </div>
+
+      <!-- ═══ PLAYER TAB — MacAttack-style sidebar + video split ═══ -->
+      <div id="ma-tab-player" class="ma-tab-content" style="display:none">
+        <div style="display:flex;gap:0;min-height:480px">
+          <!-- LEFT SIDEBAR — Host/MAC/Proxy inputs + playlist (like MacAttack) -->
+          <div style="width:260px;min-width:260px;display:flex;flex-direction:column;gap:0.5rem;padding:0.6rem 0.8rem;background:linear-gradient(180deg,#0a0f1a,#0d1520);border-right:1px solid #00ff6422;overflow-y:auto">
+            <!-- Host input -->
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <label style="font-size:0.78rem;color:#7bd4ff;min-width:38px;font-weight:600">Host:</label>
+              <input id="ma-host-input" type="text" value="http://evilvir.us.streamtv.to:8080" placeholder="http://portal.example.com/c/" style="flex:1;padding:4px 6px;border-radius:4px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.75rem;font-family:'Lucida Console',monospace">
+            </div>
+            <!-- MAC input -->
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <label style="font-size:0.78rem;color:#7bd4ff;min-width:38px;font-weight:600">MAC:</label>
+              <input id="ma-mac-input" type="text" value="00:1A:79:A3:96:BF" placeholder="00:1A:79:XX:XX:XX" style="flex:1;padding:4px 6px;border-radius:4px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.75rem;font-family:'Lucida Console',monospace">
+            </div>
+            <div id="ma-side-settings-tabs" style="display:flex;gap:0;border-bottom:1px solid #123042;margin-top:0.15rem">
+              <button class="ma-side-settings-tab ma-side-settings-tab-active" data-ma-side-tab="connect" style="flex:1;padding:0.28rem 0;border:none;border-bottom:2px solid #00ff64;background:transparent;color:#00ff64;font-size:0.68rem;font-weight:700;cursor:pointer">Connect</button>
+              <button class="ma-side-settings-tab" data-ma-side-tab="render" style="flex:1;padding:0.28rem 0;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-muted);font-size:0.68rem;font-weight:700;cursor:pointer">Render</button>
+              <button class="ma-side-settings-tab" data-ma-side-tab="info" style="flex:1;padding:0.28rem 0;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-muted);font-size:0.68rem;font-weight:700;cursor:pointer">Info</button>
+            </div>
+            <div id="ma-side-tab-connect" class="ma-side-settings-pane" style="display:block">
+              <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem">
+                <label style="font-size:0.78rem;color:#7bd4ff;min-width:38px;font-weight:600">Proxy:</label>
+                <input id="ma-proxy-input" type="text" placeholder="Optional" style="flex:1;padding:4px 6px;border-radius:4px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.75rem;font-family:'Lucida Console',monospace">
+              </div>
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <label style="font-size:0.72rem;color:#7bd4ff;min-width:38px;font-weight:600">Limit:</label>
+                <input id="ma-channel-limit" type="number" min="1" max="160000" value="160000" style="flex:1;padding:3px 6px;border-radius:4px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:0.72rem;font-family:'Lucida Console',monospace">
+              </div>
+            </div>
+            <div id="ma-side-tab-render" class="ma-side-settings-pane" style="display:none">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem">
+                <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:var(--text-muted);cursor:pointer"><input id="ma-us-first" type="checkbox" checked> US first</label>
+                <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:var(--text-muted);cursor:pointer"><input id="ma-dedupe" type="checkbox" checked> Dedupe</label>
+                <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:var(--text-muted);cursor:pointer"><input id="ma-logo-cards" type="checkbox" checked> Logos</label>
+                <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:var(--text-muted);cursor:pointer"><input id="ma-fast-render" type="checkbox" checked> Fast render</label>
+              </div>
+            </div>
+            <div id="ma-side-tab-info" class="ma-side-settings-pane" style="display:none">
+              <div id="ma-portal-info" style="background:#071018;border:1px solid #123042;border-radius:4px;padding:0.4rem;font-family:'Lucida Console',monospace;font-size:0.62rem;color:#7f95a8;line-height:1.45;word-break:break-all">
+                Portal info will appear after handshake or playlist load.
+              </div>
+            </div>
+            <!-- Get Playlist button -->
+            <div style="display:flex;gap:0.4rem;margin-top:0.2rem">
+              <button id="ma-get-playlist-btn" style="padding:6px 14px;border-radius:6px;border:none;background:#00aa44;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;flex:1">📋 Get Playlist</button>
+              <button id="ma-vlc-launch-btn" style="padding:6px 10px;border-radius:6px;border:1px solid #ff6600;background:#ff660011;color:#ff6600;font-size:0.85rem;font-weight:700;cursor:pointer;display:none" title="Launch VLC for last played channel">🎯 VLC</button>
+            </div>
+            <span id="ma-vlc-status" style="font-size:0.68rem;color:#ff6600;display:none;margin-top:0.1rem"></span>
+            <button id="ma-handshake-btn" style="padding:4px 10px;border-radius:4px;border:none;background:#7a1cff;color:#fff;font-size:0.75rem;cursor:pointer;width:100%">🤝 Handshake Only</button>
+            <!-- Playlist sub-tabs: Live | Movies | Series -->
+            <div style="display:flex;gap:0;border-bottom:2px solid #00ff64;margin-top:0.3rem">
+              <button class="ma-playlist-tab ma-playlist-tab-active" data-ma-playlist="all" style="flex:1;padding:0.35rem 0;cursor:pointer;background:transparent;border:none;border-bottom:2px solid #e50914;color:#e50914;font-size:0.78rem;font-weight:700">All</button>
+              <button class="ma-playlist-tab" data-ma-playlist="live" style="flex:1;padding:0.35rem 0;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:0.78rem;font-weight:700">📺 Live</button>
+              <button class="ma-playlist-tab" data-ma-playlist="movies" style="flex:1;padding:0.35rem 0;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:0.78rem;font-weight:700">🎬 Movies</button>
+              <button class="ma-playlist-tab" data-ma-playlist="series" style="flex:1;padding:0.35rem 0;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:0.78rem;font-weight:700">📺 Series</button>
+            </div>
+            <!-- Channel list -->
+            <div id="ma-playlist-grid" style="background:#0a0a0a;border:1px solid #333;border-radius:4px;flex:1;min-height:180px;max-height:380px;overflow-y:auto;padding:0.3rem;font-size:0.75rem;color:var(--text-muted)">
+              Enter Host + MAC and click Get Playlist to load channels.
+            </div>
+            <!-- Progress bar -->
+            <div style="height:4px;background:#1a1a2e;border-radius:2px;overflow:hidden;margin-top:0.2rem">
+              <div id="ma-playlist-progress" style="width:0%;height:100%;background:#00ff64;border-radius:2px;transition:width 0.3s"></div>
+            </div>
+            <!-- Error label -->
+            <div id="ma-player-error" style="font-size:0.7rem;color:#ff6b6b;min-height:1rem;display:none"></div>
+          </div>
+
+          <!-- RIGHT SECTION — Video player (top half) + Terminal (bottom half) -->
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+            <!-- Video player area (top half) -->
+            <div id="ma-player-wrap" class="ma-player-wrap" style="background:#000;flex:1;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.9rem;position:relative;overflow:hidden;min-height:200px">
+              <div class="ma-player-intro">
+                <video class="ma-player-intro-video" muted loop playsinline preload="none">
+                  <source src="/assets/macattack/intro.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <!-- Stream URL bar -->
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;padding:0.3rem 0.6rem;background:#0a0f1a;border-top:1px solid #00ff6422">
+              <span id="ma-video-url" style="font-size:0.72rem;color:#555;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Lucida Console',monospace">No video loaded</span>
+              <button id="ma-copy-url-btn" style="padding:2px 10px;border-radius:4px;border:1px solid #333;background:transparent;color:#7bd4ff;font-size:0.7rem;cursor:pointer" title="Copy stream URL">📋 Copy</button>
+            </div>
+            <!-- ═══ TERMINAL (bottom half) ═══ -->
+            <div style="display:flex;flex-direction:column;flex:1;min-height:180px;border-top:2px solid #00ff64;margin-top:0">
+              <!-- Terminal header bar -->
+              <div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0.6rem;background:#0a0f1a;border-bottom:1px solid #00ff6422">
+                <span style="font-size:0.75rem;color:#00ff64;font-weight:700;font-family:'Lucida Console',monospace">⌨ MacAttack Terminal</span>
+                <span style="flex:1"></span>
+                <button id="ma-term-start-btn" style="padding:2px 10px;border-radius:4px;border:1px solid #00aa44;background:#00aa4422;color:#00ff64;font-size:0.72rem;cursor:pointer;font-weight:700">▶ Start</button>
+                <button id="ma-term-stop-btn" style="padding:2px 10px;border-radius:4px;border:1px solid #e50914;background:#e5091422;color:#e50914;font-size:0.72rem;cursor:pointer;font-weight:700;display:none">■ Stop</button>
+                <button id="ma-term-clear-btn" style="padding:2px 8px;border-radius:4px;border:1px solid #555;background:transparent;color:#7bd4ff;font-size:0.72rem;cursor:pointer">⟲ Clear</button>
+              </div>
+              <!-- xterm.js container -->
+              <div id="ma-terminal-container" style="flex:1;background:#0a0a0a;overflow:hidden"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PROXIES TAB ═══ -->
+      <div id="ma-tab-proxies" class="ma-tab-content" style="display:none">
+        <!-- Row 1: Enable + Rotate + remove-after-errors -->
+        <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem">
+          <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;color:var(--text-muted);cursor:pointer">
+            <input type="checkbox" id="ma-proxy-enabled"> Enable Proxies
+          </label>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;color:var(--text-muted);cursor:pointer">
+            <input type="checkbox" id="ma-proxy-altspeed"> Alt Speed (1 thread/proxy)
+          </label>
+          <span style="flex:1"></span>
+          <label style="font-size:0.78rem;color:var(--text-muted)">Remove after</label>
+          <input id="ma-proxy-remove-errors" type="number" min="0" max="9" value="5" style="width:32px;padding:2px 4px;border-radius:4px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.78rem;text-align:center">
+          <label style="font-size:0.78rem;color:var(--text-muted)">errors (0=off)</label>
+          <label style="font-size:0.78rem;color:var(--text-muted);margin-left:0.8rem">Ratelimit ban</label>
+          <input id="ma-proxy-ratelimit-sec" type="number" min="0" max="99" value="30" style="width:36px;padding:2px 4px;border-radius:4px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.78rem;text-align:center">
+          <label style="font-size:0.78rem;color:var(--text-muted)">sec (0=off)</label>
+        </div>
+        <!-- Proxy textarea -->
+        <div style="margin-bottom:0.3rem">
+          <span style="font-size:0.78rem;color:var(--text-muted)">Add your proxies, or use the buttons below to fetch a list.</span>
+        </div>
+        <textarea id="ma-proxy-list" style="width:100%;min-height:160px;background:#d0d0d0;border-left:10px solid #2E2E2E;border-right:10px solid #2E2E2E;border-top:none;border-bottom:none;border-radius:0;padding:0.6rem;font-family:'Lucida Console',monospace;font-size:0.8rem;color:#222;resize:vertical;box-sizing:border-box" placeholder="ip:port or user:pass@ip:port — one per line..."></textarea>
+        <!-- Row 2: Buttons + count -->
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0">
+          <button id="ma-fetch-proxies-btn" style="padding:5px 14px;border-radius:6px;border:none;background:#0066cc;color:#fff;font-size:0.82rem;cursor:pointer">🔄 Get Proxies</button>
+          <button id="ma-test-proxies-btn" style="padding:5px 14px;border-radius:6px;border:none;background:#cc6600;color:#fff;font-size:0.82rem;cursor:pointer">🧪 Test Proxies</button>
+          <button id="ma-load-ini-btn" style="padding:5px 14px;border-radius:6px;border:none;background:#7a1cff;color:#fff;font-size:0.82rem;cursor:pointer">📂 Load from MacAttack.ini</button>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;margin-left:0.5rem">
+            <input type="checkbox" id="ma-proxy-hourly"> Get Hourly
+          </label>
+          <span style="flex:1"></span>
+          <span id="ma-proxy-count" style="font-size:0.82rem;color:#00ff64;font-weight:600">Proxies: 0</span>
+        </div>
+        <!-- Proxy Status Grid — colored dots showing working/failed per proxy -->
+        <div style="margin-bottom:0.3rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+            <span style="font-size:0.78rem;font-weight:600;color:#7bd4ff">🛡️ Proxy Status Grid</span>
+            <div style="display:flex;gap:0.8rem;align-items:center">
+              <span style="font-size:0.7rem;color:#555">● Working</span>
+              <span style="font-size:0.7rem;color:#555">● Failed</span>
+              <span style="font-size:0.7rem;color:#555">● Pending</span>
+            </div>
+          </div>
+          <div id="ma-proxy-grid" style="background:#0a0a0a;border:2px solid #2E2E2E;border-radius:6px;padding:0.5rem;min-height:50px;max-height:120px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start">
+            <span style="color:#555;font-size:0.75rem;font-style:italic">Load proxies then click Test to see status...</span>
+          </div>
+        </div>
+        <!-- Proxy Console Output (green on black like MacAttack) -->
+        <div>
+          <span style="font-size:0.78rem;font-weight:600;color:#00ff64">🧪 Proxy Console</span>
+        </div>
+        <div id="ma-proxy-output" style="background:#000;border-left:10px solid #2E2E2E;border-right:10px solid #2E2E2E;border-radius:0;padding:0.5rem;font-family:'Lucida Console',monospace;font-size:0.75rem;color:#0f0;min-height:40px;max-height:80px;overflow-y:auto;white-space:pre-wrap;word-break:break-all">Proxy testing will output here...</div>
+      </div>
+
+      <!-- ═══ SETTINGS TAB ═══ -->
+      <div id="ma-tab-settings" class="ma-tab-content" style="display:none">
+        <!-- Settings sub-tabs: General | Output | Video Player -->
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0.8rem">
+          <button class="ma-settings-tab ma-settings-tab-active" data-ma-stab="general" style="padding:0.3rem 0.8rem;cursor:pointer;background:transparent;border:none;border-bottom:2px solid #00ff64;color:#00ff64;font-size:0.8rem;font-weight:600">⚙️ General</button>
+          <button class="ma-settings-tab" data-ma-stab="output" style="padding:0.3rem 0.8rem;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:0.8rem;font-weight:600">📋 Output</button>
+          <button class="ma-settings-tab" data-ma-stab="videoplayer" style="padding:0.3rem 0.8rem;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:0.8rem;font-weight:600">📺 Video Player</button>
+        </div>
+
+        <!-- General sub-tab -->
+        <div id="ma-stab-general" class="ma-settings-content" style="display:block">
+          <h4 style="margin:0 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">System Settings</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem;margin-bottom:0.8rem">
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;cursor:pointer">
+              <input type="checkbox" id="ma-cfg-autostop" checked> Auto-stop scanner after finding a working MAC
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;cursor:pointer">
+              <input type="checkbox" id="ma-cfg-ludicrous"> Ludicrous Speed Mode (max concurrent)
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;cursor:pointer">
+              <input type="checkbox" id="ma-cfg-sound" checked> Sound effects (hits, errors)
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer">
+              <input type="checkbox" id="ma-cfg-noupdate"> Don't check for updates
+            </label>
+          </div>
+          <h4 style="margin:0.8rem 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">Custom MAC List</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem">
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 0.4rem 0">Enter MACs to test (one per line). Scanner will test these before generating random ones.</p>
+            <textarea id="ma-cfg-custom-macs" style="width:100%;min-height:80px;background:#1a1a2e;border:1px solid #555;border-radius:6px;padding:0.5rem;font-family:'Lucida Console',monospace;font-size:0.78rem;color:var(--text-muted);resize:vertical;box-sizing:border-box" placeholder="00:1A:79:AA:BB:CC&#10;00:1A:79:DD:EE:FF"></textarea>
+          </div>
+        </div>
+
+        <!-- Output sub-tab -->
+        <div id="ma-stab-output" class="ma-settings-content" style="display:none">
+          <h4 style="margin:0 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">Output Settings</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem;margin-bottom:0.8rem">
+            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem">
+              <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">Output buffer:</label>
+              <input id="ma-cfg-buffer" type="number" min="100" max="99999" value="2500" step="100" style="width:70px;padding:4px 6px;border-radius:4px;border:1px solid #555;background:#1a1a2e;color:#fff;font-size:0.82rem;font-family:'Lucida Console',monospace">
+              <span style="font-size:0.82rem;color:var(--text-muted)">lines</span>
+            </div>
+          </div>
+          <h4 style="margin:0.8rem 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">Add to output:</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem">
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-deviceid" checked> Device IDs (Serial, IDs)</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-backend"> Backend Info</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-ip" checked> IP Addresses</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-location"> Location/Timezone</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-username"> Username/Password</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-maxconn"> Max Connections</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-mac" checked> MAC Address</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-password"> Password</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-proxyused"> Proxy Used</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-proxyloc"> Proxy Location</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-datefound" checked> Date Found</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-datecreated"> Date Created</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem 1.5rem;margin-bottom:0.5rem">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-genres" checked> Playlist/Genres</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);cursor:pointer;min-width:220px"><input type="checkbox" id="ma-cfg-out-vod"> VOD Categories</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Player sub-tab -->
+        <div id="ma-stab-videoplayer" class="ma-settings-content" style="display:none">
+          <h4 style="margin:0 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">Video Player Settings</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem;margin-bottom:1rem">
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;cursor:pointer">
+              <input type="checkbox" id="ma-cfg-autoload" checked> Load MAC into Player tab instantly when discovered
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;cursor:pointer">
+              <input type="checkbox" id="ma-cfg-autopause"> Pause video when switching tabs
+            </label>
+          </div>
+          <h4 style="margin:0.8rem 0 0.6rem 0;font-size:0.9rem;color:#7bd4ff">Tips</h4>
+          <div style="border-top:1px solid var(--border);padding-top:0.6rem">
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 0.3rem 0"><b>Video Controls:</b></p>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 0.2rem 0">&nbsp;&nbsp;Click/Space Bar — Toggle Pause</p>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 0.2rem 0">&nbsp;&nbsp;Doubleclick/ESC — Toggle Fullscreen</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacAttack Status Bar -->
+    <div id="wd-status-bar" style="background:var(--glass-bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.45rem"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;overflow:hidden;border-radius:5px;background:#000;border:1px solid rgba(0,255,100,0.28)"><video src="/assets/macattack/intro.mp4" muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block"></video></span><strong>MacAttack Status:</strong> <span id="wd-scraper-status" style="padding:2px 8px;border-radius:4px;background:var(--border)">Never Run</span></div>
+        <div><strong>Last Run:</strong> <span id="wd-last-run">—</span></div>
+      </div>
+      <div style="display:flex;gap:1.5rem;margin-bottom:0.5rem">
+        <div>✅ Live: <strong id="wd-working" style="color:#00ff64">0</strong></div>
+        <div>❌ Dead: <strong id="wd-dead" style="color:#e50914">0</strong></div>
+        <div>🟢 Goojara: <strong id="wd-goojara" style="color:#00ff64">0</strong></div>
+        <div>📦 Items: <strong id="wd-items">0</strong></div>
+        <div>🎬 Franchises: <strong id="wd-franchises">0</strong></div>
+      </div>
+      <div id="wd-progress" style="display:none;margin:0.5rem 0;background:var(--border);border-radius:6px;overflow:hidden;height:8px">
+        <div id="wd-progress-bar" style="height:100%;background:linear-gradient(90deg,#e50914,#00ff64);width:0%;transition:width 0.5s"></div>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.8rem">
+        <button class="btn btn-primary" id="wd-run-now" style="display:inline-flex;align-items:center;gap:0.45rem"><span style="display:inline-flex;width:24px;height:24px;overflow:hidden;border-radius:5px;background:#000"><video src="/assets/macattack/intro.mp4" muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block"></video></span><span>Run MacAttack</span></button>
+        <button class="btn btn-secondary" id="wd-refresh">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- PM2 Process List -->
+    <div id="wd-pm2-bar" style="background:var(--glass-bg);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.5rem">
+      <h3 style="margin:0 0 0.5rem 0;font-size:0.95rem">🖥️ Background Processes (PM2)</h3>
+      <div id="wd-pm2-list" style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.85rem;color:var(--text-muted)">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Franchise Checklist -->
+    <h3 style="margin:0 0 1rem 0">🎬 Franchise Checklist</h3>
+    <div id="wd-franchise-list" style="display:flex;flex-direction:column;gap:1rem">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- AI Brain Panel -->
+    <div id="wd-brain-bar" style="background:var(--glass-bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-top:1.5rem">
+      <h3 style="margin:0 0 0.8rem 0;font-size:1.05rem">🧠 AI Brain — Learned Patterns</h3>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <div>_learn cycles: <strong id="wd-brain-cycles">0</strong></div>
+        <div>genres mapped: <strong id="wd-brain-genres" style="color:#00ff64">0</strong></div>
+        <div>franchise tags: <strong id="wd-brain-frtags" style="color:#ffd700">0</strong></div>
+        <div>pairings: <strong id="wd-brain-pairs" style="color:#e50914">0</strong></div>
+      </div>
+      <!-- Source Reliability -->
+      <h4 style="margin:0 0 0.5rem 0;font-size:0.9rem;color:var(--text-muted)">📊 Source Reliability</h4>
+      <div id="wd-brain-sources" style="display:flex;flex-direction:column;gap:0.3rem;font-size:0.85rem;margin-bottom:1rem"></div>
+      <!-- Genre Rankings -->
+      <h4 style="margin:0 0 0.5rem 0;font-size:0.9rem;color:var(--text-muted)">🏆 Genre Rankings</h4>
+      <div id="wd-brain-rankings" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem"></div>
+      <!-- Predictions -->
+      <h4 style="margin:0 0 0.5rem 0;font-size:0.9rem;color:var(--text-muted)">🔮 Predictions</h4>
+      <div id="wd-brain-predictions" style="font-size:0.85rem;color:var(--text-muted)"></div>
+    </div>
+
+    <!-- Scraping Run Log -->
+    <div id="wd-log-bar" style="background:var(--glass-bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-top:1.5rem">
+      <h3 style="margin:0 0 0.8rem 0;font-size:1.05rem">📋 Scraping Run Log</h3>
+      <div id="wd-run-log" style="font-size:0.82rem;color:var(--text-muted);max-height:300px;overflow-y:auto;font-family:monospace;white-space:pre-wrap">Loading...</div>
+    </div>
+
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="footer">
+    <div class="footer-links">
+      <a href="#" class="footer-link">Home</a>
+      <a href="#" class="footer-link">About</a>
+      <a href="https://www.themoviedb.org/" target="_blank" class="footer-link">TMDB</a>
+      <a href="https://www.omdbapi.com/" target="_blank" class="footer-link">OMDb</a>
+      <a href="https://v3-cinemeta.strem.io/" target="_blank" class="footer-link">Cinemeta</a>
+    </div>
+    <p>CineVault — AI-Powered Streaming • Built with 💀 by ghost</p>
+    <p class="footer-sub">This site does not store any files on its server. All contents are provided by non-affiliated third parties.</p>
+  </footer>
+
+  <!-- SCRIPTS — order matters: config first, then data, then APIs, then UI -->
+    <script src="js/hls.min.js?v=1.5.15" defer></script>
+    <script src="js/config.js?v=365" defer></script>
+    <script src="js/curated.js?v=365" defer></script>
+    <script src="js/api.js?v=368" defer></script>
+    <script src="js/store.js?v=365" defer></script>
+    <script src="js/ai-search.js?v=365" defer></script>
+    <script src="js/scraper.js?v=365" defer></script>
+    <script src="js/channels.js?v=365" defer></script>
+    <script src="/node_modules/xterm/lib/xterm.js" defer></script>
+    <script src="/node_modules/@xterm/addon-fit/lib/addon-fit.js" defer></script>
+    <script src="js/stalker.js?v=367" defer></script>
+    <script src="js/app.js?v=395" defer></script>
+</body>
+</html>

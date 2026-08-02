@@ -1,0 +1,14 @@
+[Unit]
+Description=Stalker Portal Proxy
+After=network.target
+
+[Service]
+Type=simple
+User=ghost
+WorkingDirectory=/home/ghost/stalkerhek
+ExecStart=/home/ghost/stalkerhek/stalkerhek -config /home/ghost/stalkerhek/stalkerhek.yml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
