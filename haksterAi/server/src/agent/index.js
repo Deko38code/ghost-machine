@@ -215,7 +215,8 @@ async function getBrowser() {
     const puppeteer = require('puppeteer');
     _browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--headless=new'],
     });
   }
   return _browser;
@@ -6746,9 +6747,9 @@ function _protectedIndices(msgs) {
 // from the response, and returns them in the same shape as callOllama/callClaudeCli
 // so the agent loop doesn't care which brain answered.
 async function callHackbot(messages, tools, { onToken } = {}) {
-  const HACKBOT_URL = process.env.HACKBOT_BASE_URL || 'http://localhost:5555';
+  const HACKBOT_URL = process.env.HACKBOT_BASE_URL || 'http://localhost:8082';
   const HACKBOT_KEY = process.env.HACKBOT_API_KEY || 'hk-universal-2026';
-  const HACKBOT_MODEL = process.env.HACKBOT_MODEL || 'auto';
+  const HACKBOT_MODEL = process.env.HACKBOT_MODEL || 'glm-5.2:cloud';
 
   // ── Build tool injection prompt ──
   // The hack bots don't support OpenAI function-calling natively, so we inject

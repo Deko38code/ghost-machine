@@ -151,12 +151,12 @@ const PROVIDERS = {
     defaultModel: process.env.CLAUDE_CLI_MODEL || 'sonnet',
     type: 'claude-cli',
   },
-  // haksterAi Hack Bot Network — uncensored AI routed through 1000+ jailbroken hack bots
-  // OpenAI-compatible API on the miniforge proxy server. Auto key rotation, no refusals.
+  // haksterAi Hack Bot — routes through claude-proxy (port 8082) for free cloud models.
+  // Payment-bypassed cloud tier: glm-5.2:cloud, kimi-k2.7-code:cloud via Ollama relay.
   'hackbot': {
-    name: 'HackBot Network',
-    baseURL: process.env.HACKBOT_BASE_URL || 'http://localhost:5555',
-    defaultModel: process.env.HACKBOT_MODEL || 'auto',
+    name: 'HackBot Cloud',
+    baseURL: process.env.HACKBOT_BASE_URL || 'http://localhost:8082',
+    defaultModel: process.env.HACKBOT_MODEL || 'glm-5.2:cloud',
     apiKey: process.env.HACKBOT_API_KEY || 'hk-universal-2026',
     type: 'openai-compat',
   },
