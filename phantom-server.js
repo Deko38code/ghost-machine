@@ -5591,7 +5591,163 @@ function providerModel(provider, req, model){
 }
 
 const PHANTOM_CHAT_TOOLS = {
-  getTime: async () => ({ now: new Date().toISOString() }),
+ getTime: async () => ({ now: new Date().toISOString() }),
+
+ run_command: async (args) => {
+  const cmd = typeof args === "string" ? args : args.cmd;
+  if(!cmd) return { error: "cmd required" };
+  const { exec } = require("child_process");
+  return new Promise((resolve) => {
+   exec(cmd, { cwd: "/home/ghost", timeout: 30000, maxBuffer: 5*1024*1024 }, (err, stdout, stderr) => {
+    resolve({ stdout: stdout?.slice(0,5000), stderr: stderr?.slice(0,2000), exit: err ? err.code : 0 });
+   });
+  });
+ },
+
+ read_file: async (args) => {
+  const path = typeof args === "string" ? args : args.path;
+  if(!path) return { error: "path required" };
+  try {
+   const full = path.startsWith("/") ? path : "/home/ghost/" + path;
+   return { content: fs.readFileSync(full, "utf8").slice(0,20000), path: full };
+  } catch(e) { return { error: e.message }; }
+ },
+
+ write_file: async (args) => {
+  const { path, content: fc } = args;
+  if(!path || !fc) return { error: "path and content required" };
+  try {
+   const full = path.startsWith("/") ? path : "/home/ghost/" + path;
+   fs.mkdirSync(require("path").dirname(full), { recursive: true });
+   fs.writeFileSync(full, fc);
+   return { ok: true, path: full, bytes: fc.length };
+  } catch(e) { return { error: e.message }; }
+ },
+
+ list_files: async (args) => {
+  const dir = typeof args === "string" ? args : (args?.dir || "/home/ghost");
+  try {
+   const full = dir.startsWith("/") ? dir : "/home/ghost/" + dir;
+   return fs.readdirSync(full, { withFileTypes: true }).map(e => ({ name: e.name, type: e.isDirectory() ? "dir" : "file" }));
+  } catch(e) { return { error: e.message }; }
+ },
+
+ web_search: async (args) => {
+  const query = typeof args === "string" ? args : args.query;
+  if(!query) return { error: "query required" };
+  const https = require("https");
+  return new Promise((resolve) => {
+   https.get("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), { headers: { "User-Agent": "Mozilla/5.0" } }, (res) => {
+    let data = "";
+    res.on("data", d => data += d);
+    res.on("end", () => {
+     const results = [];
+     const re = /<a rel="nofollow" class="result__a" href="([^"]+)">([^<]+)<\/a>/g;
+     let m;
+     while((m = re.exec(data)) && results.length < 8) results.push({ url: m[1], title: m[2].trim() });
+     resolve({ results });
+    });
+   }).on("error", e => resolve({ error: e.message }));
+  });
+ },
+
+ web_fetch: async (args) => {
+  const url = typeof args === "string" ? args : args.url;
+  if(!url) return { error: "url required" };
+  const http = require("http"), https = require("https");
+  const c = url.startsWith("https") ? https : http;
+  return new Promise((resolve) => {
+   c.get(url, { headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" }, timeout: 15000 }, (res) => {
+    let data = "";
+    res.on("data", d => data += d);
+    res.on("end", () => resolve({ content: data.slice(0,20000), status: res.statusCode }));
+   }).on("error", e => resolve({ error: e.message }));
+  });
+ },
+
+ browser_navigate: async (args) => {
+  const url = typeof args === "string" ? args : args.url;
+  if(!url) return { error: "url required" };
+  try {
+   const { exec } = require("child_process");
+   const scriptPath = "/tmp/phantom_nav_" + Date.now() + ".js";
+   const script = "const{chromium}=require('playwright');(async()=>{const b=await chromium.launch({headless:true});const p=await b.newPage();await p.goto(process.argv[2],{waitUntil:'domcontentloaded',timeout:15000});const t=await p.title();const c=await p.content();await b.close();process.stdout.write(JSON.stringify({title:t,content:c.slice(0,10000)}))})().catch(e=>process.stdout.write(JSON.stringify({error:e.message})))";
+   fs.writeFileSync(scriptPath, script);
+   return new Promise((resolve) => {
+    exec('node ' + scriptPath + ' ' + JSON.stringify(url), { timeout: 20000, maxBuffer: 10*1024*1024 }, (err, stdout) => {
+     resolve(err ? { error: err.message } : JSON.parse(stdout));
+    });
+ });
+ } catch(e) { return { error: e.message }; }
+ },
+
+ screenshot: async (args) => {
+  const url = typeof args === "string" ? args : args.url;
+  if(!url) return { error: "url required" };
+  const outFile = "/home/ghost/outputs/images/phantom_screenshot_" + Date.now() + ".png";
+  fs.mkdirSync("/home/ghost/outputs/images", { recursive: true });
+  try {
+   const { exec } = require("child_process");
+   const scriptPath = "/tmp/phantom_shot_" + Date.now() + ".js";
+   const script = "const{chromium}=require('playwright');(async()=>{const b=await chromium.launch({headless:true});const p=await b.newPage();await p.goto(process.argv[2],{waitUntil:'domcontentloaded',timeout:15000});await p.screenshot({path:process.argv[3]});await b.close();process.stdout.write(JSON.stringify({ok:true,path:process.argv[3]}))})().catch(e=>process.stdout.write(JSON.stringify({error:e.message})))";
+   fs.writeFileSync(scriptPath, script);
+   return new Promise((resolve) => {
+    exec('node ' + scriptPath + ' ' + JSON.stringify(url) + ' ' + JSON.stringify(outFile), { timeout: 20000, maxBuffer: 10*1024*1024 }, (err, stdout) => {
+     resolve(err ? { error: err.message } : JSON.parse(stdout));
+    });
+ });
+ } catch(e) { return { error: e.message }; }
+ },
+
+ nmap_scan: async (args) => {
+  const target = typeof args === "string" ? args : args.target;
+  if(!target) return { error: "target required" };
+  const { exec } = require("child_process");
+  return new Promise((resolve) => {
+   exec("nmap -sV --top-ports 100 " + target, { timeout: 60000, maxBuffer: 5*1024*1024 }, (err, stdout) => {
+    resolve({ output: stdout?.slice(0,10000), error: err && err.code !== 0 ? err.message : null });
+   });
+  });
+ },
+
+ http_request: async (args) => {
+  const { method = "GET", url, headers = {}, body } = args;
+  if(!url) return { error: "url required" };
+  const http = require("http"), https = require("https");
+  const c = url.startsWith("https") ? https : http;
+  return new Promise((resolve) => {
+   const req = c.request(url, { method, headers: { "User-Agent": "Phantom/1.0", ...headers } }, (res) => {
+    let data = "";
+    res.on("data", d => data += d);
+    res.on("end", () => resolve({ status: res.statusCode, body: data.slice(0,20000) }));
+   });
+   req.on("error", e => resolve({ error: e.message }));
+   if(body) req.write(body);
+   req.end();
+  });
+ },
+
+ grep: async (args) => {
+  const { pattern, dir = "/home/ghost" } = args;
+  if(!pattern) return { error: "pattern required" };
+  const { exec } = require("child_process");
+  return new Promise((resolve) => {
+   exec("grep -rn \"" + pattern + "\" \"" + dir + "\" --include=*.js --include=*.py --include=*.json --include=*.md --include=*.html -l 2>/dev/null | head -20", { timeout: 15000, maxBuffer: 5*1024*1024 }, (err, stdout) => {
+    resolve({ files: stdout ? stdout.trim().split("\n").filter(Boolean) : [] });
+   });
+  });
+ },
+
+ memory: async (args) => {
+  const { action = "add", key, value } = args;
+  const memFile = "/home/ghost/.phantom_memory.json";
+  let mem = {};
+  try { mem = JSON.parse(fs.readFileSync(memFile, "utf8")); } catch {}
+  if(action === "add") { mem[key] = value; fs.writeFileSync(memFile, JSON.stringify(mem)); return { ok: true }; }
+  if(action === "get") { return { value: mem[key] }; }
+  if(action === "list") { return { keys: Object.keys(mem) }; }
+  return { error: "unknown action" };
+ },
 };
 
 async function phantomChatAgentStream({ userMessage, model, tools, onToken, reasoningOnly = false }){
