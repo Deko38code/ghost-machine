@@ -18,4 +18,5 @@
 !README.md
 
 # Re-allow git operations (needed even when ignoring everything)
-!.gitignore
+!.gitignoreminiforge/data/miniapps_pool.json
+miniforge/accounts.json
