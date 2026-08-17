@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import shared_memory as sm
+import brain_import
+import brain_compact
 
 HAKSTER = Path("/home/ghost/haksterAi/.hakster")
 HAKSTER_MEMORIES = HAKSTER / "memories"
@@ -57,6 +59,11 @@ AGENT_TARGETS = [
 
 
 def build_brain():
+    # L8: Auto-compact memory if over threshold
+    try:
+        brain_compact.compact_store(threshold=500)
+    except:
+        pass
     """Read all memory sources and build unified brain content."""
     stats = {
         "hakster_entries": 0,
@@ -265,6 +272,26 @@ def build_brain():
         pass
     sections.append("")
 
+    # === FILE-TYPE-SCOPED RULES ===
+    sections.append("## File-Type-Scoped Rules")
+    for target in AGENT_TARGETS:
+        proj_dir = target["project_dir"]
+        proj_name = target.get("name", target.get("agent", str(proj_dir)))
+        rules_dir = proj_dir / ".brain-rules"
+        if not rules_dir.exists():
+            continue
+        for rule_file in sorted(rules_dir.glob("*.md")):
+            ftype = rule_file.stem
+            try:
+                content = brain_import.resolve_imports(rule_file)
+                sections.append(f"### {ftype} ({proj_name})")
+                sections.append(content[:1000])
+                sections.append("")
+                stats["filetype_rules"] = stats.get("filetype_rules", 0) + 1
+            except:
+                pass
+    sections.append("")
+
     stats["total"] = (
         stats["hakster_entries"]
         + stats["phantom_entries"]
@@ -284,7 +311,7 @@ def build_local_brain(project_dir, project_name):
     local_brain = project_dir / ".local-brain.md"
     if local_brain.exists():
         try:
-            content = local_brain.read_text()
+            content = brain_import.resolve_imports(local_brain)
             if content.strip():
                 return f"\n\n## Local Brain: {project_name}\n\n{content}\n"
         except:

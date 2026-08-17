@@ -21,6 +21,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 from collections import Counter
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import brain_import
+
 # === Memory Sources ===
 SHARED_MEMORY = Path("/home/ghost/.shared/agent-memory.json")
 HAKSTER_PATTERNS = Path("/home/ghost/haksterAi/.hakster/memories/banks/patterns.json")
@@ -134,7 +137,7 @@ def load_local_brain(project=None):
     local_brain = PROJECT_DIRS[project] / ".local-brain.md"
     if local_brain.exists():
         try:
-            content = local_brain.read_text()
+            content = brain_import.resolve_imports(local_brain)
             # Split into sections by ## headers
             for section in re.split(r'\n(?=## )', content):
                 section = section.strip()
@@ -152,6 +155,34 @@ def load_local_brain(project=None):
             pass
     return entries
 
+
+def load_filetype_rules(filetype=None):
+    """Load file-type-scoped rules from .brain-rules/ directories."""
+    if not filetype:
+        return []
+    entries = []
+    for project, proj_dir in PROJECT_DIRS.items():
+        rules_dir = proj_dir / ".brain-rules"
+        if not rules_dir.exists():
+            continue
+        rule_file = rules_dir / f"{filetype}.md"
+        if rule_file.exists():
+            try:
+                content = brain_import.resolve_imports(rule_file)
+                for section in re.split(r'\n(?=## )', content):
+                    section = section.strip()
+                    if section and len(section) > 10:
+                        entries.append({
+                            "key": f"filetype_rule_{project}_{filetype}",
+                            "text": section,
+                            "agent": project,
+                            "category": "filetype_rule",
+                            "tags": ["filetype_rule", filetype, project],
+                            "source": "filetype_rule",
+                        })
+            except:
+                pass
+    return entries
 
 def load_snapshots(top_n=5):
     """Load recent curated snapshots as searchable entries."""
@@ -223,7 +254,7 @@ def load_journal(top_n=10):
     return entries
 
 
-def search_memories(query, top_n=8, project=None):
+def search_memories(query, top_n=8, project=None, filetype=None):
     """Search all memory sources and return ranked results."""
     all_entries = []
     all_entries.extend(load_shared_memory())
@@ -231,6 +262,8 @@ def search_memories(query, top_n=8, project=None):
     all_entries.extend(load_local_brain(project))
     all_entries.extend(load_snapshots())
     all_entries.extend(load_journal())
+    if filetype:
+        all_entries.extend(load_filetype_rules(filetype))
 
     if not all_entries:
         return []
@@ -355,13 +388,14 @@ def main():
     parser.add_argument("--inspect", action="store_true", help="Show what would be injected (no prompt modification)")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     parser.add_argument("--top", type=int, default=8, help="Max results")
+    parser.add_argument("--filetype", default=None, help="File type for scoped rules (sh, py, tsx, etc.)")
     args = parser.parse_args()
 
     if not args.query:
         print("Usage: python3 brain_recall.py \"your query\" [--project NAME] [--inspect] [--json] [--top N]")
         sys.exit(1)
 
-    results = search_memories(args.query, top_n=args.top, project=args.project)
+    results = search_memories(args.query, top_n=args.top, project=args.project, filetype=args.filetype)
 
     if args.inspect:
         if args.json:
