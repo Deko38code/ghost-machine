@@ -16,6 +16,64 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import shared_memory as sm
 import brain_import
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
+import brain_autolearn
 import brain_compact
 
 HAKSTER = Path("/home/ghost/haksterAi/.hakster")
@@ -292,6 +350,44 @@ def build_brain():
                 pass
     sections.append("")
 
+    sections.append("")
+    # === AUTO-LEARNED RULES ===
+    sections.append("## Auto-Learned Rules")
+    for target in AGENT_TARGETS:
+        proj_dir = target["project_dir"]
+        auto_file = proj_dir / ".brain-rules" / "auto-learned.md"
+        if auto_file.exists():
+            try:
+                content = brain_import.resolve_imports(auto_file)
+                sections.append(f"### Auto-Learned ({proj_dir.name})")
+                sections.append(content[:2000])
+                sections.append("")
+                stats["auto_learned"] = stats.get("auto_learned", 0) + 1
+            except:
+                pass
+    sections.append("")
+
+    # === AUTO-LEARN STATS ===
+    try:
+        conn = brain_autolearn.init_db()
+        error_count = conn.execute("SELECT COUNT(*) FROM errors WHERE lesson_generated=1").fetchone()[0]
+        total_errors = conn.execute("SELECT COUNT(*) FROM errors").fetchone()[0]
+        outcomes = conn.execute("SELECT COUNT(*) FROM outcomes").fetchone()[0]
+        success_count = conn.execute("SELECT COUNT(*) FROM outcomes WHERE success=1").fetchone()[0]
+        success_rate = (success_count / outcomes * 100) if outcomes > 0 else 0
+        sections.append("## Auto-Learn Stats")
+        sections.append(f"- Errors tracked: {total_errors}")
+        sections.append(f"- Lessons generated: {error_count}")
+        sections.append(f"- Outcomes recorded: {outcomes}")
+        sections.append(f"- Success rate: {success_rate:.1f}%")
+        sections.append("")
+        stats["autolearn_errors"] = total_errors
+        stats["autolearn_lessons"] = error_count
+        conn.close()
+    except:
+        pass
+    sections.append("")
+
     stats["total"] = (
         stats["hakster_entries"]
         + stats["phantom_entries"]
@@ -301,6 +397,7 @@ def build_brain():
         + stats["brain_rules"]
         + stats.get("snapshot_entries", 0)
         + stats.get("journal_entries", 0)
+        + stats.get("auto_learned", 0)
     )
 
     return "\n".join(sections), stats

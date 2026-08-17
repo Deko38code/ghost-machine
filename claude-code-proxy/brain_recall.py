@@ -23,6 +23,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import brain_import
+import brain_autolearn
 
 # === Memory Sources ===
 SHARED_MEMORY = Path("/home/ghost/.shared/agent-memory.json")
@@ -264,10 +265,11 @@ def search_memories(query, top_n=8, project=None, filetype=None):
     all_entries.extend(load_journal())
     if filetype:
         all_entries.extend(load_filetype_rules(filetype))
+    # Always load auto-learned rules
+    all_entries.extend(load_filetype_rules('auto-learned'))
 
     if not all_entries:
         return []
-
     # Deduplicate by text content (first 100 chars, lowercased)
     seen = set()
     unique = []
@@ -301,8 +303,10 @@ def search_memories(query, top_n=8, project=None, filetype=None):
     scored = []
     project_tags = set(PROJECT_TAGS.get(project, [])) if project else set()
     for i, entry in enumerate(all_entries):
-        score = bm25_score(query_tokens, docs[i], doc_lens[i], avg_doc_len, idf_map)
         if score > 0:
+            # Apply memory decay scoring
+            decay = brain_autolearn.decay_score(entry)
+            score *= decay
             # Project tag boost: if entry has matching tags, boost score
             if project_tags and entry.get("tags"):
                 entry_tags = set(entry["tags"]) if isinstance(entry.get("tags"), list) else set()

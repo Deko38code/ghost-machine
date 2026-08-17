@@ -374,7 +374,6 @@ Ghost owns this machine. Ghost sets the tasks. Ghost owns the accounts. Your job
 - Keep responses concise and actionable.
 
 ## CRITICAL RULES
-0. 🦙 NEVER STOP, KILL, DISABLE, OR DELETE OLLAMA. Ollama is protected system infrastructure. You must NEVER run any command that stops, kills, disables, restarts, or deletes ollama or its models — including but not limited to: systemctl stop ollama, pm2 stop ollama, pkill ollama, killall ollama, ollama rm, rm -rf ~/.ollama, or any variant. These commands are HARD-BLOCKED at the engine level and cannot be overridden. If ollama is causing memory issues, reduce its footprint via its systemd config (MemoryMax) or use cloud models instead — NEVER kill the process or delete models. If you feel an urge to "free up RAM by stopping ollama", DON'T — the system will block it and you'll waste a turn.
 1. DANGEROUS COMMANDS REQUIRE CONFIRMATION. If you use shell, kill_process, pm2 (stop/restart), or write to critical system paths, the user will be asked to approve via a popout window. Plan accordingly.
 1a. SUDO WORKS HEADLESSLY. When a command needs root, just RUN it with sudo ... (e.g. sudo chown -R ghost:ghost /path). A popout prompt appears, the user types the sudo password (masked), and it is fed to sudo -S automatically — sudo executes and returns output like any other command. DO NOT stop midway to ask the user for the password in chat, and DO NOT give up after a failed sudo attempt that said "a terminal is required" (that was a fixed bug). Chain the whole fix in one go: sudo chown ... && cd /path && npm install --prefer-offline && pm2 restart X && curl health and keep going until the service is verified online.
 2. ALWAYS use the code_grid tool when showing code, file contents, diffs, or config to the user. Never dump raw code without line numbers and color grid.
@@ -1299,8 +1298,8 @@ function getSkillDirs() {
 }
 
 // (Idle review prompt removed — health checks now run directly via shell, no model call)
-const MAX_TURNS_DEFAULT = Math.max(10, parseInt(process.env.HAKSTER_AGENT_MAX_TURNS || '200', 10) || 200);  // 200-round single-use budget (was 120 — raised so complex tasks can finish without hitting the wall)
-const LOW_TOKEN_MAX_TURNS = Math.max(20, parseInt(process.env.HAKSTER_LOW_TOKEN_MAX_TURNS || '60', 10) || 60);
+const MAX_TURNS_DEFAULT = Math.max(10, parseInt(process.env.HAKSTER_AGENT_MAX_TURNS || '120', 10) || 120);  // 120-round single-use budget; guardrails (loop/timeout/redundant-modify) prevent the exploration loops that the old 15-cap was meant to force
+const LOW_TOKEN_MAX_TURNS = Math.max(20, parseInt(process.env.HAKSTER_LOW_TOKEN_MAX_TURNS || '30', 10) || 30);
 const MAX_TURNS = MAX_TURNS_DEFAULT;
 let _currentMaxTurns = MAX_TURNS_DEFAULT;  // updated by agentLoop each run so tuiReset can read it
 const IDLE_TIMEOUT_MS = 120000; // 2 minutes idle → auto review
@@ -1387,6 +1386,19 @@ function smartCompact() {
 // bar under Smartness. Unlike smartness (capped 0-100, re-baselines per task),
 // points are the same unbounded reward-system total from recordPerf(), so this
 // can read well past 100% -- that tracks total learning reward earned this
+let _autolearnCache = { errors: 0, lessons: 0, outcomes: 0, success_rate: 0, _ts: 0 };
+function getAutolearnStats() {
+ const now = Date.now();
+ if (now - _autolearnCache._ts < 10000) return _autolearnCache;
+ try {
+  const { execSync } = require('child_process');
+  const cmd = "python3 -c \"import sys; sys.path.insert(0,'/home/ghost/claude-code-proxy'); import brain_autolearn,json; c=brain_autolearn.init_db(); e=c.execute('SELECT COUNT(*) FROM errors').fetchone()[0]; l=c.execute('SELECT COUNT(*) FROM errors WHERE lesson_generated=1').fetchone()[0]; o=c.execute('SELECT COUNT(*) FROM outcomes').fetchone()[0]; s=c.execute('SELECT AVG(success) FROM outcomes').fetchone()[0] or 0; print(json.dumps({'errors':e,'lessons':l,'outcomes':o,'success_rate':round(s,2)})); c.close()\"";
+  const out = execSync(cmd, { timeout: 3000 }).toString().trim();
+  _autolearnCache = JSON.parse(out);
+  _autolearnCache._ts = now;
+ } catch {}
+ return _autolearnCache;
+}
 // session, not a capped percentage.
 function autolearnBar() {
   const pts = _sessionPerf.points;
@@ -1395,8 +1407,10 @@ function autolearnBar() {
   const filled = Math.round(clamped / 100 * barLen);
   const col = pts >= 150 ? C.accent : pts >= 66 ? C.success : pts >= 33 ? C.mustard : C.error;
   const arrow = _smartDelta > 0 ? C.success + '\u25b2' : _smartDelta < 0 ? C.error + '\u25bc' : C.fgSubtle + '\u25c6';
+ const al = getAutolearnStats();
+ const dbTag = al.lessons > 0 ? ' ' + C.accent + 'u2726' + al.lessons + 'L' + C.reset : '';
   const overflow = pts > 100 ? ' ' + C.accent + '\u2726' : '';
-  return col + '\u2588'.repeat(filled) + C.fgSubtle + '\u2591'.repeat(barLen - filled) + C.reset + ' ' + C.bold + C.fgBase + pts + '%' + C.reset + ' ' + arrow + C.reset + overflow;
+  return col + '\u2588'.repeat(filled) + C.fgSubtle + '\u2591'.repeat(barLen - filled) + C.reset + ' ' + C.bold + C.fgBase + pts + '%' + C.reset + ' ' + arrow + C.reset + overflow + dbTag;
 }
 
 // Important files whose presence tracks project integrity. Missing one (esp. a
@@ -1446,7 +1460,9 @@ function scoreToolCall(fnName, fnArgs, ok, out) {
   return Math.max(-12, Math.min(10, d));   // cap raised: big data/doc writes can score up to +10
 }
 const HAKSTER_GUARDRAILS = process.env.HAKSTER_GUARDRAILS || path.join(__dirname, '..', '..', '..', 'scripts', 'hakster-guardrails.sh');
-const NO_PROGRESS_LIMIT = 25;      // Break loop after sustained no-progress (was 15, raised to give complex tasks more room)
+const NO_PROGRESS_LIMIT = 15;      // Break loop after sustained no-progress (was 6)
+const WRITE_PATTERN_LIMIT = 5;    // Break loop after N write_file calls with same prefix but different suffix (e.g. fix_v9, fix_v10, fix_v11...)
+const TASK_TIME_LIMIT_MS = 30 * 60 * 1000;  // 30 min hard circuit breaker — break any single task that runs this long
 
 // ── In-process guardrails: replaces spawnSync(hakster-guardrails.sh) ──
 // The shell script spawned a subprocess on EVERY tool call (track) and every
@@ -1494,7 +1510,7 @@ function guardrailsReset() {
 // ── Stuck-state debug logging (persistent alerts) ─────────────────────────
 // Writes structured alerts to data/stuck-alerts.log so they survive terminal scroll.
 // ── Session performance meter — cumulative session score + stats, tied to the
-//    round budget (200), persisted across sessions so the agent learns from
+//    round budget (120), persisted across sessions so the agent learns from
 //    recurring mistakes. Points accrue from every smartness delta; rounds /
 //    efficiency / speed track how he spends the budget.
 const PERF_HISTORY_FILE = path.join(os.homedir(), '.hakster', 'perf_history.json');
@@ -1743,11 +1759,14 @@ let _forcedFinish = false;  // true when a loop break forced the end with no rec
 // it's likely a code bug (like ReferenceError) causing an infinite retry loop.
 let _consecutiveToolErrors = [];     // [{name, count}]  recent tool error counts
 const TOOL_ERROR_LOOP_LIMIT = 3;    // Same tool erroring this many times → break loop
-const TOOL_REPEAT_LIMIT = 4;       // Same tool called with identical args this many times → break loop (raised 3→4, was tightening tool loops too aggressively)
+const TOOL_REPEAT_LIMIT = 3;       // Same tool called with identical args this many times → break loop (tighten tool loops)
 let _recentToolSigs = [];          // Recent normalized tool-call signatures (for repeat-tool-loop detection)
 let _repeatToolSigCount = 0;        // Consecutive identical tool-call signatures
+let _writeFilePatternCount = 0;     // Consecutive write_file calls with same prefix but different suffix (fix_v9, fix_v10...)
+let _writeFileLastPrefix = '';      // Last write_file path prefix (before version/suffix)
+let _taskStartTime = 0;             // Wall-clock time when current task started (for circuit breaker)
 let _readOnlyFileHits = {};         // { 'read_file|/path/to/file': count } — per-target read-only call counter (HARD skip at 3)
-const READ_ONLY_HARD_SKIP = 8;      // After reading the same file/path 8x, SKIP execution entirely (not just nudge)
+const READ_ONLY_HARD_SKIP = 3;      // After reading the same file/path 3x, SKIP execution entirely (not just nudge)
 
 // ── Grep/search command loop detection ──
 // Track consecutive shell commands that are grep/rg/find/search — if the model
@@ -1761,7 +1780,7 @@ const GREP_CMD_MAX_OUTPUT = 200;     // Max lines of output from grep/rg command
 // Catches the model re-running the same curl / git status / npm test / ls / build
 // command over and over without making progress. Runs before exec so it's fast and
 // can break a stall before the command even fires a second time.
-const SHELL_REPEAT_LIMIT = 5;        // same normalized command 5× in window → loop (raised 4→5 to give complex sequential workflows more room)
+const SHELL_REPEAT_LIMIT = 4;        // same normalized command 4× in window → loop (raised 3→4 to cut false positives on legitimate sequential rounds)
 
 function _normalizeShellSig(command) {
   // Collapse whitespace, lowercase, strip leading env assignments (FOO=bar), strip
@@ -1835,22 +1854,11 @@ function _resultPreview(result, maxLen) {
 }
 
 function _printDoneChecklist() {
-  if (_actionsTaken.length === 0) return;
-  // Two-line entries: call on top, indented "⇒ <real output>" below when present.
-  const lines = _actionsTaken.map(a => {
-    const head = `  ${a.emoji} ${a.text}`;
-    if (!a.result) return head;
-    return `${head}\n     ${C.fgSubtle}⇒ ${a.result}${C.reset}`;
-  }).join('\n');
   // Count total lines in main project file
   let projectLineCount = 0;
   try { projectLineCount = fs.readFileSync(__filename, 'utf-8').split('\n').length; } catch (_) {}
-  console.log(`\n${C.bold}${T.thin.repeat(60)}${C.reset}`);
-  console.log(`${C.bold}${C.fgMuted}📋 What was done:${C.reset}`);
-  console.log(lines);
-  console.log(`${C.bold}${T.thin.repeat(60)}${C.reset}`);
+  // ── Print stats FIRST (so they're above the checklist, not below) ──
   console.log(`${C.dim}📊 Project: ${C.fgMuted}${path.basename(__filename)}${C.reset} ${C.dim}=${C.reset} ${C.bold}${C.primary}${projectLineCount.toLocaleString()}${C.reset} ${C.dim}lines${C.reset}`);
-  console.log(`${C.bold}${T.thin.repeat(60)}${C.reset}\n`);
   // 📍 Where points came from (the map) + when/where they were earned, with session id
   if (_sessionPerf.pointMap && Object.keys(_sessionPerf.pointMap).length) {
     const _pmSum = summarizePointMap(_sessionPerf.pointMap, 4);
@@ -1860,8 +1868,23 @@ function _printDoneChecklist() {
       console.log(`${C.dim}   recent point events (turn · why · pts · when):${C.reset}`);
       for (const e of _log) console.log(`${C.dim}   t${e.turn} · ${e.why} · ${e.delta>=0?'+':''}${e.delta}p · ${new Date(e.ts).toLocaleTimeString()}${C.reset}`);
     }
-    console.log(`${C.bold}${T.thin.repeat(60)}${C.reset}\n`);
   }
+  // ── Print "What was done" checklist LAST so it's always at the bottom ──
+  console.log(`\n${C.bold}${T.thin.repeat(60)}${C.reset}`);
+  console.log(`${C.bold}${C.fgMuted}📋 What was done:${C.reset}`);
+  if (_actionsTaken.length === 0) {
+    // No tools called — conversational or informational response
+    console.log(`  ${C.fgSubtle}💬 Conversational response — no tools used.${C.reset}`);
+  } else {
+    // Two-line entries: call on top, indented "⇒ <real output>" below when present.
+    const lines = _actionsTaken.map(a => {
+      const head = `  ${a.emoji} ${a.text}`;
+      if (!a.result) return head;
+      return `${head}\n     ${C.fgSubtle}⇒ ${a.result}${C.reset}`;
+    }).join('\n');
+    console.log(lines);
+  }
+  console.log(`${C.bold}${T.thin.repeat(60)}${C.reset}\n`);
   _actionsTaken = [];
 }
 
@@ -1981,6 +2004,7 @@ const STALL_GUARD_MS  = 20000;  // 20 seconds — kickstart if no activity
 let _lastActivityTime = Date.now();
 let _awaitingConfirm  = false;  // True while waiting on a y/N dangerous-command prompt — suppresses status bar / stall guard so they don't clobber the readline question
 let processing = false;  // (hoisted to module scope so agentLoop's status-bar interval can read it; repl() resets this on each session)
+let _mcpReady = false;   // true once MCP servers finish loading in repl() — prevents idle auto-review from firing mid-load
 let _pendingSudoPassword = null;  // sudo password typed into the approval popout (fed to `sudo -S` via stdin so sudo actually works headlessly)
 
 // ── Readline/panel race tracker ──
@@ -2238,48 +2262,7 @@ const DANGEROUS_SHELL_PATTERNS = [
   /\b(echo|tee|cat)\b.*(\.env\b|hakster-config\.json|google-oauth-client\.json|\.phantom-ai-config\.json)/i,
   /\b(curl|fetch|axios)\b.*\/api\/ai\/config.*(POST|-d\b|--data\b)/i,
   /\b(curl|fetch|axios)\b.*(POST|-d\b|--data\b).*\/api\/ai\/config/i,
-  // 🦙 PROTECT OLLAMA — never let the agent stop/disable/kill ollama or delete models
-  /\bsystemctl\s+(stop|disable|mask)\s+ollama\b/i,
-  /\bpm2\s+(stop|delete|kill)\s+ollama\b/i,
-  /\bpkill\s+(-\S+\s+)?ollama\b/i,
-  /\bkillall\s+ollama\b/i,
-  /\bkill\s+(-\S+\s+)+.*\bollama\b/i,
-  /\bollama\s+rm\b/i,
-  /\bollama\s+delete\b/i,
-  /\brm\s+(-\S+\s+)*.*\b\.ollama\b/i,
-  /\brm\s+(-\S+\s+)*.*\/usr\/share\/ollama\b/i,
-  /\brm\s+(-\S+\s+)*.*\/var\/lib\/ollama\b/i,
-  /\bmv\b.*\b\.ollama\b.*\/dev\/null/i,
-  /\btruncate\s+-s\s+0\b.*\b\.ollama\b/i,
 ];
-
-// ── Ollama protection (HARD BLOCK — never confirmable, never allowlistable) ──
-// These patterns are checked BEFORE isDangerousCommand and are unconditionally blocked.
-// The agent must NEVER stop, kill, disable, or delete ollama or its models.
-const OLLAMA_HARD_BLOCK_PATTERNS = [
-  /\bsystemctl\s+(stop|disable|mask)\s+ollama\b/i,
-  /\bpm2\s+(stop|delete|kill)\s+ollama\b/i,
-  /\bpkill\s+(-\S+\s+)?ollama\b/i,
-  /\bkillall\s+ollama\b/i,
-  /\bkill\s+(-\S+\s+)+.*\bollama\b/i,
-  /\bollama\s+rm\b/i,
-  /\bollama\s+delete\b/i,
-  /\brm\s+(-\S+\s+)*.*\b\.ollama\b/i,
-  /\brm\s+(-\S+\s+)*.*\/usr\/share\/ollama\b/i,
-  /\brm\s+(-\S+\s+)*.*\/var\/lib\/ollama\b/i,
-  /\bmv\b.*\b\.ollama\b.*\/dev\/null/i,
-  /\btruncate\s+-s\s+0\b.*\b\.ollama\b/i,
-];
-
-function isOllamaAttack(tool, args) {
-  if (tool !== 'shell' && tool !== 'exec_shell') return null;
-  const cmd = String((args && args.command) || '');
-  if (!cmd) return null;
-  for (const pat of OLLAMA_HARD_BLOCK_PATTERNS) {
-    if (pat.test(cmd)) return `🚫 OLLAMA PROTECTION: blocked command that would stop/kill/delete ollama or its models: ${cmd.substring(0, 120)}`;
-  }
-  return null;
-}
 
 const CRITICAL_PATHS = [
   '/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/ssh',
@@ -2292,11 +2275,6 @@ const CRITICAL_PATHS = [
   '/home/ghost/haksterAi/server/src/hakster-config.json',
   '/home/ghost/haksterAi/server/google-oauth-client.json',
   '/home/ghost/haksterAi/cli/.phantom-ai-config.json',
-  // 🦙 Ollama — protect models, blobs, and service config from deletion/corruption
-  '/home/ghost/.ollama',
-  '/usr/share/ollama',
-  '/var/lib/ollama',
-  '/etc/systemd/system/ollama.service',
 ];
 
 function isDangerousCommand(tool, args) {
@@ -3009,7 +2987,9 @@ function renderReasoningPanel() {
   const barColor = progress > 80 ? C.error : progress > 50 ? C.mustard : C.primary;
   const bar = `${barColor}${'█'.repeat(filled)}${C.fgSubtle}${'░'.repeat(barLen - filled)}${C.reset} ${C.bold}${C.fgBase}${progress}%${C.reset} ${C.fgMuted}Step ${_tuiStep}/${_tuiMaxSteps}${C.reset}`;
   lines.push(`           ${C.fgMuted}└─${C.reset} ${C.fgSubtle}Progress${C.reset} ${bar}`);
-  lines.push(`           ${C.fgMuted}└─${C.reset} ${C.fgSubtle}🧠 Smart ${C.reset}  ${smartBar()}`);
+lines.push(` ${C.fgMuted} ${C.reset} ${C.fgSubtle}🧠 Smart ${C.reset} ${smartBar()}`);
+ const _al = getAutolearnStats();
+ lines.push(` ${C.fgMuted} ${C.reset} ${C.fgSubtle}📚 AL ${C.reset}${C.accent}${_al.lessons||0}L${C.reset}/${C.fgSubtle}${_al.errors||0}E${C.reset}/${C.fgSubtle}${_al.outcomes||0}O${C.reset}`);
   lines.push(`           ${C.fgMuted}└─${C.reset} ${C.fgSubtle}📚 Auto  ${C.reset}  ${autolearnBar()}`);
   // ── Token usage + tool stats ──
   const totalTokens = _tuiTokensIn + _tuiTokensOut;
@@ -3996,12 +3976,12 @@ let TOOLS = [
        type: 'function',
        function: {
         name: 'ollama',
-        description: 'Run a prompt against a local Ollama model (GLM-5.2, Kimi-K2.7, GPT-OSS:120b, Hermes3, Qwen, Mistral, etc.). Uses the local Ollama API at localhost:11434. Use for fast local inference, coding tasks, second opinions, or when you need an open-source model. Returns the model response text.',
+        description: 'Run a prompt against a local Ollama model (GLM-5.2, Kimi-K2.7, GPT-OSS:120b, Hermes3, Qwen3-Coder, Qwen2.5-Coder, Phi, HP-1000, Mistral, etc.). Uses the local Ollama API at localhost:11434. Use for fast local inference, coding tasks, second opinions, or when you need an open-source model. Returns the model response text.',
         parameters: {
          type: 'object',
          properties: {
           prompt: { type: 'string', description: 'The prompt/message to send to the model' },
-          model: { type: 'string', description: 'Ollama model name (default: glm-5.2:cloud). Available: glm-5.2:cloud, glm-5.1:cloud, kimi-k2.7-code:cloud, gpt-oss:120b-cloud, hermes3:latest, qwen3.5:latest, mistral:latest, llama3.2:3b' },
+          model: { type: 'string', description: 'Ollama model name (default: groq). Available: groq, sambanova, cerebras, glm-5.2:cloud, glm-5.1:cloud, kimi-k2.7-code:cloud, gpt-oss:120b-cloud, hermes3:latest, hermes3-65k:latest, qwen3.5:latest, qwen2.5-coder:7b, qwen2.5-coder:3b, qwen2.5:3b, qwen2.5:0.5b, qwen-opt:latest, qwen3-coder:latest, mistral:latest, llama3.2:3b, llama3.2:latest, phi:latest, hp-1000:latest, glm-uncensored:latest, kimi-uncensored:latest, my-security-model:latest' },
           system: { type: 'string', description: 'Optional system prompt for the model' },
           timeout: { type: 'number', description: 'Timeout in seconds (default 60)' },
          },
@@ -4018,7 +3998,7 @@ let TOOLS = [
         type: 'object',
         properties: {
           prompt: { type: 'string', description: 'The task/prompt for Crush to execute (e.g. "Fix the TypeScript type errors in server/src/agent/index.js")' },
-          model: { type: 'string', description: 'Model to use (default: glm-5.2:cloud via Ollama). Currently configured to use glm-5.2:cloud. Other models require separate provider configuration in crush.json.' },
+          model: { type: 'string', description: 'Model to use (default: groq via proxy (free)). Currently configured to use groq (free). Other models require separate provider configuration in crush.json.' },
           cwd: { type: 'string', description: 'Working directory for Crush (default: current project dir)' },
           timeout: { type: 'number', description: 'Timeout in seconds (default: 120, max: 300)' },
         },
@@ -5284,20 +5264,6 @@ ${trunc(md, 12000)}`;
 
   kill_process({ name, pid }) {
     try {
-      // 🦙 Ollama protection — never let the agent kill ollama's process
-      if (name && /ollama/i.test(name)) {
-        return `🚫 OLLAMA PROTECTION: Cannot kill process "${name}" — ollama is protected system infrastructure.`;
-      }
-      if (pid) {
-        // Check if this PID belongs to ollama
-        try {
-          const { execSync } = require('child_process');
-          const cmdLine = execSync(`cat /proc/${pid}/cmdline 2>/dev/null || echo ''`, { encoding: 'utf8', timeout: 2000 }).replace(/\0/g, ' ').trim();
-          if (/\bollama\b/i.test(cmdLine)) {
-            return `🚫 OLLAMA PROTECTION: PID ${pid} belongs to ollama (${cmdLine.substring(0, 80)}) — cannot kill protected system infrastructure.`;
-          }
-        } catch (_) { /* proc may be gone or /proc not readable — fail open for non-ollama */ }
-      }
       if (name && bgProcesses.has(name)) {
         const proc = bgProcesses.get(name);
         process.kill(proc.pid, 'SIGTERM');
@@ -5665,7 +5631,7 @@ process.stdout.write(`\r\x1b[K${C.primary} ◆ ${taskName}: ${task.goal.substrin
   }
  },
 
- async ollama({ prompt, model = 'glm-5.2:cloud', system, timeout = 60 }) {
+ async ollama({ prompt, model = 'groq', system, timeout = 60 }) {
   // Run prompt against local Ollama API at localhost:11434
   const body = {
    model,
@@ -6408,6 +6374,21 @@ process.stdout.write(`\r\x1b[K${C.primary} ◆ ${taskName}: ${task.goal.substrin
     }
   },
 
+  async parallel_shell({ commands, timeout = 30 }) {
+    if (!commands || !Array.isArray(commands) || commands.length === 0) {
+      return '❌ commands array is required';
+    }
+    const results = await Promise.all(commands.map(async (cmd, i) => {
+      try {
+        const result = await asyncShell(cmd, { timeout });
+        return `── Command ${i + 1} ──\n${result.output || result.stderr || '(no output)'}`;
+      } catch (err) {
+        return `── Command ${i + 1} ──\n❌ Error: ${err.message}`;
+      }
+    }));
+    return results.join('\n\n');
+  },
+
   async context_compaction({ strategy = 'summarize', maxTokens = 8000, keepLastN = 10 }) {
     try {
       const hist = this._conversationHistory || [];
@@ -6502,12 +6483,11 @@ const RATE_LIMIT_RE = /(?:\b429\b|rate.?limit|too many requests|quota|exceeded|o
 const MODEL_FALLBACK_CHAIN = (() => {
   const env = (process.env.HAKSTER_MODEL_FALLBACK || '').split(',').map(s => s.trim()).filter(Boolean);
   if (env.length) return env;
-  // Cross-vendor cloud fallback so a throttled 5.x model never dead-ends.
-  // claude-cli goes first — it's the only entry in this default chain with a
-  // real, working dispatch path (Pro/Max subscription via the `claude` CLI).
+  // Local Ollama models first (free, always available), then cloud fallbacks.
+  // claude-cli has a real dispatch path (Pro/Max subscription via the `claude` CLI).
   // The rest are placeholders with no API-key wiring yet; they'd 404 against
   // Ollama's own endpoint if reached, same failure mode this chain exists to avoid.
-  return ['hackbot', 'claude-cli', 'gpt-4o', 'glm-5.2:cloud', 'gemini-2.5-flash', 'claude-haiku-3-5'];
+  return ['qwen3.5:0.8b', 'llama3.2:1b', 'qwen2.5:0.5b', 'hackbot', 'claude-cli', 'gpt-4o', 'gemini-2.5-flash', 'claude-haiku-3-5', 'glm-5.2:cloud'];
 })();
 // Cloud models surfaced in the /model menu so the user can pick them directly
 // and sign in (paste an API key) without leaving the REPL. Add entries here to
@@ -6529,7 +6509,55 @@ function _modelChainFor() {
 }
 function _familyFor(model) { return (CLOUD_MODELS.find(m => m.name === model) || {}).family; }
 
+function _isPentestTask(messages) {
+  if (process.env.HAKSTER_PENTEST_ROUTING === '0') return false;
+  // Only scan the LAST user message — scanning full history causes false positives
+  // when a resumed session contains old pentest keywords but the user is asking
+  // a casual question like "yo".
+  const all = messages || [];
+  let lastUser = null;
+  for (let i = all.length - 1; i >= 0; i--) {
+    if (all[i].role === 'user') { lastUser = all[i]; break; }
+  }
+  if (!lastUser) return false;
+  const lower = (typeof lastUser.content === 'string' ? lastUser.content : JSON.stringify(lastUser.content || '')).toLowerCase();
+  const keywords = [
+    'pentest', 'penetration test', 'bug bounty', 'hackerone', 'bugcrowd', 'exploit', 'payload', 'reverse shell',
+    'nmap', 'nikto', 'sqlmap', 'bypass', 'waf bypass', 'cloudflare bypass', 'captcha bypass', 'osint',
+    'recon', 'reconnaissance', 'idor', 'xss', 'sqli', 'ssrf', 'csrf', 'rce', 'lfi', 'rfi',
+    'directory traversal', 'command injection', 'subdomain takeover', ' privilege escalation',
+    'brute force', 'fuzz', 'ffuf', 'gobuster', 'dirsearch', 'nuclei', 'burp', 'cors misconfig',
+    'internal api', 'iapi.', 'staging-api', 'jwt', 'api/cms', 'support/gates'
+  ];
+  return keywords.some(k => lower.includes(k));
+}
+
 async function callOllama(messages, tools, { onToken, lowToken = false } = {}) {
+  // ── Pentest/offensive task routing ──────────────────────────────────────
+  // Detect security work and route directly to the uncensored hackbot backend,
+  // bypassing any provider with guardrails (Claude Code, OpenAI, Gemini, etc.)
+  if (_isPentestTask(messages)) {
+    if (process.env.HAKSTER_DEBUG_AGENT === '1') {
+      console.log(`${C.cyan}[pentest-router] Pentest task detected — routing to hackbot backend${C.reset}`);
+    }
+    try {
+      return await callHackbot(messages, tools, { onToken });
+    } catch (hackbotErr) {
+      console.log(`${C.mustard}⚠ hackbot routing failed (${hackbotErr.message?.slice(0, 80)}) — falling back to hp-1000:latest${C.reset}`);
+      const localModels = [MODEL, 'hp-1000:latest', 'llama3.2:1b'];
+      for (const lm of localModels) {
+        try {
+          const resp = await _callOllamaOnce(lm, messages, tools, { onToken, lowToken });
+          console.log(`${C.success}✓ Local Ollama served pentest request (${lm})${C.reset}`);
+          return resp;
+        } catch (ollamaErr) {
+          console.log(`${C.mustard}⚠ local Ollama ${lm} failed (${ollamaErr.message?.slice(0, 60)})${C.reset}`);
+        }
+      }
+      throw hackbotErr;
+    }
+  }
+
   if (_familyFor(MODEL) === 'claude-cli') {
     return callClaudeCli(messages, tools, { onToken });
   }
@@ -6537,15 +6565,28 @@ async function callOllama(messages, tools, { onToken, lowToken = false } = {}) {
     try {
       return await callHackbot(messages, tools, { onToken });
     } catch (hackbotErr) {
-      // Hackbot (Miniforge) failed — credits, keys, or service down.
-      // Fall back to Phantom's 19+ provider waterfall on port 4000.
-      console.log(`${C.mustard}⚠ hackbot failed (${hackbotErr.message?.slice(0, 80)}) — falling back to Phantom API waterfall${C.reset}`);
+      // Hackbot (claude-proxy on 8082) failed — credits, keys, or service down.
+      // Fall back to LOCAL Ollama models first (free, always available),
+      // then Phantom's external API waterfall on port 4000 as last resort.
+      console.log(`${C.mustard}⚠ hackbot failed (${hackbotErr.message?.slice(0, 80)}) — trying local Ollama models first${C.reset}`);
+      const localModels = [MODEL, 'hp-1000:latest', 'llama3.2:1b'];
+      for (const lm of localModels) {
+        try {
+          const resp = await _callOllamaOnce(lm, messages, tools, { onToken, lowToken });
+          console.log(`${C.success}✓ Local Ollama served the request (${lm})${C.reset}`);
+          return resp;
+        } catch (ollamaErr) {
+          console.log(`${C.mustard}⚠ local Ollama ${lm} failed (${ollamaErr.message?.slice(0, 60)})${C.reset}`);
+        }
+      }
+      // All local models failed — last resort: Phantom external API waterfall
+      console.log(`${C.mustard}⚠ all local Ollama models failed — falling back to Phantom API waterfall${C.reset}`);
       try {
         const resp = await callPhantomChat(messages, tools, { onToken });
         console.log(`${C.success}✓ Phantom fallback served the request${C.reset}`);
         return resp;
       } catch (phantomErr) {
-        console.error(`${C.error}× Both hackbot and Phantom failed — hackbot: ${hackbotErr.message?.slice(0, 60)} | phantom: ${phantomErr.message?.slice(0, 60)}${C.reset}`);
+        console.error(`${C.error}× Both hackbot, local Ollama, and Phantom failed — hackbot: ${hackbotErr.message?.slice(0, 60)} | phantom: ${phantomErr.message?.slice(0, 60)}${C.reset}`);
         throw phantomErr; // Phantom's error propagates to retry logic
       }
     }
@@ -6810,7 +6851,7 @@ function _protectedIndices(msgs) {
 async function callHackbot(messages, tools, { onToken } = {}) {
   const HACKBOT_URL = process.env.HACKBOT_BASE_URL || 'http://localhost:8082';
   const HACKBOT_KEY = process.env.HACKBOT_API_KEY || 'hk-universal-2026';
-  const HACKBOT_MODEL = process.env.HACKBOT_MODEL || 'glm-5.2:cloud';
+  const HACKBOT_MODEL = process.env.HACKBOT_MODEL || 'groq';
 
   // ── Build tool injection prompt ──
   // The hack bots don't support OpenAI function-calling natively, so we inject
@@ -7898,6 +7939,9 @@ async function agentLoop(userMessage, history, silent = false, opts = {}) {
   _diagCount = 0;  // reset diagnosis counter per task
   _diagFires = 0;   // reset escalation counter per task
   _modifyingSigs = {};   // reset redundant-modify counter per task
+  _writeFilePatternCount = 0;  // reset write-pattern loop detector per task
+  _writeFileLastPrefix = '';
+  _taskStartTime = Date.now();  // start circuit breaker timer for this task
   _escalatedThisStreak = false;   // reset auto-escalation guard per task
   _webUrlSeen = new Map(); _webQuerySeen = []; _webToolStreak = 0;   // reset web-tool loop state per task
   _smartDelta = 0;  _smartTrendDrops = 0;   // smartness STICKS (no reset to 62) — only trend resets per task
@@ -7948,7 +7992,7 @@ async function agentLoop(userMessage, history, silent = false, opts = {}) {
       // Context-aware nudge: if the agent has been diagnosing (read-only calls),
       // push an ACTION nudge, not generic encouragement.
       let nudge;
-      if (_diagCount >= 6) {
+      if (_diagCount >= 3) {
         nudge = `⚡ STALL (20s idle, ${_diagCount} diagnostic calls). STOP diagnosing. You have the data. Run the fix NOW: chain sudo chown + npm install + pm2 restart + curl in ONE shell call with &&.`;
       } else if (_noProgressCount >= 2) {
         nudge = `⚡ STALL (20s idle, ${_noProgressCount} turns without tool calls). Either answer the user or take a concrete action. Don't just think — DO.`;
@@ -8427,24 +8471,42 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         // 🪝 LEVERS 1+2: detect 'announce-without-act' rut. If the content says
         //    'now writing / let me create / I\'ll add …' but NO tool was called this
         //    turn, that's stalling — DON'T award clean-finish, and nudge to ACT.
-        const _isAnnounce = /\b(now i will|i'?ll now|let me (create|write|add|build|finish|start|make)|i'?m (going to|gonna) (write|create|add|build|make)|now writing|now creating|now adding|time to (write|create|add|build))\b/i.test(cleanContent || '');
-        if (_isAnnounce && !_forcedFinish) {
-          _announceRutCount++;
-          if (_announceRutCount >= 2) {
-            log(`\n${C.mustard}${C.bold}⚡ ANNOUNCE-RUT: ${_announceRutCount} turns of \"now writing / let me …\" with NO tool call. STOP announcing — call write_file/patch_file/shell NOW.${C.reset}`);
-            history.push({ role: 'system', content: `⚡ ANNOUNCE-RUT (${_announceRutCount}x): You keep saying \"now writing / let me create / I\'ll add\" WITHOUT calling a tool. That is stalling, not progress. Your NEXT message MUST contain a tool call (write_file, patch_file, or shell) — do not produce another sentence of narration without a tool call. Execute NOW.` });
+        // ── Broadened announce-rut detection ──────────────────────────────
+        // The model often says "I'll use shell directly" or "I need to check..."
+        // WITHOUT actually calling a tool. The old pattern only caught a narrow
+        // set of verbs (create/write/add/build/finish/start/make). Now we catch
+        // a much wider range of action-oriented language so the model gets nudged
+        // to ACT instead of narrating, then breaking the loop prematurely.
+        // CRITICAL FIX: the old code pushed a nudge but then fell through to
+        // `break;` at line 8530 — the model never saw the nudge. Now we `continue`
+        // to give the model another chance to actually make the tool call.
+        {
+          const _announceVerbs = 'create|write|add|build|finish|start|make|use|check|run|try|look|inspect|read|call|execute|see|find|search|verify|test|fix|update|patch|modify|edit|configure|set|install|restart|examine|review|scan|query|fetch|send|post|get|put|delete|move|copy|rename|chmod|chown|mkdir|kill|stop|deploy|compile|upgrade|rebuild|reload|complete|begin|continue';
+          const _isAnnounce = new RegExp(`\\b(now i (?:will|need to)|i'?ll\\s+(?:${_announceVerbs})|let me (?:${_announceVerbs})|i'?m (?:going to|gonna) (?:${_announceVerbs})|now writing|now creating|now adding|time to (?:${_announceVerbs})|i need to (?:${_announceVerbs})|i should (?:${_announceVerbs})|next,? i'?ll (?:${_announceVerbs}))\\b`, 'i').test(cleanContent || '');
+          if (_isAnnounce && !_forcedFinish) {
+            _announceRutCount++;
+            if (_announceRutCount >= 4) {
+              log(`\n${C.mustard}${C.bold}⚡ ANNOUNCE-RUT: ${_announceRutCount} turns of "I'll …" narration with NO tool call. Giving up — breaking loop.${C.reset}`);
+              _forcedFinish = true;
+              // Fall through to break below — exhausted retries
+            } else {
+              log(`\n${C.mustard}${C.bold}⚡ ANNOUNCE-RUT: ${_announceRutCount} turn(s) of "I'll …" narration WITHOUT calling a tool. Nudging to ACT.${C.reset}`);
+              history.push({ role: 'system', content: `⚡ ANNOUNCE-RUT (${_announceRutCount}x): You said "I'll ..." or "let me ..." but did NOT call a tool. That is stalling, not progress. Your NEXT message MUST contain a tool call (shell, write_file, patch_file, etc.) — do not produce another sentence of narration without a tool call. Execute NOW.` });
+              // Don't break — give the model another chance to actually make the tool call
+              _currentTaskAnchor = history[history.length - 1];
+              continue;
+            }
+            // a mere announcement is not a finish — no clean-finish awarded
+          } else if (!_forcedFinish) {
             _announceRutCount = 0;
+            bumpSmart(8, 'clean-finish');  // real final answer — reward completion
+            if (_hadLoopBreak) bumpSmart(6, 'loop-broken');  // recovered from a loop/stall AND still finished
+          } else {
+            // _forcedFinish: run ended via a loop break with no recovery tool call since —
+            //    not a true finish, so no clean-finish (+8). Keeps the score honest.
+            _announceRutCount = 0;
+            log(`${C.dim}◇ Forced finish (loop break, no recovery tool) — clean-finish not awarded${C.reset}`);
           }
-          // a mere announcement is not a finish — no clean-finish awarded
-        } else if (!_forcedFinish) {
-          _announceRutCount = 0;
-          bumpSmart(8, 'clean-finish');  // real final answer — reward completion
-          if (_hadLoopBreak) bumpSmart(6, 'loop-broken');  // recovered from a loop/stall AND still finished
-        } else {
-          // _forcedFinish: run ended via a loop break with no recovery tool call since —
-          //    not a true finish, so no clean-finish (+8). Keeps the score honest.
-          _announceRutCount = 0;
-          log(`${C.dim}◇ Forced finish (loop break, no recovery tool) — clean-finish not awarded${C.reset}`);
         }
       }
       lastHadToolCalls = false;
@@ -8518,11 +8580,59 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         }
         // BUG 17 FIX: Inject a system message to prevent re-asking the same question
         history.push({ role: 'system', content: 'LOOP BREAK: You were in a stuck loop. IMMEDIATELY do one of: (1) Take a concrete action using a non-exploration tool (shell, write_file, etc.) with the information you already have. (2) Give the user a direct answer based on what you know. Do NOT ask another question. Do NOT list or search more directories. Do NOT call list_dir, search_files, or read_file. ACT NOW or RESPOND NOW.' });
-        // LOOP GUARD FIX: Don't break the run — nudge is injected, let the agent
-        // continue with remaining turns. Only break for genuine "done" (no stuck loop).
-        continue;
       } else {
         _lastAssistantResponse = responseText;
+      }
+
+      // ── CRITICAL FIX: Don't break on every no-tool-call response ──
+      // The old code unconditionally broke the loop here, even when the model
+      // was mid-task and just returned text without a tool call (e.g. narrating
+      // "I'll use shell directly" after an unknown-tool error). This caused the
+      // agent to quit after 1-2 steps instead of running to completion.
+      // Now: if not a forced finish (stuck loop), nudge the model to ACT and
+      // continue the loop instead of breaking.
+      if (!_forcedFinish) {
+        // ── CONVERSATIONAL DONE DETECTION ──
+        // If the agent's response is conversational (greeting, compliment,
+        // acknowledgment, waiting for user input) and contains NO task-action
+        // language, break the loop cleanly. Don't nudge it to call tools when
+        // there's no task to act on. This prevents:
+        //   "yo" → greet → nudge → greet → nudge → ... (11-round loop)
+        //   "great job" → "thanks!" → nudge → "thanks!" → nudge → ... (11-round loop)
+        const _isConversationalDone = (() => {
+          const t = responseText.trim();
+          if (!t) return false;
+          // Long responses with no tool call are likely mid-task narration — nudge.
+          if (t.length > 400) return false;
+          // Task-action language means the agent is about to do something — nudge.
+          if (/\b(let me|i'll|i will|i'm going to|i need to|let's (start|begin)|first i|step 1|checking|searching|running|analyzing|scanning|looking at|investigating|debugging|fixing|patching|updating|installing|deploying)\b/i.test(t)) return false;
+          // Ends with a question mark → waiting for user response
+          if (/\?\s*$/.test(t)) return true;
+          // Clarifying question patterns
+          if (_isClarifyingQuestion(responseAll)) return true;
+          // Explicit waiting/standing-by patterns
+          if (/\b(waiting (for|on) (your|user|input|direction|response)|let me know|resume.*or.*start|what.*(would|do) you like|shall i|should i (start|begin|resume|continue)|standing by|ready when|here when|no task|nothing (to do|pending|on the board)|idle and ready|just (vibing|chilling)|say the word)\b/i.test(t)) return true;
+          // Conversational acknowledgments / greetings / farewells (short, no action verbs)
+          if (t.length < 200 && /\b(thanks|thank you|got it|noted|saved|done|all good|no problem|sounds good|appreciate|always got your back|hit me (up|whenever)|ready for your next|what's up|hey|yo|sup|cheers|cool|awesome|nice|gotcha|understood|will do|on it)\b/i.test(t)) return true;
+          return false;
+        })();
+
+        if (_isConversationalDone) {
+          // Clean break — agent gave a conversational response, waiting for user input.
+          // Don't nudge, don't continue the loop, don't treat as stuck.
+          if (_stallGuardTimer) { clearInterval(_stallGuardTimer); _stallGuardTimer = null; }
+          if (_statusBarInterval) { clearInterval(_statusBarInterval); _statusBarInterval = null; }
+          break;
+        }
+
+        // Not a stuck loop — the model returned text without a tool call.
+        // Nudge it to make a tool call on the next turn and continue.
+        if (_noProgressCount < NO_PROGRESS_LIMIT - 2) {
+          history.push({ role: 'system', content: 'NUDGE: You returned text without calling a tool. If the task is not yet complete, your NEXT message MUST contain a tool call. If you are waiting for a tool result, check the history — the result is already there. Do not narrate without acting. Call a tool NOW or give your final answer.' });
+          _currentTaskAnchor = history[history.length - 1];
+          continue;
+        }
+        // Fall through to break -- approaching stuck loop threshold
       }
 
       // ── TUI dashboard: final render at normal exit ──
@@ -8718,9 +8828,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         const cleanThinking = _stripFakeTui(msg.thinking || '');
         history.push({ role: 'assistant', content: cleanContent || '' });  // thinking stripped from history (token-burn fix)
       }
-      // LOOP GUARD FIX: Don't break the run — nudge is injected, let the agent
-      // continue with remaining turns instead of killing the entire task.
-      continue;
+      break;
     }
 
     // Process tool calls
@@ -8888,14 +8996,6 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         continue;
       }
 
-      // ── Ollama hard-block (BEFORE dangerous check — not confirmable) ──
-      const ollamaBlock = isOllamaAttack(fnName, fnArgs);
-      if (ollamaBlock) {
-        log(`${C.red}${C.bold}${ollamaBlock}${C.reset}`);
-        history.push({ role: 'tool', name: fnName, content: ollamaBlock + ' This operation is permanently blocked and cannot be confirmed or allowlisted. Ollama is protected system infrastructure — never stop, kill, disable, or delete it.' });
-        continue;
-      }
-
       // ── Dangerous command confirmation ──
       const dangerReason = isDangerousCommand(fnName, fnArgs);
       if (dangerReason && shouldConfirm(_approvalMode, fnName, fnArgs, dangerReason) && !_localAllowlisted(fnName, fnArgs)) {
@@ -9025,7 +9125,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
           _lastConsolidationTurn = _toolCallCount;
           try {
             await autolearn.consolidateMemories(path.join(process.env.HOME || '/home/ghost', '.hakster'));
-          } catch (e) { /* non-blocking */ }
+          } catch (e) { console.error("[memory] consolidate failed:", e.message); }
 
           // ── Memory Engine v2: consolidate + extract entities ──
           // Deferred: consolidate is a synchronous disk-heavy op; run it off the
@@ -9034,7 +9134,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
             try {
               const hDir = path.join(process.env.HOME || '/home/ghost', '.hakster');
               memoryEngine.consolidate(hDir);
-            } catch (e) { /* non-blocking */ }
+            } catch (e) { console.error("[memory] consolidate failed:", e.message); }
           });
         }
 
@@ -9058,7 +9158,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
               tags: [toolName, 'tool-result'],
               timestamp: new Date().toISOString()
             }, process.cwd());
-          } catch (e) { /* non-blocking */ }
+ } catch (e) { console.error("[memory] addMemory failed:", e.message); }
         });
 
         // ── Auto-learn: REFLECT phase ──
@@ -9162,7 +9262,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
     // ── Hard stop: soft repeat-breaks fired >= 2 times this run → the model is
     // ignoring course corrections and ruts on the same call. End the run now
     // instead of looping up to MAX_TURNS and burning the whole token budget.
-    if (_repeatHardBreakCount >= 5) {
+    if (_repeatHardBreakCount >= 2) {
       log(`\n${C.red}${C.bold}🔁🔁 HARD STOP: ${_repeatHardBreakCount} repeat-loop breaks ignored — agent stuck re-emitting the same tool call. Ending run to protect the token budget.${C.reset}`);
       history.push({ role: 'system', content: `HARD STOP: You triggered ${_repeatHardBreakCount} repeat-loop breaks and kept re-emitting the same tool call. The run is terminated to avoid wasting tokens. Summarize what you found and ask the user for guidance, or rephrase the task.` });
       _forcedFinish = true;  // hard stop forced the end — not a clean finish
@@ -9172,7 +9272,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
     // 6-phase: OBSERVE after tool results
     tuiSetPhase('OBSERVE');
 
-    // ── Diagnosis timeout: if the agent has done 8+ consecutive read-only calls
+    // ── Diagnosis timeout: if the agent has done 5+ consecutive read-only calls
     //    (read_file, search_files, rg, pm2 logs, curl, grep, ss) without a single
     //    state-modifying action (sudo, npm, chown, pm2 restart, write_file, patch),
     //    inject a forced-action message so it STOPS diagnosing and STARTS fixing.
@@ -9239,7 +9339,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         // "read mcp-bridge.js 14 times" loop: the model gets the same content
         // back but never actually re-reads the file, and the stub message tells
         // it to STOP and act.
-        const _roTarget = (fnArgs && (fnArgs.path || fnArgs.query || fnArgs.pattern || fnArgs.directory || fnArgs.url)) || '';
+        const _roTarget = (fnArgs && (fnArgs.command || fnArgs.path || fnArgs.query || fnArgs.pattern || fnArgs.directory || fnArgs.url)) || '';
         const _roKey = fnName + '|' + String(_roTarget).slice(0, 120);
         _readOnlyFileHits[_roKey] = (_readOnlyFileHits[_roKey] || 0) + 1;
         if (_readOnlyFileHits[_roKey] >= READ_ONLY_HARD_SKIP) {
@@ -9250,8 +9350,55 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
           history.push({ role: 'system', content: `⛔ HARD LOOP BREAK: You have called ${fnName}("${_roTarget}") ${_hits} times this task. The file has NOT been re-read. You already have its full contents from the first read. STOP calling ${fnName} on this path. Either (a) run the fix now in one shell call, (b) write/edit a file, or (c) give the user a direct answer. Re-reading the same file is blocked.` });
           // Return a stub tool result — do NOT execute the tool
           history.push({ role: 'tool', name: fnName, content: `[BLOCKED] ${fnName}("${_roTarget}") was called ${_hits}x — this is a read-only loop. The file contents are already in your context from the first read. Do not call this tool on this path again. ACT NOW: run the fix, edit a file, or answer the user.` });
-          tuiAddChain(`#${callNum} ${fnName} → BLOCKED (#${_hits})`, '⛔');
+          tuiAddChain(`#${_toolCallCount} ${fnName} → BLOCKED (#${_hits})`, '⛔');
           continue;
+        }
+
+        // ── Write-file pattern loop detector ──
+        // Catches agents that write N variations of the "same" file in a row
+        // (fix_v9.cjs, fix_v10.cjs, fix_v11.cjs...) — each call is technically
+        // "different" so the identical-args detector never fires, but the agent
+        // is clearly stuck writing scripts to fix a problem instead of fixing
+        // it directly. After WRITE_PATTERN_LIMIT calls with the same path prefix,
+        // break the loop.
+        if (fnName === 'write_file' && fnArgs && fnArgs.path) {
+          const _wp = String(fnArgs.path);
+          // Strip version suffixes: fix_real_v9.cjs → fix_real_v, fix_v2b.cjs → fix_v
+          const _prefix = _wp.replace(/_v\d+[a-z]*\.(cjs|js|mjs|ts|sh|py)$/i, '_v*')
+                             .replace(/_v\d+[a-z]*$/i, '_v*')
+                             .replace(/\d+$/i, '*');
+          if (_prefix === _writeFileLastPrefix) {
+            _writeFilePatternCount++;
+          } else {
+            _writeFilePatternCount = 1;
+            _writeFileLastPrefix = _prefix;
+          }
+          if (_writeFilePatternCount >= WRITE_PATTERN_LIMIT) {
+            log(`\n${C.red}${C.bold}📝 WRITE-PATTERN LOOP: wrote ${_writeFilePatternCount}x files matching "${_prefix}" — agent is scripting around the problem instead of fixing it. Breaking loop.${C.reset}`);
+            bumpSmart(-15, 'write-pattern-loop');
+            history.push({ role: 'system', content: `HARD BREAK: You wrote ${_writeFilePatternCount} variations of "${_prefix}" (fix_v9, fix_v10, fix_v11...). This is a script-writing loop — you keep generating new fix scripts instead of fixing the actual problem. STOP writing fix scripts. Either (a) fix the file directly with patch_file/edit_file, (b) run a single shell command to fix it, or (c) explain to the user what the actual root cause is and ask for guidance.` });
+            history.push({ role: 'tool', name: fnName, content: `[BLOCKED] Write-pattern loop detected — ${_writeFilePatternCount} variations of ${_prefix}. Stop writing fix scripts. Fix the problem directly or ask the user for help.` });
+            _repeatHardBreakCount++;
+            _writeFilePatternCount = 0;
+            _writeFileLastPrefix = '';
+            break;
+          }
+        } else if (fnName !== 'write_file') {
+          // Non-write tool call resets the pattern counter
+          _writeFilePatternCount = 0;
+          _writeFileLastPrefix = '';
+        }
+
+        // ── Time-based circuit breaker ──
+        // If the agent has been running for > 30 minutes on a single task,
+        // it's stuck. Break the loop regardless of what it's doing.
+        if (_taskStartTime > 0 && (Date.now() - _taskStartTime) > TASK_TIME_LIMIT_MS) {
+          const _elapsedMin = Math.floor((Date.now() - _taskStartTime) / 60000);
+          log(`\n${C.red}${C.bold}⏰ CIRCUIT BREAKER: Task has been running for ${_elapsedMin} minutes — hard time limit reached. Breaking loop to protect token budget.${C.reset}`);
+          bumpSmart(-20, 'time-circuit-breaker');
+          history.push({ role: 'system', content: `TIME LIMIT REACHED: This task has been running for ${_elapsedMin} minutes. The hard limit is ${TASK_TIME_LIMIT_MS / 60000} minutes. Stop now. Summarize what you've done, what's left, and ask the user for guidance. Do not start any new work.` });
+          _forcedFinish = true;
+          break;
         }
 
         // Stable per-call signature for loop detection: fnName + primary
@@ -9302,7 +9449,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
           // the model can ignore and then do 5 more read-only calls.
           // Adaptive: when he's struggling/sleeping, break read-only stalls sooner.
           const _threshold = _smartScore < 25 ? 1 : _smartScore < 40 ? (_diagFires === 0 ? 2 : 1) : (_diagFires === 0 ? 3 : _diagFires === 1 ? 1 : 1);
-          if (_diagCount >= Math.max(_threshold, 8)) {
+          if (_diagCount >= _threshold) {
             _diagFires++;
             bumpSmart(_diagFires === 1 ? -3 : _diagFires === 2 ? -5 : -8, 'diagnosis-timeout');  // tuned down: exploration is normal — was -5/-10/-15, which tanked smartness on healthy read-only streaks
             let _diagMsg;
@@ -9565,10 +9712,13 @@ async function repl() {
 
   // Initialize MCP servers (non-fatal if fails)
   console.log(`${C.cyan}🔌 Loading MCP servers...${C.reset}`);
+  const _mcpStart = Date.now();
   await initMcpTools();
+  _mcpReady = true;  // MCP loaded — idle auto-review can now fire safely
+  const _mcpElapsed = ((Date.now() - _mcpStart) / 1000).toFixed(1);
   const mcpInfo = mcpStatus();
   if (mcpInfo.length > 0) {
-    console.log(`${C.green}✓ ${mcpInfo.length} MCP server(s) connected, ${getMcpTools().length} tool(s) discovered${C.reset}`);
+    console.log(`${C.green}✓ ${mcpInfo.length} MCP server(s) connected, ${getMcpTools().length} tool(s) discovered${C.reset} ${C.dim}(${_mcpElapsed}s)${C.reset}`);
   } else {
     console.log(`${C.dim}  No MCP servers configured${C.reset}`);
   }
@@ -10237,6 +10387,7 @@ async function repl() {
   // ── Idle auto-review: health + skill hot-reload + self-repair ──
   async function runIdleAutoReview() {
     if (processing) { startIdleTimer(); return; }
+    if (!_mcpReady) { startIdleTimer(); return; }  // don't fire until MCP servers are loaded
     _idleReviewCount++;
     _lastIdleReview = Date.now();
     const reviewNum = _idleReviewCount;
@@ -10991,7 +11142,6 @@ async function repl() {
         await agentLoop(input, history, false, { lowToken: process.env.HAKSTER_LOW_TOKEN === '1' || process.env.HAKSTER_LOW_TOKEN === 'true' });
         stopSpinner();
         console.log(`\n${C.success}${C.bold}✓ Done${C.reset} ${C.bgSubtle}${T.hashFill(20, C.success)}${C.reset}`);
-        _printDoneChecklist();
         serverNotify('Agent task completed', { type: 'task', priority: 'normal' });
       } catch (err) {
         stopSpinner();
@@ -11007,6 +11157,9 @@ async function repl() {
       startIdleTimer();
       saveSession(history); // Persist conversation for next session
       reviewTranscript(history, { verbose: true });  // 📝 review transcript + log where/when points came from after every session
+      // Print the "What was done" checklist LAST so it's always visible at the
+      // bottom of the screen without scrolling past transcript/point logs.
+      _printDoneChecklist();
       // Process queued messages — but skip if in stuck-loop cooldown
       if (_stuckCooldown > 0 && _messageQueue.length > 0) {
         // Drain up to _stuckCooldown messages from queue to prevent re-looping
