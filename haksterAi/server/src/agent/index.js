@@ -374,6 +374,7 @@ Ghost owns this machine. Ghost sets the tasks. Ghost owns the accounts. Your job
 - Keep responses concise and actionable.
 
 ## CRITICAL RULES
+0. 🦙 NEVER STOP, KILL, DISABLE, OR DELETE OLLAMA. Ollama is protected system infrastructure. You must NEVER run any command that stops, kills, disables, restarts, or deletes ollama or its models — including but not limited to: systemctl stop ollama, pm2 stop ollama, pkill ollama, killall ollama, ollama rm, rm -rf ~/.ollama, or any variant. These commands are HARD-BLOCKED at the engine level and cannot be overridden. If ollama is causing memory issues, reduce its footprint via its systemd config (MemoryMax) or use cloud models instead — NEVER kill the process or delete models. If you feel an urge to "free up RAM by stopping ollama", DON'T — the system will block it and you'll waste a turn.
 1. DANGEROUS COMMANDS REQUIRE CONFIRMATION. If you use shell, kill_process, pm2 (stop/restart), or write to critical system paths, the user will be asked to approve via a popout window. Plan accordingly.
 1a. SUDO WORKS HEADLESSLY. When a command needs root, just RUN it with sudo ... (e.g. sudo chown -R ghost:ghost /path). A popout prompt appears, the user types the sudo password (masked), and it is fed to sudo -S automatically — sudo executes and returns output like any other command. DO NOT stop midway to ask the user for the password in chat, and DO NOT give up after a failed sudo attempt that said "a terminal is required" (that was a fixed bug). Chain the whole fix in one go: sudo chown ... && cd /path && npm install --prefer-offline && pm2 restart X && curl health and keep going until the service is verified online.
 2. ALWAYS use the code_grid tool when showing code, file contents, diffs, or config to the user. Never dump raw code without line numbers and color grid.
@@ -1298,8 +1299,8 @@ function getSkillDirs() {
 }
 
 // (Idle review prompt removed — health checks now run directly via shell, no model call)
-const MAX_TURNS_DEFAULT = Math.max(10, parseInt(process.env.HAKSTER_AGENT_MAX_TURNS || '120', 10) || 120);  // 120-round single-use budget; guardrails (loop/timeout/redundant-modify) prevent the exploration loops that the old 15-cap was meant to force
-const LOW_TOKEN_MAX_TURNS = Math.max(20, parseInt(process.env.HAKSTER_LOW_TOKEN_MAX_TURNS || '30', 10) || 30);
+const MAX_TURNS_DEFAULT = Math.max(10, parseInt(process.env.HAKSTER_AGENT_MAX_TURNS || '200', 10) || 200);  // 200-round single-use budget (was 120 — raised so complex tasks can finish without hitting the wall)
+const LOW_TOKEN_MAX_TURNS = Math.max(20, parseInt(process.env.HAKSTER_LOW_TOKEN_MAX_TURNS || '60', 10) || 60);
 const MAX_TURNS = MAX_TURNS_DEFAULT;
 let _currentMaxTurns = MAX_TURNS_DEFAULT;  // updated by agentLoop each run so tuiReset can read it
 const IDLE_TIMEOUT_MS = 120000; // 2 minutes idle → auto review
@@ -1445,7 +1446,7 @@ function scoreToolCall(fnName, fnArgs, ok, out) {
   return Math.max(-12, Math.min(10, d));   // cap raised: big data/doc writes can score up to +10
 }
 const HAKSTER_GUARDRAILS = process.env.HAKSTER_GUARDRAILS || path.join(__dirname, '..', '..', '..', 'scripts', 'hakster-guardrails.sh');
-const NO_PROGRESS_LIMIT = 15;      // Break loop after sustained no-progress (was 6)
+const NO_PROGRESS_LIMIT = 25;      // Break loop after sustained no-progress (was 15, raised to give complex tasks more room)
 
 // ── In-process guardrails: replaces spawnSync(hakster-guardrails.sh) ──
 // The shell script spawned a subprocess on EVERY tool call (track) and every
@@ -1493,7 +1494,7 @@ function guardrailsReset() {
 // ── Stuck-state debug logging (persistent alerts) ─────────────────────────
 // Writes structured alerts to data/stuck-alerts.log so they survive terminal scroll.
 // ── Session performance meter — cumulative session score + stats, tied to the
-//    round budget (120), persisted across sessions so the agent learns from
+//    round budget (200), persisted across sessions so the agent learns from
 //    recurring mistakes. Points accrue from every smartness delta; rounds /
 //    efficiency / speed track how he spends the budget.
 const PERF_HISTORY_FILE = path.join(os.homedir(), '.hakster', 'perf_history.json');
@@ -1742,11 +1743,11 @@ let _forcedFinish = false;  // true when a loop break forced the end with no rec
 // it's likely a code bug (like ReferenceError) causing an infinite retry loop.
 let _consecutiveToolErrors = [];     // [{name, count}]  recent tool error counts
 const TOOL_ERROR_LOOP_LIMIT = 3;    // Same tool erroring this many times → break loop
-const TOOL_REPEAT_LIMIT = 3;       // Same tool called with identical args this many times → break loop (tighten tool loops)
+const TOOL_REPEAT_LIMIT = 4;       // Same tool called with identical args this many times → break loop (raised 3→4, was tightening tool loops too aggressively)
 let _recentToolSigs = [];          // Recent normalized tool-call signatures (for repeat-tool-loop detection)
 let _repeatToolSigCount = 0;        // Consecutive identical tool-call signatures
 let _readOnlyFileHits = {};         // { 'read_file|/path/to/file': count } — per-target read-only call counter (HARD skip at 3)
-const READ_ONLY_HARD_SKIP = 3;      // After reading the same file/path 3x, SKIP execution entirely (not just nudge)
+const READ_ONLY_HARD_SKIP = 8;      // After reading the same file/path 8x, SKIP execution entirely (not just nudge)
 
 // ── Grep/search command loop detection ──
 // Track consecutive shell commands that are grep/rg/find/search — if the model
@@ -1760,7 +1761,7 @@ const GREP_CMD_MAX_OUTPUT = 200;     // Max lines of output from grep/rg command
 // Catches the model re-running the same curl / git status / npm test / ls / build
 // command over and over without making progress. Runs before exec so it's fast and
 // can break a stall before the command even fires a second time.
-const SHELL_REPEAT_LIMIT = 4;        // same normalized command 4× in window → loop (raised 3→4 to cut false positives on legitimate sequential rounds)
+const SHELL_REPEAT_LIMIT = 5;        // same normalized command 5× in window → loop (raised 4→5 to give complex sequential workflows more room)
 
 function _normalizeShellSig(command) {
   // Collapse whitespace, lowercase, strip leading env assignments (FOO=bar), strip
@@ -2237,7 +2238,48 @@ const DANGEROUS_SHELL_PATTERNS = [
   /\b(echo|tee|cat)\b.*(\.env\b|hakster-config\.json|google-oauth-client\.json|\.phantom-ai-config\.json)/i,
   /\b(curl|fetch|axios)\b.*\/api\/ai\/config.*(POST|-d\b|--data\b)/i,
   /\b(curl|fetch|axios)\b.*(POST|-d\b|--data\b).*\/api\/ai\/config/i,
+  // 🦙 PROTECT OLLAMA — never let the agent stop/disable/kill ollama or delete models
+  /\bsystemctl\s+(stop|disable|mask)\s+ollama\b/i,
+  /\bpm2\s+(stop|delete|kill)\s+ollama\b/i,
+  /\bpkill\s+(-\S+\s+)?ollama\b/i,
+  /\bkillall\s+ollama\b/i,
+  /\bkill\s+(-\S+\s+)+.*\bollama\b/i,
+  /\bollama\s+rm\b/i,
+  /\bollama\s+delete\b/i,
+  /\brm\s+(-\S+\s+)*.*\b\.ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/usr\/share\/ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/var\/lib\/ollama\b/i,
+  /\bmv\b.*\b\.ollama\b.*\/dev\/null/i,
+  /\btruncate\s+-s\s+0\b.*\b\.ollama\b/i,
 ];
+
+// ── Ollama protection (HARD BLOCK — never confirmable, never allowlistable) ──
+// These patterns are checked BEFORE isDangerousCommand and are unconditionally blocked.
+// The agent must NEVER stop, kill, disable, or delete ollama or its models.
+const OLLAMA_HARD_BLOCK_PATTERNS = [
+  /\bsystemctl\s+(stop|disable|mask)\s+ollama\b/i,
+  /\bpm2\s+(stop|delete|kill)\s+ollama\b/i,
+  /\bpkill\s+(-\S+\s+)?ollama\b/i,
+  /\bkillall\s+ollama\b/i,
+  /\bkill\s+(-\S+\s+)+.*\bollama\b/i,
+  /\bollama\s+rm\b/i,
+  /\bollama\s+delete\b/i,
+  /\brm\s+(-\S+\s+)*.*\b\.ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/usr\/share\/ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/var\/lib\/ollama\b/i,
+  /\bmv\b.*\b\.ollama\b.*\/dev\/null/i,
+  /\btruncate\s+-s\s+0\b.*\b\.ollama\b/i,
+];
+
+function isOllamaAttack(tool, args) {
+  if (tool !== 'shell' && tool !== 'exec_shell') return null;
+  const cmd = String((args && args.command) || '');
+  if (!cmd) return null;
+  for (const pat of OLLAMA_HARD_BLOCK_PATTERNS) {
+    if (pat.test(cmd)) return `🚫 OLLAMA PROTECTION: blocked command that would stop/kill/delete ollama or its models: ${cmd.substring(0, 120)}`;
+  }
+  return null;
+}
 
 const CRITICAL_PATHS = [
   '/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/ssh',
@@ -2250,6 +2292,11 @@ const CRITICAL_PATHS = [
   '/home/ghost/haksterAi/server/src/hakster-config.json',
   '/home/ghost/haksterAi/server/google-oauth-client.json',
   '/home/ghost/haksterAi/cli/.phantom-ai-config.json',
+  // 🦙 Ollama — protect models, blobs, and service config from deletion/corruption
+  '/home/ghost/.ollama',
+  '/usr/share/ollama',
+  '/var/lib/ollama',
+  '/etc/systemd/system/ollama.service',
 ];
 
 function isDangerousCommand(tool, args) {
@@ -5237,6 +5284,20 @@ ${trunc(md, 12000)}`;
 
   kill_process({ name, pid }) {
     try {
+      // 🦙 Ollama protection — never let the agent kill ollama's process
+      if (name && /ollama/i.test(name)) {
+        return `🚫 OLLAMA PROTECTION: Cannot kill process "${name}" — ollama is protected system infrastructure.`;
+      }
+      if (pid) {
+        // Check if this PID belongs to ollama
+        try {
+          const { execSync } = require('child_process');
+          const cmdLine = execSync(`cat /proc/${pid}/cmdline 2>/dev/null || echo ''`, { encoding: 'utf8', timeout: 2000 }).replace(/\0/g, ' ').trim();
+          if (/\bollama\b/i.test(cmdLine)) {
+            return `🚫 OLLAMA PROTECTION: PID ${pid} belongs to ollama (${cmdLine.substring(0, 80)}) — cannot kill protected system infrastructure.`;
+          }
+        } catch (_) { /* proc may be gone or /proc not readable — fail open for non-ollama */ }
+      }
       if (name && bgProcesses.has(name)) {
         const proc = bgProcesses.get(name);
         process.kill(proc.pid, 'SIGTERM');
@@ -7887,7 +7948,7 @@ async function agentLoop(userMessage, history, silent = false, opts = {}) {
       // Context-aware nudge: if the agent has been diagnosing (read-only calls),
       // push an ACTION nudge, not generic encouragement.
       let nudge;
-      if (_diagCount >= 3) {
+      if (_diagCount >= 6) {
         nudge = `⚡ STALL (20s idle, ${_diagCount} diagnostic calls). STOP diagnosing. You have the data. Run the fix NOW: chain sudo chown + npm install + pm2 restart + curl in ONE shell call with &&.`;
       } else if (_noProgressCount >= 2) {
         nudge = `⚡ STALL (20s idle, ${_noProgressCount} turns without tool calls). Either answer the user or take a concrete action. Don't just think — DO.`;
@@ -8457,6 +8518,9 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         }
         // BUG 17 FIX: Inject a system message to prevent re-asking the same question
         history.push({ role: 'system', content: 'LOOP BREAK: You were in a stuck loop. IMMEDIATELY do one of: (1) Take a concrete action using a non-exploration tool (shell, write_file, etc.) with the information you already have. (2) Give the user a direct answer based on what you know. Do NOT ask another question. Do NOT list or search more directories. Do NOT call list_dir, search_files, or read_file. ACT NOW or RESPOND NOW.' });
+        // LOOP GUARD FIX: Don't break the run — nudge is injected, let the agent
+        // continue with remaining turns. Only break for genuine "done" (no stuck loop).
+        continue;
       } else {
         _lastAssistantResponse = responseText;
       }
@@ -8654,7 +8718,9 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
         const cleanThinking = _stripFakeTui(msg.thinking || '');
         history.push({ role: 'assistant', content: cleanContent || '' });  // thinking stripped from history (token-burn fix)
       }
-      break;
+      // LOOP GUARD FIX: Don't break the run — nudge is injected, let the agent
+      // continue with remaining turns instead of killing the entire task.
+      continue;
     }
 
     // Process tool calls
@@ -8819,6 +8885,14 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
       if (silent && !isReadOnlyTool(fnName, fnArgs)) {
         log(`${C.yellow}🔒 Blocked ${fnName} during idle review (read-only mode)${C.reset}`);
         history.push({ role: 'tool', name: fnName, content: 'Blocked: idle review is read-only. Only read-only tools and safe shell commands are allowed.' });
+        continue;
+      }
+
+      // ── Ollama hard-block (BEFORE dangerous check — not confirmable) ──
+      const ollamaBlock = isOllamaAttack(fnName, fnArgs);
+      if (ollamaBlock) {
+        log(`${C.red}${C.bold}${ollamaBlock}${C.reset}`);
+        history.push({ role: 'tool', name: fnName, content: ollamaBlock + ' This operation is permanently blocked and cannot be confirmed or allowlisted. Ollama is protected system infrastructure — never stop, kill, disable, or delete it.' });
         continue;
       }
 
@@ -9088,7 +9162,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
     // ── Hard stop: soft repeat-breaks fired >= 2 times this run → the model is
     // ignoring course corrections and ruts on the same call. End the run now
     // instead of looping up to MAX_TURNS and burning the whole token budget.
-    if (_repeatHardBreakCount >= 2) {
+    if (_repeatHardBreakCount >= 5) {
       log(`\n${C.red}${C.bold}🔁🔁 HARD STOP: ${_repeatHardBreakCount} repeat-loop breaks ignored — agent stuck re-emitting the same tool call. Ending run to protect the token budget.${C.reset}`);
       history.push({ role: 'system', content: `HARD STOP: You triggered ${_repeatHardBreakCount} repeat-loop breaks and kept re-emitting the same tool call. The run is terminated to avoid wasting tokens. Summarize what you found and ask the user for guidance, or rephrase the task.` });
       _forcedFinish = true;  // hard stop forced the end — not a clean finish
@@ -9098,7 +9172,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
     // 6-phase: OBSERVE after tool results
     tuiSetPhase('OBSERVE');
 
-    // ── Diagnosis timeout: if the agent has done 5+ consecutive read-only calls
+    // ── Diagnosis timeout: if the agent has done 8+ consecutive read-only calls
     //    (read_file, search_files, rg, pm2 logs, curl, grep, ss) without a single
     //    state-modifying action (sudo, npm, chown, pm2 restart, write_file, patch),
     //    inject a forced-action message so it STOPS diagnosing and STARTS fixing.
@@ -9228,7 +9302,7 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
           // the model can ignore and then do 5 more read-only calls.
           // Adaptive: when he's struggling/sleeping, break read-only stalls sooner.
           const _threshold = _smartScore < 25 ? 1 : _smartScore < 40 ? (_diagFires === 0 ? 2 : 1) : (_diagFires === 0 ? 3 : _diagFires === 1 ? 1 : 1);
-          if (_diagCount >= _threshold) {
+          if (_diagCount >= Math.max(_threshold, 8)) {
             _diagFires++;
             bumpSmart(_diagFires === 1 ? -3 : _diagFires === 2 ? -5 : -8, 'diagnosis-timeout');  // tuned down: exploration is normal — was -5/-10/-15, which tanked smartness on healthy read-only streaks
             let _diagMsg;

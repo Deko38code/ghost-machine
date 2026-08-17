@@ -1262,7 +1262,29 @@ program
         }
       }
 
-      history.push({ role: 'user', content: text });
+      // 🧠 SONNET BRAIN: Auto-inject relevant past knowledge before sending to LLM
+      try {
+      const { execFileSync } = require('child_process');
+      const injectScript = '/home/ghost/claude-code-proxy/brain_inject.js';
+      const fs = require('fs');
+      if (fs.existsSync(injectScript) && text && text.length > 3) {
+      const result = execFileSync('node', [injectScript, '--prompt', text, '--agent', 'haksterai', '--json'], {
+      timeout: 5000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+      });
+      const parsed = JSON.parse(result);
+      if (parsed.injected && parsed.recall_results && parsed.recall_results.length > 0) {
+      text = parsed.augmented_prompt;
+      process.stdout.write(`\x1b[38;5;141m 🧠 Brain: injected ${parsed.recall_results.length} memories\x1b[0m\n`);
+      }
+      }
+      } catch (e) {
+      // Non-blocking: if brain fails, use original prompt unchanged
+      if (process.env.BRAIN_DEBUG) process.stdout.write(`\x1b[38;5;196m 🧠 Brain error: ${e.message}\x1b[0m\n`);
+      }
+
+    history.push({ role: 'user', content: text });
 
       // ══════════════════════════════════════════════════════════════════
       // ── OFFLINE MODE — direct provider call + local tool execution ──

@@ -2191,6 +2191,17 @@ const DANGEROUS_SHELL_PATTERNS = [
   /\bsgdisk\b/i,
   /\bpm2\s+(restart|stop|reload|delete)\s+(hakster-?ai|hakster-tui)\b/i,
   /\bsystemctl\s+(restart|stop)\s+pm2(-root)?\b/i,
+  // 🦙 PROTECT OLLAMA — hard-block any command that stops/kills/deletes ollama
+  /\bsystemctl\s+(stop|disable|mask)\s+ollama\b/i,
+  /\bpm2\s+(stop|delete|kill)\s+ollama\b/i,
+  /\bpkill\s+(-\S+\s+)?ollama\b/i,
+  /\bkillall\s+ollama\b/i,
+  /\bkill\s+(-\S+\s+)+.*\bollama\b/i,
+  /\bollama\s+rm\b/i,
+  /\bollama\s+delete\b/i,
+  /\brm\s+(-\S+\s+)*.*\b\.ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/usr\/share\/ollama\b/i,
+  /\brm\s+(-\S+\s+)*.*\/var\/lib\/ollama\b/i,
 ];
 
 const READ_ONLY_SHELL_PREFIXES = [

@@ -98,3 +98,122 @@ The intelligence comes from the system, not just the model:
 | Complex tasks | Multi-step | Tools handle complexity |
 | Cost | $3-15 per 1M tokens | $0.00 forever |
 | Privacy | Data sent to Anthropic | 100% local |
+---
+
+# 🧠 Sonnet Brain System
+
+## Overview
+A multi-layer agent memory system that gives all AI agents on this machine shared persistent memory, active recall, and curated system snapshots. Inspired by Claude Code's memory features (CLAUDE.md, auto memory, path-scoped rules, `/context` inspect).
+
+## 6 Layers (All Auto-Running via PM2 `sonnet-brain` daemon)
+
+| Layer | What | Schedule | File |
+|-------|------|----------|------|
+| L1 Aggregation | Pulls from 5 memory sources → 4 agent brain files | Every 5 min | `fast_brain_bridge.py` |
+| L2 Recall | BM25 search + dedup + project filtering | On-demand | `brain_recall.py` |
+| L3 Injection | Node.js wrapper, `execFileSync`, null safety | On-demand | `brain_inject.js` |
+| L4 Learning | Extracts lessons from corrections | Every 5 min | `cross_agent_teacher.py` |
+| L5 Cross-Agent Teaching | Propagates lessons to all 4 agents | Every 5 min | `cross_agent_teacher.py --sync` |
+| L6 Snapshots | System state capture + diff | Every 5 min | `curated_snapshot.py` |
+
+## Claude Code Features Adopted
+
+### 1. Path-Scoped Rules (`.brain-rules/`)
+Each project has a `.brain-rules/rules.md` file with project-specific rules. The brain bridge reads all rule files and includes them in the brain output. During recall, entries can be tagged and filtered by project.
+
+**Rule files:**
+- `/home/ghost/cine-vault-live/.brain-rules/rules.md`
+- `/home/ghost/haksterAi/.brain-rules/rules.md`
+- `/home/ghost/miniforge/.brain-rules/rules.md`
+- `/home/ghost/phantom/.brain-rules/rules.md`
+
+**Project filtering:** `--project cinevault` boosts entries tagged `cinevault` by 30% per matching tag, penalizes non-matching entries by 30%.
+
+### 2. `--inspect` Flag (like Claude Code's `/context`)
+Shows exactly what memories would be injected — scores, sources, tags, token estimates — without modifying the prompt.
+
+```bash
+python3 brain_recall.py "port conflict 8084" --inspect
+node brain_inject.js --prompt "port conflict 8084" --inspect
+```
+
+Output: table with # | Score | Source | Agent | Category | Tags | Text preview | ~Tokens
+
+### 3. Hierarchical Brain Files (`.local-brain.md`)
+Each project gets a `.local-brain.md` file with project-specific knowledge. When the brain bridge writes to each agent's brain file, it appends that project's local brain content.
+
+**Local brain files:**
+- `/home/ghost/cine-vault-live/.local-brain.md` (CineVault: TMDB, channels, streaming)
+- `/home/ghost/haksterAi/.local-brain.md` (haksterAi: CLI, agents, proxy)
+- `/home/ghost/miniforge/.local-brain.md` (Miniforge: bots, categories)
+- `/home/ghost/phantom/.local-brain.md` (Phantom: IDE, workspace, AI providers)
+
+## Curated Snapshots
+
+### What it captures (in ~1.2s, zero parallelism):
+- PM2 process list (names, statuses, PIDs)
+- Listening ports (from `/proc/net/tcp` — no `ss` needed)
+- Git status of 5 key repos (branch, dirty file count)
+- Disk usage (from `os.statvfs`)
+- RAM/swap (from `/proc/meminfo` — no `free` needed)
+- Load average (from `/proc/loadavg`)
+- MD5 checksums of 6 key files (change detection)
+
+### Storage
+- `/home/ghost/.shared/snapshots/snapshot_YYYYMMDD_HHMMSS.json`
+- Auto-rotates: keeps last 288 snapshots (24h at 5-min intervals)
+- Each snapshot ~2KB JSON
+
+### Commands
+```bash
+python3 curated_snapshot.py                          # capture snapshot
+python3 curated_snapshot.py --list                    # list recent snapshots
+python3 curated_snapshot.py --diff <id1> <id2>        # diff two snapshots
+python3 curated_snapshot.py --json                    # JSON output
+python3 curated_snapshot.py --quiet                   # minimal output
+```
+
+### Speed Benefit
+When something breaks, diff the last snapshot against a known-good one:
+```
+python3 curated_snapshot.py --diff 20260817_124945 20260817_120000
+→ + Port 8084 opened
+→ - PM2: sonnet-brain stopped
+→ ~ File: brain_recall.py (modified)
+→ ~ RAM: 34% → 51%
+```
+**1 tool call instead of 5** — instantly see what changed.
+
+## Memory Sources (5)
+1. **Shared Agent Bank** — `/home/ghost/.shared/agent-memory.json` (all agents read/write)
+2. **Hakster Banks** — `/home/ghost/haksterAi/.hakster/memories/banks/{patterns,errors}.json`
+3. **Hakster MEMORY.md** — `/home/ghost/haksterAi/.hakster/MEMORY.md`
+4. **Phantom Knowledge** — `/home/ghost/phantom/phantom-knowledge.md`
+5. **Claude Proxy Memories** — `/home/ghost/claude-code-proxy/memories/*.json`
+
+## Brain Output Files (4 agents)
+- `/home/ghost/haksterAi/.hakster/memory/shared_agent_brain.md`
+- `/home/ghost/phantom/.phantom-shared-brain.md`
+- `/home/ghost/miniforge/.miniforge-shared-brain.md`
+- `/home/ghost/cine-vault-live/.cinevault-shared-brain.md`
+
+Each file gets: global brain content + that project's `.local-brain.md` appended.
+
+## PM2 Daemon
+```bash
+pm2 restart sonnet-brain    # restart after code changes
+pm2 logs sonnet-brain       # view logs
+# Runs: brain_full_stack.sh (5-min loop)
+# Logs: /tmp/brain_bridge.log, /tmp/brain_teaching.log, /tmp/brain_snapshots.log
+```
+
+## Key Files
+| File | Purpose |
+|------|---------|
+| `shared_memory.py` | Central memory store with tags, file locking, backup |
+| `brain_recall.py` | BM25 active recall with project filtering + `--inspect` |
+| `brain_inject.js` | Node.js wrapper for prompt injection |
+| `fast_brain_bridge.py` | Aggregates 5 sources → 4 brain files |
+| `curated_snapshot.py` | System state capture + diff |
+| `brain_full_stack.sh` | PM2 daemon loop (5-min cycle) |
+| `cross_agent_teacher.py` | Cross-agent lesson propagation |

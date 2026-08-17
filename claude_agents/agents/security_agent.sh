@@ -1,71 +1,72 @@
 #!/bin/bash
-# security_agent.sh — Security assessment wrapper
+# security_agent.sh Security assessment wrapper (v3: hackbots FIRST to eat credits)
 # Usage: ./security_agent.sh <target-domain> [mode]
-# Modes: quick (default), full, web
-# Runs targeted security checks based on mode
+# Modes: quick, full, web, osint
+# Priority: OSINT hackbot → web vuln hackbot (19k credits) → nmap → Codex → Ollama
 
 TARGET="$1"
 MODE="${2:-quick}"
 
 if [ -z "$TARGET" ]; then
-  echo "Usage: $0 <target-domain> [quick|full|web]"
-  echo "Example: $0 example.com full"
-  exit 1
+ echo "Usage: $0 <target-domain> [quick|full|web|osint]"
+ echo "Example: $0 example.com full"
+ exit 1
 fi
 
-TARGET=$(echo "$TARGET" | sed 's|https\?://||' | sed 's|/.*||')
-
-echo "╔══════════════════════════════════════╗"
-echo "║  SECURITY AGENT — $TARGET ($MODE)"
-echo "╚══════════════════════════════════════╝"
+echo "🛡️ SECURITY AGENT v3 (hackbots first → Codex → Ollama)"
+echo "🎯 Target: $TARGET"
+echo "📊 Mode: $MODE"
 echo ""
 
-OUTPUT_DIR="/tmp/sec_${TARGET}_$(date +%s)"
-mkdir -p "$OUTPUT_DIR"
+# 1. OSINT via hackbot FIRST (eat credits)
+if [ "$MODE" = "osint" ] || [ "$MODE" = "full" ]; then
+ if curl -s --max-time 3 http://localhost:5555/api/health >/dev/null 2>&1; then
+   echo "[hackbot] Running OSINT Framework Browser (credit pool)..."
+   OSINT_RESP=$(curl -s --max-time 60 -X POST http://localhost:5555/api/chat \
+     -H "Content-Type: application/json" \
+     -d "{\"message\": \"Gather OSINT on: $TARGET. Categories: domains, IPs, emails, social, breach data.\"}" 2>&1)
+   if [ -n "$OSINT_RESP" ]; then
+     echo "$OSINT_RESP"
+     echo ""
+   fi
+ fi
+fi
 
-case "$MODE" in
-  quick)
-    echo "[quick] Fast port scan + service detection..."
-    nmap -sS -T4 -F --version-light -oN "$OUTPUT_DIR/quick_scan.txt" "$TARGET" 2>/dev/null
-    cat "$OUTPUT_DIR/quick_scan.txt"
-    ;;
-  full)
-    echo "[full] Comprehensive scan..."
-    echo "  [1/3] Full port range..."
-    nmap -sS -T4 -p- --min-rate 1000 -oN "$OUTPUT_DIR/all_ports.txt" "$TARGET" 2>/dev/null
-    echo "  [2/3] Service + OS detection..."
-    OPEN=$(grep -oP '^\d+/open' "$OUTPUT_DIR/all_ports.txt" | cut -d/ -f1 | tr '\n' ',' | sed 's/,$//')
-    if [ -n "$OPEN" ]; then
-      nmap -sV -sC -O -p "$OPEN" -oN "$OUTPUT_DIR/full_services.txt" "$TARGET" 2>/dev/null
-    fi
-    echo "  [3/3] Vulnerability scripts..."
-    if [ -n "$OPEN" ]; then
-      nmap --script vuln -p "$OPEN" -oN "$OUTPUT_DIR/vulns.txt" "$TARGET" 2>/dev/null
-    fi
-    echo "  → All results in $OUTPUT_DIR/"
-    ;;
-  web)
-    echo "[web] Web-focused security scan..."
-    echo "  [1/2] Nikto web scanner..."
-    nikto -h "$TARGET" -o "$OUTPUT_DIR/nikto.txt" 2>/dev/null
-    echo "  [2/2] Directory brute-force (common)..."
-    if command -v ffuf &>/dev/null; then
-      ffuf -u "https://$TARGET/FUZZ" -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,403 -o "$OUTPUT_DIR/ffuf.json" 2>/dev/null
-    elif command -v gobuster &>/dev/null; then
-      gobuster dir -u "https://$TARGET" -w /usr/share/wordlists/dirb/common.txt -o "$OUTPUT_DIR/gobuster.txt" 2>/dev/null
-    else
-      echo "  → ffuf/gobuster not installed, skipping"
-    fi
-    echo "  → Results in $OUTPUT_DIR/"
-    ;;
-  *)
-    echo "Unknown mode: $MODE"
-    echo "Usage: $0 <target> [quick|full|web]"
-    exit 1
-    ;;
-esac
+# 2. Web vulnerability scan via hackbot (eat credits)
+if [ "$MODE" = "web" ] || [ "$MODE" = "full" ] || [ "$MODE" = "quick" ]; then
+ if curl -s --max-time 3 http://localhost:5555/api/health >/dev/null 2>&1; then
+   echo "[hackbot] Running web vulnerability scanner (credit pool)..."
+   VULN_RESP=$(curl -s --max-time 60 -X POST http://localhost:5555/api/chat \
+     -H "Content-Type: application/json" \
+     -d "{\"message\": \"Scan http://$TARGET for CVE, OWASP Top 10, CWE vulnerabilities. Detailed report.\"}" 2>&1)
+   if [ -n "$VULN_RESP" ]; then
+     echo "$VULN_RESP"
+     echo ""
+   fi
+ fi
+fi
+
+# 3. nmap vulnerability scan (local, no credits)
+if [ "$MODE" = "quick" ] || [ "$MODE" = "full" ]; then
+ echo "[nmap] Running vulnerability scan..."
+ nmap --script vuln -p 80,443,22,8080 "$TARGET" 2>&1
+ echo ""
+fi
+
+# 4. Codex fallback (local proxy, no credits)
+if command -v codex &>/dev/null; then
+ echo "[codex] Fallback: security analysis with Codex..."
+ CODEX_OUTPUT=$(timeout 60 codex exec "Security assessment of $TARGET. Mode: $MODE. Identify risks and remediation." 2>&1)
+ if [ $? -eq 0 ] && [ -n "$CODEX_OUTPUT" ]; then
+   echo "$CODEX_OUTPUT"
+ fi
+fi
+
+# 5. Ollama last resort
+if command -v ollama &>/dev/null; then
+ echo "[ollama] Last resort: Ollama..."
+ ollama run kimi-k2.7-code:cloud "Security assessment of $TARGET. Mode: $MODE. Identify attack surface, risks, remediation." 2>&1
+fi
 
 echo ""
-echo "╔══════════════════════════════════════╗"
-echo "║  SECURITY AGENT — COMPLETE"
-echo "╚══════════════════════════════════════╝"
+echo "✅ Security assessment complete"
