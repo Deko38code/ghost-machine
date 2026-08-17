@@ -5825,11 +5825,6 @@ async function phantomChatAgentStructured({ userMessage, model, tools, reasoning
  if(!reasoningOnly){ await answerPhase(ctx, model, tools || {}, null); }
     const phaseName = phase.name;
     phaseTexts[phaseName] = phaseText;
-    // Also add to history for compatibility with existing code
-    ctx.history.push(phaseText);
-  }
-
-  // Return both the context (for backward compatibility) and the structured phase texts
   return {
     ctx,
     phaseTexts
