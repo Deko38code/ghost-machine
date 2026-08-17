@@ -5610,8 +5610,8 @@ async function phantomChatAgentStream({ userMessage, model, tools, onToken, reas
   ];
   if(!reasoningOnly) phases.push(answerPhase);
 
-  for(const phase of phases){
-    await phase(ctx, model, tools || {}, onToken);
+  for(let i=0;i<phases.length;i++){
+    const isLast = (i === phases.length - 1); await phases[i](ctx, model, tools || {}, isLast ? onToken : null);
   }
 
   return ctx.history.join('\n');
@@ -5637,7 +5637,7 @@ async function phantomChatAgentStructured({ userMessage, model, tools, reasoning
   // Store the text from each phase separately
   const phaseTexts = {};
 
-  for(const phase of phases){
+  for(let i=0;i<phases.length;i++){
     // Create a variable to capture the phase text
     let phaseText = '';
     await phase(ctx, model, tools || {}, {
