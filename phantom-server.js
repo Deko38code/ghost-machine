@@ -3020,6 +3020,113 @@ app.get('/api/status', async (req, res) => {
 app.get('/api/health', (req, res) => {
     // Simple health check for external monitoring
     res.status(200).send('OK');
+// === MINIFORGE BOT INTEGRATION (free bots from Miniforge platform) ===
+const MINIFORGE_BASE = process.env.MINIFORGE_URL || 'http://127.0.0.1:5555';
+
+// GET /api/miniforge/bots - list available free bots
+app.get('/api/miniforge/bots', async (req, res) => {
+ try {
+  const category = req.query.category || '';
+  const limit = req.query.limit || 100;
+  const url = category ? `${MINIFORGE_BASE}/api/apps?limit=${limit}&category=${encodeURIComponent(category)}` : `${MINIFORGE_BASE}/api/apps?limit=${limit}`;
+  const resp = await fetch(url, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Miniforge unavailable', status: resp.status });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Miniforge bridge offline: ' + e.message });
+ }
+});
+
+// GET /api/miniforge/bots/search?q=keyword - client-side filter over list
+app.get('/api/miniforge/bots/search', async (req, res) => {
+ try {
+  const q = (req.query.q || '').toLowerCase();
+  if(!q) return res.status(400).json({ error: 'query param q required' });
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps?limit=500`, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Miniforge unavailable' });
+  const data = await resp.json();
+  const bots = Array.isArray(data) ? data : (data.apps || data.bots || []);
+  const filtered = bots.filter(b => {
+   const title = (b.title || b.name || '').toLowerCase();
+   const desc = (b.description || '').toLowerCase();
+   const cat = (b.category || '').toLowerCase();
+   return title.includes(q) || desc.includes(q) || cat.includes(q);
+  });
+  res.json(filtered);
+ } catch(e) {
+  res.status(502).json({ error: 'Miniforge search failed: ' + e.message });
+ }
+});
+
+// GET /api/miniforge/bots/:slug - get bot details
+app.get('/api/miniforge/bots/:slug', async (req, res) => {
+ try {
+  const slug = req.params.slug;
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Bot not found' });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Failed to get bot: ' + e.message });
+ }
+});
+
+// POST /api/miniforge/bots/:slug/chat - chat with a free Miniforge bot
+app.post('/api/miniforge/bots/:slug/chat', async (req, res) => {
+ try {
+  const slug = req.params.slug;
+  const { message, session_id } = req.body;
+  if(!message) return res.status(400).json({ error: 'message required' });
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps/${encodeURIComponent(slug)}/chat`, {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ message, session_id }),
+   signal: AbortSignal.timeout(30000),
+  });
+  if(!resp.ok) return res.status(502).json({ error: 'Bot chat failed' });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Bot chat failed: ' + e.message });
+ }
+});
+
+// GET /api/miniforge/hack-bots - list all hack/exploit bots
+app.get('/api/miniforge/hack-bots', async (req, res) => {
+ try {
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps?limit=100&category=hack`, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Miniforge unavailable' });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Failed: ' + e.message });
+ }
+});
+
+// GET /api/miniforge/security-bots - list all security/pentest bots
+app.get('/api/miniforge/security-bots', async (req, res) => {
+ try {
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps?limit=100&category=security`, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Miniforge unavailable' });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Failed: ' + e.message });
+ }
+});
+
+// GET /api/miniforge/image-bots - list all image generation bots
+app.get('/api/miniforge/image-bots', async (req, res) => {
+ try {
+  const resp = await fetch(`${MINIFORGE_BASE}/api/apps?limit=100&category=image`, { signal: AbortSignal.timeout(30000) });
+  if(!resp.ok) return res.status(502).json({ error: 'Miniforge unavailable' });
+  const data = await resp.json();
+  res.json(data);
+ } catch(e) {
+  res.status(502).json({ error: 'Failed: ' + e.message });
+ }
+});
 });
 
 // ── App updates cross-origin sync (localStorage bridge) ──────────────────────
@@ -8556,7 +8663,7 @@ Output only the code that goes between PREFIX and SUFFIX:`;
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+p.key},
           body: JSON.stringify({ model:p.model, messages, max_tokens:p.max_tokens, temperature:0.1, stop:['\n\n\n','</PREFIX>','</SUFFIX>'] }),
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(30000)
         });
         const d = await r.json();
         const completion = (d.choices?.[0]?.message?.content || '').trim();
@@ -12496,7 +12603,7 @@ app.get('/api/stream/status', async (req,res)=>{
     try {
       const iat = Math.floor(Date.now()/1000);
       const t = streamSign(cfg.secret, {server:true, iat});
-      const r = await fetch(`https://chat.stream-io-api.com/app?api_key=${cfg.key}`, {headers:{'Authorization':t,'stream-auth-type':'jwt'}, signal:AbortSignal.timeout(4000)});
+      const r = await fetch(`https://chat.stream-io-api.com/app?api_key=${cfg.key}`, {headers:{'Authorization':t,'stream-auth-type':'jwt'}, signal:AbortSignal.timeout(30000)});
       status.connected = r.ok;
       status.http_status = r.status;
     } catch(e){ status.connected = false; status.error = String(e); }
@@ -13541,7 +13648,7 @@ async function autoLearnFromAppData(){
 // === PEER SYNC (Phantom <-> haksterAI) ===
 app.get("/api/peer/status", async (_req, res) => {
   try {
-    const resp = await fetch("http://localhost:3579/api/peer/status", { signal: AbortSignal.timeout(3000) });
+    const resp = await fetch("http://localhost:3579/api/peer/status", { signal: AbortSignal.timeout(30000) });
     const data = await resp.json();
     res.json({ connected: true, hakster: data });
   } catch (e) {
@@ -13562,7 +13669,7 @@ app.post("/api/peer/sync", async (_req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source: "phantom", memories: [{ key: "phantom_status", value: "online" }] }),
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(30000)
     });
     const result = await resp.json();
     res.json({ synced: true, hakster: result });
