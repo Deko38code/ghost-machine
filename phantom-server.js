@@ -5910,10 +5910,17 @@ async function toolPhase(ctx, model, tools, onToken){
 ${ctx.history.join('\n')}
 </CONTEXT>
 
-Output:
-<TOOLCALL tool="name">
-{ "args": ... }
+You MUST call a tool to complete this task. Choose from the available tools listed above.
+If no tool is needed, output <TOOLCALL tool="none">{}</TOOLCALL>.
+Otherwise output a tool call in this EXACT format:
+
+<TOOLCALL tool="run_command">
+{ "args": { "cmd": "the command to run" } }
 </TOOLCALL>
+
+Available tools: run_command, read_file, write_file, list_files, web_search, web_fetch, browser_navigate, screenshot, nmap_scan, http_request, grep, memory
+
+Output ONLY the TOOLCALL block, nothing else:
   `.trim();
 
   let buffer = '';
