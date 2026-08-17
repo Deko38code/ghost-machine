@@ -5766,9 +5766,24 @@ async function phantomChatAgentStream({ userMessage, model, tools, onToken, reas
   ];
   if(!reasoningOnly) phases.push(answerPhase);
 
-  for(let i=0;i<phases.length;i++){
-    const isLast = (i === phases.length - 1); await phases[i](ctx, model, tools || {}, isLast ? onToken : null);
-  }
+ // Run init, plan, reasoning phases (silent)
+ await initPhase(ctx, model, tools || {}, null);
+ await planPhase(ctx, model, tools || {}, null);
+ await reasoningPhase(ctx, model, tools || {}, null);
+
+ // Tool loop: repeat tool->reflect->reasoning until model says "none" or max 10 rounds
+ const MAX_TOOL_ROUNDS = 10;
+ for(let round = 0; round < MAX_TOOL_ROUNDS; round++){
+ await toolPhase(ctx, model, tools || {}, null);
+ const lastEntry = ctx.history[ctx.history.length - 1] || "";
+ const toolMatch = lastEntry.match(/<TOOLCALL tool="(.*?)">/);
+ if(!toolMatch || toolMatch[1] === "none"){ break; }
+ await reflectPhase(ctx, model, tools || {}, null);
+ await reasoningPhase(ctx, model, tools || {}, null);
+ }
+
+ // Final answer phase - stream to client
+ if(!reasoningOnly){ await answerPhase(ctx, model, tools || {}, onToken); }
 
   return ctx.history.join('\n');
 }
