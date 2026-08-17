@@ -3048,10 +3048,11 @@ app.get('/api/miniforge/bots/search', async (req, res) => {
   const data = await resp.json();
   const bots = Array.isArray(data) ? data : (data.apps || data.bots || []);
   const filtered = bots.filter(b => {
-   const title = (b.title || b.name || '').toLowerCase();
+   const title = (b.name || b.title || '').toLowerCase();
    const desc = (b.description || '').toLowerCase();
    const cat = (b.category || '').toLowerCase();
-   return title.includes(q) || desc.includes(q) || cat.includes(q);
+   const slug = (b.slug || '').toLowerCase();
+   return title.includes(q) || desc.includes(q) || cat.includes(q) || slug.includes(q);
   });
   res.json(filtered);
  } catch(e) {
