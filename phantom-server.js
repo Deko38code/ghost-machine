@@ -13311,6 +13311,39 @@ async function autoLearnFromAppData(){
 }
 
 // ─── START ─────────────────────────────────────────────────
+// === PEER SYNC (Phantom <-> haksterAI) ===
+app.get("/api/peer/status", async (_req, res) => {
+  try {
+    const resp = await fetch("http://localhost:3579/api/peer/status", { signal: AbortSignal.timeout(3000) });
+    const data = await resp.json();
+    res.json({ connected: true, hakster: data });
+  } catch (e) {
+    res.json({ connected: false, error: e.message });
+  }
+});
+app.post("/api/peer/receive", async (req, res) => {
+  try {
+    const { source, memories } = req.body || {};
+    res.json({ received: (memories || []).length, source: source || "unknown" });
+  } catch (e) {
+    res.json({ received: 0, error: e.message });
+  }
+});
+app.post("/api/peer/sync", async (_req, res) => {
+  try {
+    const resp = await fetch("http://localhost:3579/api/peer/receive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: "phantom", memories: [{ key: "phantom_status", value: "online" }] }),
+      signal: AbortSignal.timeout(5000)
+    });
+    const result = await resp.json();
+    res.json({ synced: true, hakster: result });
+  } catch (e) {
+    res.json({ synced: false, error: e.message });
+  }
+});
+// === END PEER SYNC ===
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`
   ╔══════════════════════════════════════════════╗
@@ -14048,6 +14081,7 @@ app.get('/api/proxy', async (req, res) => {
 });
 
 app.post('/api/proxy-get', async (req, res) => {
+
   const { url } = req.body || {};
   if(!url || !url.startsWith('http')){ return res.status(400).json({error:'Bad URL'}); }
   try {
