@@ -5772,7 +5772,7 @@ async function phantomChatAgentStream({ userMessage, model, tools, onToken, reas
  await reasoningPhase(ctx, model, tools || {}, null);
 
  // Tool loop: repeat tool->reflect->reasoning until model says "none" or max 10 rounds
- const MAX_TOOL_ROUNDS = 10;
+ const MAX_TOOL_ROUNDS = 120;
  for(let round = 0; round < MAX_TOOL_ROUNDS; round++){
  await toolPhase(ctx, model, tools || {}, null);
  const lastEntry = ctx.history[ctx.history.length - 1] || "";
@@ -5805,19 +5805,24 @@ async function phantomChatAgentStructured({ userMessage, model, tools, reasoning
   ];
   if(!reasoningOnly) phases.push(answerPhase);
 
-  // Store the text from each phase separately
-  const phaseTexts = {};
+ // Run init, plan, reasoning (silent)
+ await initPhase(ctx, model, tools || {}, null);
+ await planPhase(ctx, model, tools || {}, null);
+ await reasoningPhase(ctx, model, tools || {}, null);
 
-  for(let i=0;i<phases.length;i++){
-    // Create a variable to capture the phase text
-    let phaseText = '';
-    await phase(ctx, model, tools || {}, {
-      // Custom onToken function that accumulates tokens for this phase
-      token: (token) => {
-        phaseText += token;
-      }
-    });
-    // Store the phase text with the phase name as key
+ // Tool loop: repeat tool->reflect->reasoning until "none" or max 120 rounds
+ const MAX_TOOL_ROUNDS = 120;
+ for(let round = 0; round < MAX_TOOL_ROUNDS; round++){
+ await toolPhase(ctx, model, tools || {}, null);
+ const lastEntry = ctx.history[ctx.history.length - 1] || "";
+ const toolMatch = lastEntry.match(/<TOOLCALL tool="(.*?)">/);
+ if(!toolMatch || toolMatch[1] === "none"){ break; }
+ await reflectPhase(ctx, model, tools || {}, null);
+ await reasoningPhase(ctx, model, tools || {}, null);
+ }
+
+ // Final answer
+ if(!reasoningOnly){ await answerPhase(ctx, model, tools || {}, null); }
     const phaseName = phase.name;
     phaseTexts[phaseName] = phaseText;
     // Also add to history for compatibility with existing code
