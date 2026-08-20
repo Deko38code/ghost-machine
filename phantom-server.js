@@ -3948,7 +3948,7 @@ async function callProviderOnce(providerName, apiKey, msgArray, modelOverride){
   const DEFAULT_MODELS = {
     openai:       'gpt-4o',
     anthropic:    'claude-sonnet-4-6',
-    groq:         'llama-3.3-70b-versatile',
+    groq:         'openai/gpt-oss-120b',
     together:     'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
     mistral:      'mistral-large-latest',
     cohere:       'command-r-plus',
@@ -3978,6 +3978,7 @@ ollama: 'hp-1000:latest',
     lmstudio:     'local-model',         // LM Studio local server port 1234
     jan:          'local-model',         // Jan.ai local server port 1337
     copilot:      'gpt-4o',              // GitHub Copilot bypass
+    miniforge:    'chatgpt',             // local Miniforge bot (free, instant)
   };
 
   // ChatGPT model variants
@@ -3990,7 +3991,16 @@ ollama: 'hp-1000:latest',
 
   let endpoint, headers, bodyObj;
 
-  if(providerName === 'gemini' || providerName === 'gemini-flash'){
+  // ── Miniforge: local bot proxy (free, instant, no API key needed) ──
+  // Miniapps.ai bots proxied locally via Miniforge on port 5555
+  if(providerName === 'miniforge'){
+    const botSlug = model || 'cheat';
+    const lastUser = msgArray.filter(m=>m.role==='user').pop();
+    endpoint = `http://localhost:5555/api/apps/${botSlug}/chat`;
+    headers = { 'Content-Type':'application/json' };
+    bodyObj = { message: lastUser?.content || '' };
+    // Miniforge returns { reply: "...", session_id: "..." } — handle in response parsing below
+  } else if(providerName === 'gemini' || providerName === 'gemini-flash'){
     const gModel = providerName === 'gemini-flash' ? 'gemini-2.0-flash-lite' : model;
     endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${apiKey}`;
     headers  = { 'Content-Type':'application/json' };
@@ -4025,7 +4035,7 @@ ollama: 'hp-1000:latest',
     const lastMsg = msgArray.filter(m=>m.role!=='system').pop();
     bodyObj = { model, message: lastMsg?.content || '',
       chat_history: chatHistory2, preamble: msgArray.find(m=>m.role==='system')?.content||'' };
-  } else {
+  } else if(providerName !== 'miniforge' && providerName !== 'gemini' && providerName !== 'gemini-flash' && providerName !== 'anthropic' && providerName !== 'cohere') {
     const ENDPOINTS = {
       openai:        'https://api.openai.com/v1/chat/completions',
       groq:          'https://api.groq.com/openai/v1/chat/completions',
@@ -4055,6 +4065,7 @@ ollama: 'hp-1000:latest',
       glhf:          'https://glhf.chat/api/openai/v1/chat/completions',
       featherless:   'https://api.featherless.ai/v1/chat/completions',
       aimlapi:       'https://api.aimlapi.com/v1/chat/completions',
+      miniforge:     'http://localhost:5555/api/apps/chatgpt/chat',
     };
     // Some providers share an endpoint with another — use config override if present
     const cfgEndpoint = (loadAIConfig()[providerName] || {}).endpoint;
@@ -4062,7 +4073,7 @@ ollama: 'hp-1000:latest',
     // deepseek/mistral routed via siliconflow/huggingface use their respective endpoints
     if(providerName === 'deepseek' && !cfgEndpoint) endpoint = ENDPOINTS.siliconflow;
     if(providerName === 'mistral'  && !cfgEndpoint) endpoint = ENDPOINTS.huggingface;
-    const NO_AUTH_PROVIDERS = new Set(['ollama','lmstudio','jan']);
+    const NO_AUTH_PROVIDERS = new Set(['ollama','lmstudio','jan','miniforge']);
     // Pollinations: send auth header when a real API key is configured
     const _aiCfg = loadAIConfig();
     const pollKey = _aiCfg.pollinations?.key || '';
@@ -4081,7 +4092,9 @@ ollama: 'hp-1000:latest',
       ...authHeader,
       ...extraHeaders
     };
-    bodyObj = { model, max_tokens:8192, stream:false, messages:msgArray };
+    // Groq gpt-oss-120b has 8000 TPM limit on free tier — keep max_tokens low
+    const _groqMaxTok = providerName === 'groq' ? 2048 : 8192;
+    bodyObj = { model, max_tokens:_groqMaxTok, stream:false, messages:msgArray };
   }
 
   return new Promise((resolve, reject) => {
@@ -4091,6 +4104,7 @@ ollama: 'hp-1000:latest',
 
     const req2 = mod2.request({
       hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
       path: parsedUrl.pathname + parsedUrl.search,
       method: 'POST',
       headers: { ...headers, 'Content-Length': Buffer.byteLength(bodyStr) }
@@ -4120,7 +4134,8 @@ ollama: 'hp-1000:latest',
             return reject({ type:'client_error', status, msg: d.error?.message||data.slice(0,200) });
           }
           let text = '';
-          if(providerName==='anthropic') text = d.content?.[0]?.text || '';
+          if(providerName==='miniforge') text = d.reply || '';
+          else if(providerName==='anthropic') text = d.content?.[0]?.text || '';
           else if(providerName==='gemini') text = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
           else if(providerName==='cohere') text = d.text || '';
           else text = d.choices?.[0]?.message?.content || '';
@@ -4128,7 +4143,7 @@ ollama: 'hp-1000:latest',
         } catch(e){ reject({ type:'parse', msg:e.message, raw:data.slice(0,200) }); }
       });
     });
-    req2.on('error', e => reject({ type:'network', msg:e.message }));
+    req2.on('error', e => { reject({ type:'network', msg:e.message }); });
     // 55s timeout per call (leaves buffer before 60s express timeout)
     req2.setTimeout(55000, () => { req2.destroy(); reject({ type:'timeout', msg:'Request timed out after 55s' }); });
     req2.write(bodyStr);
@@ -4210,10 +4225,13 @@ async function _checkTokenBudget(req){
   // Pull real DB total for this month
   let usedThisMonth = 0;
   try{
-    const r = await db.query(
-      `SELECT COALESCE(SUM(tokens_used),0) AS total FROM token_usage_log WHERE user_id=$1 AND created_at>=$2`,
-      [key, monthStart]
-    );
+    const r = await Promise.race([
+      db.query(
+        `SELECT COALESCE(SUM(tokens_used),0) AS total FROM token_usage_log WHERE user_id=$1 AND created_at>=$2`,
+        [key, monthStart]
+      ),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('DB timeout')), 3000))
+    ]);
     usedThisMonth = Number(r.rows[0]?.total || 0);
   } catch {
     // DB unavailable — fall back to in-memory
@@ -4350,14 +4368,13 @@ app.post('/api/ai/chat', async (req, res) => {
   // Priority: best configured providers first, then unconfigured fallbacks
   const FALLBACK_ORDER = [
     // ── Tier 1: Local (instant, no network) ──────────────────────
-    'ollama',       // local Ollama — qwen3.5, no latency
+    'miniforge',    // local Miniforge bots (miniapps.ai proxy, free, instant)
+    'ollama',       // local Ollama — hp-1000, no latency (but slow on 7GB RAM)
     'ollama-rotating', // rotating local Ollama slot
     'lmstudio',     // LM Studio local port 1234
     'jan',          // Jan.ai local port 1337
     // ── Tier 2: High-quality cloud free ─────────────────────────
-    'sambanova',    // Llama-3.3-70B free tier
-    'groq',         // Llama-3.3-70B, 800 tok/s free tier
-    'cerebras',     // Llama-3.3-70B, 2000 tok/s free
+    'groq',         // gpt-oss-120b, 800 tok/s free tier
     'gemini-flash', // Gemini 2.0 Flash Lite
     'gemini',       // Gemini 2.5 Flash, 1500 req/day free
     'minimax',      // MiniMax-Text-01 free tier
@@ -4385,7 +4402,7 @@ app.post('/api/ai/chat', async (req, res) => {
     'huggingface',  // Llama-3.3-70B HF
   ];
   // No-key providers are always available without a configured key
-  const NO_KEY_PROVIDERS = new Set(['pollinations','lmstudio','jan','ollama-rotating']);
+  const NO_KEY_PROVIDERS = new Set(['pollinations','lmstudio','jan','ollama-rotating','miniforge']);
   const others = FALLBACK_ORDER.filter(p => p !== provider && (cfg[p]?.key || NO_KEY_PROVIDERS.has(p)));
   const chain  = [provider, ...others];
 
@@ -4577,7 +4594,7 @@ Guidelines:
   }
 
   const cfg = loadAIConfig();
-  const NO_KEY_PROVIDERS = new Set(['ollama','pollinations','lmstudio','jan']);
+  const NO_KEY_PROVIDERS = new Set(['ollama','pollinations','lmstudio','jan','miniforge']);
   const chain = [provider, 'ollama','groq','gemini','sambanova','openrouter','pollinations','anthropic','openai']
     .filter((p,i,arr)=>arr.indexOf(p)===i)
     .filter(p=>cfg[p]?.key || NO_KEY_PROVIDERS.has(p));
