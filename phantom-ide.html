@@ -1633,7 +1633,7 @@ body.matrix-mode .logo>span:first-child{animation:glitch 5s infinite;}
         </div>
       </div>
       <!-- Typing animation -->
-      <div id="chat-typing" style="display:none;padding:8px 12px;font-size:.65rem;color:#4488ff;">
+      <div id="chat-typing" style="display:none;padding:8px 12px;font-size:.65rem;color:#4488ff;flex-shrink:0;">
         <span id="chat-typing-dots" style="display:inline-flex;gap:3px;">
           <span style="animation:dot-bounce .6s 0s infinite both;width:6px;height:6px;background:#4488ff;border-radius:50%;display:inline-block;"></span>
           <span style="animation:dot-bounce .6s .2s infinite both;width:6px;height:6px;background:#4488ff;border-radius:50%;display:inline-block;"></span>
@@ -1641,8 +1641,8 @@ body.matrix-mode .logo>span:first-child{animation:glitch 5s infinite;}
         </span>
         <span id="chat-typing-label" style="margin-left:6px;">AI is thinking...</span>
       </div>
-      <!-- TRAE-STYLE UNIFIED INPUT BOX -->
-      <div style="position:relative;margin:8px;border:1px solid #00ff4122;border-radius:12px;background:#07070f;overflow:visible;display:flex;flex-direction:column;">
+      <!-- TRAE-STYLE UNIFIED INPUT BOX — pinned to bottom -->
+      <div style="position:relative;margin:8px;border:1px solid #00ff4122;border-radius:12px;background:#07070f;overflow:visible;display:flex;flex-direction:column;flex-shrink:0;flex-grow:0;">
         <textarea class="chat-input" id="chat-input" placeholder="Ask anything or give a task — auto-routes to right agent..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}" style="border:none;border-radius:12px 12px 0 0;background:transparent;resize:none;min-height:56px;max-height:120px;padding:10px 12px 4px;"></textarea>
         <!-- Bottom bar: agent pill left, send right -->
         <div style="display:flex;align-items:center;padding:5px 8px;border-top:1px solid #ffffff08;">
@@ -1918,7 +1918,8 @@ body.matrix-mode .logo>span:first-child{animation:glitch 5s infinite;}
         <div class="form-label">Model</div>
         <div style="display:flex;gap:8px;">
           <select class="form-select" id="ollama-model" style="flex:1;">
-            <option value="qwen2.5-coder:7b-instruct-q5_K_M">qwen2.5-coder:7b ⭐ lead coder</option>
+            <option value="hp-1000:latest">hp-1000 ⭐ lead coder</option>
+<option value="qwen2.5-coder:7b-instruct-q5_K_M">qwen2.5-coder:7b</option>
             <option value="codellama:7b">codellama:7b — reviewer</option>
             <option value="deepseek-r1:7b">deepseek-r1:7b — reasoner</option>
             <option value="mistral:7b-instruct-q4_0">mistral:7b — general</option>
@@ -5558,19 +5559,202 @@ async function chatSendExternal(){
   const sendBtn = document.getElementById('chat-send-btn');
   if(sendBtn){ sendBtn.disabled=true; sendBtn.textContent='⏳...'; }
 
+  // Qwen-style thinking phrases — cycle while waiting for response
+  const THINKING_PHRASES = [
+    'analyzing request…', 'reading codebase…', 'checking machine health…',
+    'loading tools…', 'scanning context…', 'planning approach…',
+    'evaluating options…', 'searching for patterns…', 'cross-referencing…',
+    'building solution…', 'verifying syntax…', 'preparing response…',
+    'optimizing…', 'fetching data…', 'reasoning…', 'thinking deeply…',
+    'connecting to models…', 'routing through chain…', 'injecting brain skills…',
+    'inspecting files…', 'running diagnostics…', 'considering edge cases…',
+  ];
+  let phraseIdx = 0;
+  let thinkingTimer = setInterval(()=>{
+    if(typingEl && typingEl.style.display !== 'none'){
+      phraseIdx = (phraseIdx + 1) % THINKING_PHRASES.length;
+      const dots = '.'.repeat((phraseIdx % 3) + 1);
+      if(typingLbl) typingLbl.textContent = THINKING_PHRASES[phraseIdx] + dots;
+    }
+  }, 800);
+
   try {
     let resp = '';
-    if(currentChatAI === 'ghost' && ollamaConnected){
-      // Ollama streaming chat
-      const res = await ollamaChat([
-        {role:'system',content:'You are Ghost, an expert coding AI inside Phantom IDE. Give concise, accurate answers. For code questions: code first, brief explanation after.'},
-        ...chatHistory.slice(-20)
-      ]);
-      const reader = res.body.getReader(); const dec = new TextDecoder();
-      while(true){ const {done,value}=await reader.read(); if(done) break;
-        dec.decode(value).split('\n').filter(Boolean).forEach(l=>{
-          try{const j=JSON.parse(l);if(j.message?.content)resp+=j.message.content;}catch{}}); }
-      resp = resp.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+    if(currentChatAI === 'ghost'){
+      // Route through /api/chat agent endpoint — 120-round tool loop with SSE events
+      const agentRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: msg, provider: 'ollama' })
+      });
+      if(agentRes.ok && agentRes.body){
+        const reader = agentRes.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+        let aiDiv = null;
+        let toolChecklist = [];
+        let roundNum = 0, totalRounds = 120;
+        let inAnswer = false;
+
+        while(true){
+          const {done, value} = await reader.read();
+          if(done) break;
+          buf += dec.decode(value, {stream:true});
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+
+          for(const line of lines){
+            const trimmed = line.trim();
+            if(!trimmed || !trimmed.startsWith('data: ')) continue;
+            const payload = trimmed.slice(6).trim();
+
+            if(payload === '[DONE]'){ break; }
+
+            // Parse structured SSE events
+            if(payload.startsWith('[BRAIN]')){
+              if(typingLbl) typingLbl.textContent = '🧠 loading brain skills…';
+              continue;
+            }
+            if(payload.startsWith('[AGENT_START]')){
+              if(typingLbl) typingLbl.textContent = '👻 phantom agent starting…';
+              continue;
+            }
+            if(payload.startsWith('[HEALTH]')){
+              if(typingLbl) typingLbl.textContent = '🏥 checking machine health…';
+              continue;
+            }
+            if(payload.startsWith('[ROUND]')){
+              const parts = payload.slice(7).split('/');
+              roundNum = parseInt(parts[0]) || 0;
+              totalRounds = parseInt(parts[1]) || 120;
+              if(typingLbl) typingLbl.textContent = `🔄 round ${roundNum}/${totalRounds}…`;
+              continue;
+            }
+            if(payload.startsWith('[THINKING]')){
+              const thought = payload.slice(10).trim();
+              if(typingLbl && thought) typingLbl.textContent = '💭 ' + thought.slice(0, 60);
+              continue;
+            }
+            if(payload.startsWith('[TOOLS]')){
+              const count = payload.slice(7).trim();
+              if(typingLbl) typingLbl.textContent = `🔧 preparing ${count} tool call${count!=='1'?'s':''}…`;
+              continue;
+            }
+            if(payload.startsWith('[TOOL_CALL]')){
+              try {
+                const tc = JSON.parse(payload.slice(11));
+                const toolName = tc.name || tc.tool || 'unknown';
+                const toolArgs = tc.args || tc.arguments || {};
+                const argStr = typeof toolArgs === 'string' ? toolArgs.slice(0,80) : JSON.stringify(toolArgs).slice(0,80);
+                toolChecklist.push({name: toolName, args: argStr, status: 'pending'});
+                if(typingLbl) typingLbl.textContent = `⚡ calling ${toolName}…`;
+                // Update or create AI bubble with checklist
+                if(!aiDiv){
+                  aiDiv = appendChatMsg('ai', '', true, '👻 Phantom');
+                }
+                let checklistHtml = '<div style="font-size:.6rem;color:#888;line-height:1.8;">';
+                checklistHtml += `<div style="color:var(--green);margin-bottom:4px;">⚙️ Tool calls:</div>`;
+                toolChecklist.forEach((t, i) => {
+                  const icon = t.status === 'done' ? '✅' : t.status === 'failed' ? '❌' : '⏳';
+                  checklistHtml += `<div style="padding:1px 0;">${icon} <span style="color:#0af">${escHtml(t.name)}</span> <span style="color:#555">${escHtml(t.args)}</span></div>`;
+                });
+                checklistHtml += '</div>';
+                aiDiv.innerHTML = `<div class="ai-label">👻 Phantom</div>${checklistHtml}`;
+                document.getElementById('chat-messages').scrollTop = 9999;
+              } catch {}
+              continue;
+            }
+            if(payload.startsWith('[TOOL_DONE]')){
+              try {
+                const td = JSON.parse(payload.slice(11));
+                if(toolChecklist.length > 0){
+                  const last = toolChecklist[toolChecklist.length - 1];
+                  last.status = td.ok ? 'done' : 'failed';
+                }
+                if(typingLbl) typingLbl.textContent = '✅ tool complete, feeding result…';
+              } catch {}
+              continue;
+            }
+            if(payload.startsWith('[TOOL_RESULT]')){
+              try {
+                const tr = JSON.parse(payload.slice(13));
+                if(toolChecklist.length > 0){
+                  toolChecklist[toolChecklist.length - 1].status = 'done';
+                }
+                if(typingLbl) typingLbl.textContent = '📥 processing result…';
+                // Update checklist
+                if(aiDiv){
+                  let checklistHtml = '<div style="font-size:.6rem;color:#888;line-height:1.8;">';
+                  checklistHtml += `<div style="color:var(--green);margin-bottom:4px;">⚙️ Tool calls:</div>`;
+                  toolChecklist.forEach((t, i) => {
+                    const icon = t.status === 'done' ? '✅' : t.status === 'failed' ? '❌' : '⏳';
+                    checklistHtml += `<div style="padding:1px 0;">${icon} <span style="color:#0af">${escHtml(t.name)}</span> <span style="color:#555">${escHtml(t.args)}</span></div>`;
+                  });
+                  const resultPreview = typeof tr === 'object' ? JSON.stringify(tr).slice(0,200) : String(tr).slice(0,200);
+                  checklistHtml += `<div style="color:#666;margin-top:4px;font-size:.55rem;">📋 ${escHtml(resultPreview)}</div>`;
+                  checklistHtml += '</div>';
+                  aiDiv.innerHTML = `<div class="ai-label">👻 Phantom</div>${checklistHtml}`;
+                  document.getElementById('chat-messages').scrollTop = 9999;
+                }
+              } catch {}
+              continue;
+            }
+            if(payload.startsWith('[TOOLS_END]')){
+              if(typingLbl) typingLbl.textContent = '🔄 tools done, thinking…';
+              continue;
+            }
+            if(payload.startsWith('[ANSWER_START]')){
+              inAnswer = true;
+              if(typingEl) typingEl.style.display = 'none';
+              // Create fresh AI bubble for the answer
+              aiDiv = appendChatMsg('ai', '', true, '👻 Phantom');
+              continue;
+            }
+            if(payload.startsWith('[ANSWER_END]')){
+              inAnswer = false;
+              continue;
+            }
+            if(payload.startsWith('[ERROR]')){
+              const errMsg = payload.slice(7).trim();
+              resp = '⚠️ ' + errMsg;
+              continue;
+            }
+            if(payload.startsWith('[AGENT_END]')){
+              continue;
+            }
+            // Plain text within answer phase = streamed answer tokens
+            if(inAnswer && aiDiv){
+              resp += payload;
+              // Render markdown-lite: code blocks, bold, inline code
+              const html = resp
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre style="background:#0a0a14;border:1px solid #1a1a2e;border-radius:6px;padding:8px;font-size:.65rem;overflow-x:auto;margin:4px 0;">$2</pre>')
+                .replace(/`([^`]+)`/g, '<code style="background:#111122;padding:1px 4px;border-radius:3px;font-size:.65rem;">$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+              aiDiv.innerHTML = `<div class="ai-label">👻 Phantom</div><span>${html}</span>`;
+              document.getElementById('chat-messages').scrollTop = 9999;
+            }
+          }
+        }
+        if(typingEl) typingEl.style.display = 'none';
+        if(!resp && aiDiv){
+          // Answer was streamed into aiDiv already
+          resp = aiDiv.textContent.replace(/^👻 Phantom/, '').trim();
+        }
+        resp = resp.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+        if(!resp) resp = '✅ Done.';
+      } else {
+        // Fallback to old streaming if /api/chat fails
+        const res = await ollamaChat([
+          {role:'system',content:'You are Ghost, an expert coding AI inside Phantom IDE. Give concise, accurate answers. For code questions: code first, brief explanation after.'},
+          ...chatHistory.slice(-20)
+        ]);
+        const reader = res.body.getReader(); const dec = new TextDecoder();
+        while(true){ const {done,value}=await reader.read(); if(done) break;
+          dec.decode(value).split('\n').filter(Boolean).forEach(l=>{
+            try{const j=JSON.parse(l);if(j.message?.content)resp+=j.message.content;}catch{}}); }
+        resp = resp.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+      }
     } else if(currentChatAI === 'codex'){
       // Codex, SambaNova, and all cloud providers — use /api/ai/chat (no streaming)
       const providerMap = {codex:'sambanova', sambanova:'sambanova', groq:'groq', anthropic:'anthropic', openai:'openai', gemini:'gemini', deepseek:'groq'};
@@ -5597,6 +5781,7 @@ async function chatSendExternal(){
     if(typingEl) typingEl.style.display='none';
     appendChatMsg('ai','Error: '+e.message);
   } finally {
+    clearInterval(thinkingTimer);
     window._chatBusy = false;
     if(sendBtn){ sendBtn.disabled=false; sendBtn.textContent='⚡ Send'; }
   }
@@ -7470,7 +7655,7 @@ let _bpModelList = [...BP_PRESET_MODELS];
 let _bpLiveModelSet = new Set();
 
 const BP_LOCAL_MODEL_PRIORITY = [
-  'qwen2.5-coder:7b-instruct',
+  'hp-1000:latest',
   'qwen2.5-coder:3b',
   'qwen2.5:7b-instruct',
   'qwen2.5:3b-instruct',
@@ -10858,7 +11043,7 @@ async function autoConnectOllama(){
         ollamaBase = url; ollamaConnected = true;
         const savedModel = LS.get('ollama',{}).model || '';
         const ordered = bpPreferLocalModels(models);
-        ollamaModel = savedModel && models.includes(savedModel) ? savedModel : (bpStrongestInstalledModel(models) || 'qwen2.5-coder:7b-instruct');
+        ollamaModel = savedModel && models.includes(savedModel) ? savedModel : (bpStrongestInstalledModel(models) || 'hp-1000:latest');
         document.getElementById('ollama-url').value = url;
         // Populate model dropdown
         if(models.length){

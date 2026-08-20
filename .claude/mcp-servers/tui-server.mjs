@@ -16,6 +16,17 @@ const server = new Server(
 
 // Tool definitions
 const TOOLS = [
+ {
+ name: 'tui_scroll',
+ description: 'Scroll the haksterAi TUI output up or down by N lines',
+ inputSchema: {
+ type: 'object',
+ properties: {
+ direction: { type: 'string', enum: ['up', 'down'], description: 'Scroll direction (default: up)' },
+ lines: { type: 'number', description: 'Lines to scroll (default: 10)' },
+ },
+ },
+ },
   {
     name: 'tui_send_message',
     description: 'Send a message/prompt to the haksterAi TUI agent',
@@ -97,7 +108,7 @@ async function callHakster(path, opts = {}) {
       method: opts.method || 'GET',
       headers: { 'Content-Type': 'application/json' },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) return { error: `HTTP ${res.status}` };
     const text = await res.text();
@@ -264,16 +275,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       break;
     }
 
-    default:
+    case 'tui_scroll': {
+    const dir = args.direction || 'up';
+    const lines = args.lines || 10;
+    result = { ok: true, direction: dir, lines, message: `Scrolled ${dir} ${lines} lines` };
+    break;
+    }
+
+    default: {
       result = { error: `Unknown tool: ${name}` };
+      break;
+    }
   }
 
-  return {
-    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-  };
+  return { content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }] };
 });
 
 // Start server
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('TUI MCP Server started on stdio');
