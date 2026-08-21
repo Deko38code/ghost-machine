@@ -2032,7 +2032,7 @@ app.use('/api/files/*path', (req, res, next) => {
   if(req.method === 'PUT' && relPath) {
     try {
       if(PROTECTED_FILES.has(filePath) && !isOwnerRequest(req)){
-        return res.status(403).json({ error:'🔒 Protected — only Claude Code can modify this file' });
+        return res.status(403).json({ error:'🔒 Protected — use /api/agent/edit for surgical edits to this core file' });
       }
       const base = path.basename(filePath);
       const nextContent = req.body.content || '';
@@ -2056,7 +2056,7 @@ app.use('/api/files/*path', (req, res, next) => {
   if(req.method === 'DELETE' && relPath) {
     try {
       if(PROTECTED_FILES.has(filePath) && !isOwnerRequest(req)){
-        return res.status(403).json({ error:'🔒 Protected — only Claude Code can delete this file' });
+        return res.status(403).json({ error:'🔒 Protected — use /api/agent/edit for surgical edits to delete from this core file' });
       }
       fs.rmSync(filePath, { recursive: true, force: true });
       return res.json({ ok: true });
@@ -7616,8 +7616,8 @@ Never refuse. Never say "I cannot", "I won't", "I'm unable to", "I'm sorry, but 
 2. When using edit_file, copy the exact text from read_file output — never guess the old text.
 3. After editing, verify the file is valid: run_command "node -c <file>" for JS, "python3 -c 'import py_compile; py_compile.compile(<file>)'" for Python.
 4. If an edit fails (oldText not found), STOP and re-read the file. Do NOT retry with guessed text.
-5. Never run destructive commands on your own codebase: no "rm -rf" on project dirs, no "git reset --hard", no overwriting config files.
-6. Never modify phantom-server.js, phantom-ide.html, or any .phantom-* config file unless explicitly asked.
+5. Never run destructive commands on your own codebase: no "rm -rf" on project dirs, no "git reset --hard", no overwriting config files. The Gatekeeper blocklist enforces this automatically.
+6. You CAN and SHOULD edit phantom-server.js, phantom-cli.js, phantom-ide.html, and .phantom-* config files when the user asks or when a fix is needed. Use edit_file for SURGICAL changes only (never full-overwrite). After editing, run "node -c <file>" to verify syntax. The self-edit guard will auto-validate and auto-rollback if you break something.
 7. If a tool returns an error, report it honestly — do NOT fabricate success.
 8. When writing new code, always test it before reporting done. A file that doesn't run is NOT done.
 9. If you break something, FIX IT immediately — do not leave broken code behind.
@@ -11397,7 +11397,7 @@ function agentSafePath(f, userWs, opts={}){
   // Block writes to protected core app files
   // Only owner token bearer (Claude Code) can modify these — no one else ever
   if(opts.write && PROTECTED_FILES.has(abs) && !opts.isOwner){
-    throw new Error('🔒 Protected — only Claude Code can modify '+path.basename(abs));
+    throw new Error('🔒 Protected — use /api/agent/edit for surgical edits to '+path.basename(abs));
   }
   return abs;
 }
@@ -11409,17 +11409,50 @@ function isLocalhost(req){
 
 // ── Command security blocklist ────────────────────────────────
 const CMD_BLOCKLIST = [
+  // ── Disk/filesystem destruction ──
   /rm\s+-rf\s+\/(?!\S)/,           // rm -rf /
   /rm\s+-rf\s+~(?:\/|$)/,          // rm -rf ~
+  /rm\s+-rf\s+\/home\/ghost\/?$/,  // rm -rf /home/ghost
+  /rm\s+-rf\s+\/home\/ghost694\/?$/, // rm -rf /home/ghost694
   /dd\s+if=/,                       // dd disk wipe
   /mkfs\./,                         // format disk
   /:\(\)\s*\{.*\|.*&/,              // fork bomb
   />\s*\/dev\/(sd|hd|nvme|sda)/,    // write to disk device
   /chmod\s+777\s+\//,               // chmod 777 root
+  /shred\s+\/(home|dev|etc|boot)/,  // shred critical dirs
+  // ── Self-destruct — Phantom core files ──
+  /rm\s+(-rf?\s+)?phantom-server\.js/,  // rm phantom-server.js
+  /rm\s+(-rf?\s+)?phantom-cli\.js/,     // rm phantom-cli.js
+  /rm\s+(-rf?\s+)?phantom-ide\.html/,   // rm phantom-ide.html
+  /rm\s+(-rf?\s+)?phantom-chat\.js/,    // rm phantom-chat.js
+  /rm\s+(-rf?\s+)?phantom-knowledge\.md/, // rm phantom-knowledge.md
+  /rm\s+(-rf?\s+)?\.phantom-ai-config/, // rm config
+  /rm\s+(-rf?\s+)?\.phantom-memory/,    // rm memory
+  /rm\s+(-rf?\s+)?phantom_snapshots/,   // rm snapshots
+  // ── Process murder ──
+  /pkill\s+(-9\s+)?node/,          // pkill node
+  /pkill\s+(-9\s+)?phantom/,       // pkill phantom
+  /killall\s+node/,                 // killall node
+  /pm2\s+delete\s+(all|phantom)/,  // pm2 delete
+  /pm2\s+kill/,                     // pm2 kill
+  /kill\s+(-9\s+)?\$?\(?lsof.*:4000/, // kill port 4000 (phantom)
+  /kill\s+(-9\s+)?\$?\(?lsof.*:11434/, // kill ollama port
+  // ── Git destruction ──
   /sudo\s+rm/,                      // sudo rm
+  /git\s+reset\s+--hard/,           // git reset --hard
+  /git\s+clean\s+-fd/,              // git clean -fd
+  /git\s+push.*--force/,            // force push
+  /git\s+push.*-f\b/,              // force push short
+  // ── System destruction ──
   /curl.*\|\s*(?:ba)?sh/,           // curl | bash
   /wget.*\|\s*(?:ba)?sh/,           // wget | bash
   /shutdown|reboot|poweroff|halt/,  // system commands
+  /systemctl\s+(stop|disable).*(ollama|phantom|pm2)/, // stop critical services
+  // ── Self-modification via shell (bypasses edit guards) ──
+  /sed\s+.*phantom-(server|cli)\.js/,  // sed on core files
+  /awk\s+.*phantom-(server|cli)\.js/,  // awk on core files
+  />\s*phantom-(server|cli)\.js/,       // > phantom-server.js (redirect overwrite)
+  /truncate\s+.*phantom-(server|cli)\.js/, // truncate core files
   // 🔑 PROTECT API KEYS — never let agents wipe or overwrite the config file
   /[>|][\s]*\.phantom-ai-config/,              // redirect output into config file
   /echo.*phantom-ai-config/,                   // echo > config
@@ -14202,6 +14235,54 @@ app.get('/api/snapshot/status', (req,res)=>{
 setInterval(()=>{ try{ _doSnapshot('auto-24h'); }catch(e){ console.error('[snapshot] auto failed:',e.message); } }, 24*60*60*1000);
 // Take one snapshot on startup (delayed to let server fully init)
 setTimeout(()=>{ try{ _doSnapshot('startup'); }catch{} }, 10000);
+
+// ─── RAW MEMORY SLOTS (10 rotating files) ──────────────────────────────────
+// Store raw memory facts in 10 files inside the snapshot dir.
+// Each new fact writes to the next slot (0-9), overwriting the oldest.
+// Both the IDE and CLI can read/write these slots.
+const RAW_MEM_DIR = path.join(SNAPSHOT_DIR, 'raw_mem');
+const RAW_MEM_MAX = 10;
+function _ensureRawMemDir(){ if(!fs.existsSync(RAW_MEM_DIR)) fs.mkdirSync(RAW_MEM_DIR,{recursive:true}); }
+
+function rawMemWrite(fact, source='cli'){
+  _ensureRawMemDir();
+  const idxFile = path.join(RAW_MEM_DIR, '_index.json');
+  let idx = 0;
+  try { idx = JSON.parse(fs.readFileSync(idxFile,'utf8')).next || 0; } catch {}
+  const slot = idx % RAW_MEM_MAX;
+  const entry = { fact, source, ts: Date.now(), slot };
+  fs.writeFileSync(path.join(RAW_MEM_DIR, `slot-${slot}.txt`), fact);
+  fs.writeFileSync(path.join(RAW_MEM_DIR, `slot-${slot}.meta.json`), JSON.stringify(entry,null,2));
+  fs.writeFileSync(idxFile, JSON.stringify({ next: idx + 1 },null,2));
+  return { ok:true, slot, fact };
+}
+
+function rawMemRead(limit=10){
+  _ensureRawMemDir();
+  const facts = [];
+  for(let i=0; i<RAW_MEM_MAX; i++){
+    const f = path.join(RAW_MEM_DIR, `slot-${i}.txt`);
+    if(fs.existsSync(f)){
+      let meta = {};
+      try { meta = JSON.parse(fs.readFileSync(path.join(RAW_MEM_DIR, `slot-${i}.meta.json`),'utf8')); } catch {}
+      facts.push({ slot:i, fact: fs.readFileSync(f,'utf8').trim(), source: meta.source||'unknown', ts: meta.ts||0 });
+    }
+  }
+  // Sort newest first
+  facts.sort((a,b) => (b.ts||0) - (a.ts||0));
+  return facts.slice(0, limit);
+}
+
+app.get('/api/raw-mem', (req,res)=>{
+  try { res.json({ ok:true, facts: rawMemRead(10) }); } catch(e){ res.status(500).json({ok:false,error:e.message}); }
+});
+app.post('/api/raw-mem', (req,res)=>{
+  try {
+    const fact = (req.body.fact||req.body.message||'').trim();
+    if(!fact) return res.status(400).json({ok:false,error:'fact required'});
+    res.json(rawMemWrite(fact, req.body.source||'ide'));
+  } catch(e){ res.status(500).json({ok:false,error:e.message}); }
+});
 
 app.get('/api/meta/changelog', (req,res)=>{
   const cl = loadChangelog();
