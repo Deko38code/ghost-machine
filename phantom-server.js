@@ -3601,7 +3601,11 @@ app.get('/api/agents', async (req, res) => {
   try{
     const r = await db.query('SELECT * FROM agents WHERE is_active=TRUE ORDER BY usage_count DESC');
     res.json({ agents: r.rows });
-  }catch(e){ res.status(500).json({error:e.message}); }
+  }catch(e){
+    // DB unavailable — fall back to file-based agents
+    const fileAgents = (typeof loadAgentsIndex === 'function' ? loadAgentsIndex() : []);
+    res.json({ agents: fileAgents, source: 'file-fallback' });
+  }
 });
 
 // Get single agent
@@ -5225,7 +5229,7 @@ function openaiCompatStream(hostname, path, apiKey, messages, model, maxTokens=4
   });
 }
 
-async function groqChat(apiKey, messages, model='llama-3.3-70b-versatile', maxTokens=8192){
+async function groqChat(apiKey, messages, model='openai/gpt-oss-120b', maxTokens=2048){
   return openaiCompatStream('api.groq.com', '/openai/v1/chat/completions', apiKey, messages, model, maxTokens);
 }
 
@@ -8710,7 +8714,7 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
         }
       }
       if(pinnedProvider === 'groq'){
-        const gModel = requestedModel || 'llama-3.3-70b-versatile';
+        const gModel = requestedModel || 'openai/gpt-oss-120b';
         const gMsgs = trimMessagesForProvider(messages, 'groq', 30000);
         // Rotation: try all available groq keys until one works
         const gKeys = [groqKey, groqKey2].filter(k => k && k.startsWith('gsk_'));
@@ -8991,8 +8995,8 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
     if(!groqCoolTime && !groqCool5x){
       const groqKey  = aiCfg.groq?.key;
       const groqKey2 = aiCfg.groq2?.key;
-      const groqModels = ['llama-3.3-70b-versatile','llama-3.1-8b-instant','mixtral-8x7b-32768'];
-      const startModel = (requestedModel && groqModels.includes(requestedModel)) ? requestedModel : 'llama-3.3-70b-versatile';
+      const groqModels = ['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'];
+      const startModel = (requestedModel && groqModels.includes(requestedModel)) ? requestedModel : 'openai/gpt-oss-120b';
       const startIdx = groqModels.indexOf(startModel);
       let groqDone = false;
       for(let attempt=0; attempt<groqModels.length && !groqDone; attempt++){
@@ -10964,7 +10968,7 @@ async function groqCall(messages, maxTokens=2048){
   if(!GROQ_KEY) throw new Error('No Groq key');
   const _https = require('https');
   return new Promise((resolve,reject)=>{
-    const body = JSON.stringify({ model:'llama-3.3-70b-versatile', messages, max_tokens:maxTokens, temperature:0, stream:false });
+    const body = JSON.stringify({ model:'openai/gpt-oss-120b', messages, max_tokens:Math.min(maxTokens,2048), temperature:0, stream:false });
     const req = _https.request({
       hostname:'api.groq.com', path:'/openai/v1/chat/completions', method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY,'Content-Length':Buffer.byteLength(body)}
@@ -11121,7 +11125,7 @@ Output only the code that goes between PREFIX and SUFFIX:`;
 
     // Try providers in order: Groq → OpenAI → HuggingFace
     const providers = [
-      { name:'groq', key: cfg.groq?.key, url:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', max_tokens:400 },
+      { name:'groq', key: cfg.groq?.key, url:'https://api.groq.com/openai/v1/chat/completions', model:'openai/gpt-oss-120b', max_tokens:2048 },
       { name:'openai', key: cfg.openai?.key, url:'https://api.openai.com/v1/chat/completions', model:'gpt-4.1-mini', max_tokens:400 },
       { name:'hf', key: cfg.huggingface?.key, url:'https://router.huggingface.co/novita/v3/openai/chat/completions', model:'meta-llama/llama-3.3-70b-instruct', max_tokens:400 },
     ];
@@ -14816,7 +14820,7 @@ app.post('/api/build/select-agents', (req, res) => {
 });
 
 // ── Build AI helpers ─────────────────────────────────────────────────────────
-async function callGroqBuild(systemPrompt, userMsg, apiKey, model='llama-3.3-70b-versatile'){
+async function callGroqBuild(systemPrompt, userMsg, apiKey, model='openai/gpt-oss-120b'){
   return new Promise(resolve=>{
     const body=JSON.stringify({model,messages:[{role:'system',content:systemPrompt},{role:'user',content:userMsg}],max_tokens:8192,temperature:0.3});
     const opts={hostname:'api.groq.com',path:'/openai/v1/chat/completions',method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'Content-Length':Buffer.byteLength(body)}};
@@ -14849,7 +14853,7 @@ async function callOllamaBuild(systemPrompt, userMsg){
     req.on('error',()=>resolve('')); req.write(body); req.end();
   });
 }
-async function streamGroqBuild(systemPrompt, userMsg, apiKey, res, model='llama-3.3-70b-versatile'){
+async function streamGroqBuild(systemPrompt, userMsg, apiKey, res, model='openai/gpt-oss-120b'){
   return new Promise(resolve=>{
     const body=JSON.stringify({model,messages:[{role:'system',content:systemPrompt},{role:'user',content:userMsg}],max_tokens:8192,stream:true,temperature:0.3});
     const opts={hostname:'api.groq.com',path:'/openai/v1/chat/completions',method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'Content-Length':Buffer.byteLength(body)}};
@@ -15154,7 +15158,7 @@ app.get('/api/validate', async (req, res) => {
   try {
     const iStart = Date.now();
     const ideRes = await new Promise((resolve, reject) => {
-      const body = JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'user',content:'say hi'}], stream:true, provider:'sambanova', max_tokens:30 });
+      const body = JSON.stringify({ model:'openai/gpt-oss-120b', messages:[{role:'user',content:'say hi'}], stream:true, provider:'groq', max_tokens:30 });
       const req3 = require('http').request('http://localhost:'+PORT+'/api/bypass/chat', {
         method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body),'x-phantom-terminal':'1','x-owner-token':'phantom-owner','x-ollama-url':'http://localhost:11434'}
       }, r => {
@@ -16333,7 +16337,7 @@ app.get('/api/music', async (req, res) => {res.send('Music API');});
 // Owner (deke) always gets free access. Other users are charged per token used.
 const OWNER_EMAIL = 'deezykc1nun37@yahoo.com';
 const TOKEN_COST_PER_1K = {
-  'llama-3.3-70b-versatile': 1,    // 1 token per 1K tokens (cheap)
+  'openai/gpt-oss-120b': 1,    // 1 token per 1K tokens (cheap)
   'llama3-70b-8192': 1,
   'claude-opus-4-6': 15,
   'claude-sonnet-4-6': 3,
