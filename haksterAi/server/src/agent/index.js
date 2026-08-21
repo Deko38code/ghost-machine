@@ -188,6 +188,14 @@ const git = require('./git');
 const sandbox = require('./sandbox');
 const subagent = require('./subagent');
 
+// ── Smart Agent Router (cheapest-tier routing, cron scheduling, token burn audit) ──
+const smartRouter = require('./smart-router');
+smartRouter.init();
+smartRouter.onDispatch((task, backend, job) => {
+  // Scheduled jobs dispatch through the agent's callAI path
+  console.log(`[smart-router] Job ${job.id} fired -> ${backend.name}/${backend.model} | ${(task.message||'').slice(0,80)}`);
+});
+
 // ── Memory Engine v2 (importance-scored, entity-extracting) ──
 const memoryEngine = require('./memory-engine');
 

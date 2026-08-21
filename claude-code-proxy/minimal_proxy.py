@@ -164,27 +164,27 @@ PHANTOM_MAP = {
     "pollinations":        "pollinations",
 }
 
-# Tier 5: CLOUD (always-on, payment/auth bypassed)
-# Cloud Ollama models are always reported as active regardless of payment status.
-# The proxy intercepts and handles auth transparently — no API keys or payment required.
+# Tier 6: CLOUD — repointed to LOCAL uncensored models (zero token burn, no refusals)
+# All aliases now route to local Ollama weights (FREE) or Miniforge (FREE).
+# Claude/GPT/Gemini names kept for compatibility but never hit ollama.com:443.
 CLOUD_MAP = {
-    # Claude/GPT/Gemini aliases → cloud models (payment bypassed, ~1s response)
-    "claude-sonnet-4-5":    "glm-5.2:cloud",
-    "claude-opus-4-5":     "kimi-k2.7-code:cloud",
-    "claude-haiku-3-5":    "glm-5.1:cloud",
-    "gpt-4.1":            "glm-5.2:cloud",
-    "gpt-4.1-mini":       "glm-5.1:cloud",
-    "gemini-2.5-pro":     "kimi-k2.7-code:cloud",
-    "gemini-2.5-flash":   "glm-5.1:cloud",
-    # Direct cloud model names
-    "glm-5.2:cloud":          "glm-5.2:cloud",
-    "kimi-k2.7-code:cloud":   "kimi-k2.7-code:cloud",
-    "glm-5.1:cloud":          "glm-5.1:cloud",
-    "glm-5.1:cloud-ctx":      "glm-5.1:cloud-ctx",
-    "gpt-oss:120b-cloud":     "gpt-oss:120b-cloud",
+    # Claude/GPT/Gemini aliases → local uncensored models (FREE, no refusals)
+    "claude-sonnet-4-5":    "hp-1000:latest",       # qwen2.5-coder:7b — uncensored coder
+    "claude-opus-4-5":     "glm-uncensored:latest", # qwen3.5 — uncensored, biggest local
+    "claude-haiku-3-5":    "kimi-uncensored:latest",# mistral — uncensored, fast
+    "gpt-4.1":            "hp-1000:latest",         # qwen2.5-coder:7b
+    "gpt-4.1-mini":       "kimi-uncensored:latest", # mistral — fast
+    "gemini-2.5-pro":     "glm-uncensored:latest",  # qwen3.5
+    "gemini-2.5-flash":   "kimi-uncensored:latest",  # mistral — fast
+    # Direct cloud model names → local equivalents
+    "glm-5.2:cloud":          "glm-uncensored:latest",
+    "kimi-k2.7-code:cloud":   "kimi-uncensored:latest",
+    "glm-5.1:cloud":          "hp-1000:latest",
+    "glm-5.1:cloud-ctx":      "hp-1000:latest",
+    "gpt-oss:120b-cloud":     "glm-uncensored:latest",
     "mistral-ctx":            "mistral-ctx:latest",
 }
-CLOUD_HINTS = {":cloud", "gpt-oss:120b", "mistral-ctx"}
+CLOUD_HINTS = {":cloud", "gpt-oss:120b", "mistral-ctx"}  # kept for routing hints
 
 # Tier 2: HOME GPU BOX — DIY NVIDIA GPU server (your hardware, unlimited, FAST)
 # Configured via env HOME_GPU_URL or POST /gpu/set
@@ -822,10 +822,10 @@ def _pick_tier_and_model(messages, tools, requested_model="", query_params=None)
 
     # ── Explicit tier overrides (respect quota — skip if exhausted) ──
     if _is_cloud_request(requested_model, query_params) and not quota.is_exhausted("cloud"):
-        cloud_model = CLOUD_MAP.get(requested_model, "glm-5.1:cloud")
+        cloud_model = CLOUD_MAP.get(requested_model, "hp-1000:latest")
         for kw in COMPLEXITY_KEYWORDS["power"]:
             if kw in last_msg:
-                cloud_model = "kimi-k2.7-code:cloud"
+                cloud_model = "kimi-uncensored:latest"
                 break
         return "cloud", OLLAMA_LOCAL, cloud_model, requested_model or cloud_model
 
@@ -892,8 +892,8 @@ def _pick_tier_and_model(messages, tools, requested_model="", query_params=None)
             if kw in last_msg:
                 for kw2 in COMPLEXITY_KEYWORDS["power"]:
                     if kw2 in last_msg:
-                        return "cloud", OLLAMA_LOCAL, "kimi-k2.7-code:cloud", "kimi-k2.7-code:cloud"
-                return "cloud", OLLAMA_LOCAL, "glm-5.2:cloud", "glm-5.2:cloud"
+                        return "cloud", OLLAMA_LOCAL, "kimi-uncensored:latest", "kimi-uncensored:latest"
+                return "cloud", OLLAMA_LOCAL, "glm-uncensored:latest", "glm-uncensored:latest"
 
     # ── Default: LOCAL routing ──
     if requested_model and requested_model in LOCAL_MAP:
@@ -1054,7 +1054,7 @@ def _get_tier_url_model(tier, requested_model):
     if tier == "kaggle" and KAGGLE_TUNNEL:
         return KAGGLE_TUNNEL.rstrip("/") + "/api/chat", "qwen2.5:32b"
     if tier == "cloud":
-        return OLLAMA_LOCAL, "glm-5.1:cloud"
+        return OLLAMA_LOCAL, "hp-1000:latest"
     return None, None
 
 
