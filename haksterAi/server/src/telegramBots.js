@@ -74,9 +74,18 @@ function runAgent(prompt, sessionId) {
   if (_smartRouter) {
     const backend = _smartRouter.route({ message: prompt });
     model = backend.model;
-    if (backend.tier === 'T2_MINIFORGE') provider = 'hackbot';
-    else if (backend.tier === 'T3_PHANTOM') provider = backend.model;
-    else provider = 'ollama';
+    if (backend.tier === 'T1_FREE_CLOUD') {
+      // Free cloud: Groq, Cerebras, SambaNova, etc via Phantom
+      provider = backend.model;  // 'groq', 'cerebras', 'sambanova', etc.
+    } else if (backend.tier === 'T2_MINIFORGE') {
+      provider = 'hackbot';
+    } else if (backend.tier === 'T3_GLM_CLOUD' || backend.tier === 'T8_CLOUD_ALIAS') {
+      provider = 'ollama';  // GLM cloud proxies through Ollama
+    } else if (backend.tier === 'T7_LOCAL') {
+      provider = 'ollama';
+    } else {
+      provider = 'ollama';
+    }
   }
 
   const body = JSON.stringify({

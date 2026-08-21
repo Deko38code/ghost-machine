@@ -25,22 +25,24 @@ const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// ── Tier definitions (cheapest first) ────────────────────────────────────────
+// ── Tier definitions (cheapest first, GLM cloud premium but used less) ────────
 
 const TIERS = {
-  T1_LOCAL: {
-    name: 'local-ollama',
+  // T1: FREE CLOUD — fast, supports tools, no credit card
+  // Groq 500+ tok/s, Cerebras 2000 tok/s, SambaNova 70B — use these for most work
+  T1_FREE_CLOUD: {
+    name: 'free-cloud',
     cost: 0,
-    url: 'http://localhost:11434/api/chat',
+    url: 'http://localhost:4000/api/ai/chat',
     models: {
-      code: 'hp-1000:latest',           // qwen2.5-coder:7b — best coder
-      chat: 'kimi-uncensored:latest',   // mistral — fast chat
-      power: 'glm-uncensored:latest',   // qwen3.5 — biggest local
-      fast: 'kimi-uncensored:latest',   // mistral — quick responses
-      security: 'hp-1000:latest',       // qwen2.5-coder — pentest scripts
-      research: 'glm-uncensored:latest',// qwen3.5 — deep reasoning
+      fast: 'groq',          // 500+ tok/s — default for most tasks
+      faster: 'cerebras',    // 2000 tok/s — quick responses
+      heavy: 'sambanova',    // Llama 3.3 70B — complex tasks
+      fallback: 'openrouter',// Qwen3 235B free — backup
+      nokey: 'pollinations', // GPT-4o proxy — no key needed
     }
   },
+  // T2: MINIFORGE — free, uncensored, no refusals (hackbots)
   T2_MINIFORGE: {
     name: 'miniforge',
     cost: 0,
@@ -54,7 +56,21 @@ const TIERS = {
       hack: 'redhot-butterfly',
     }
   },
-  T3_PHANTOM: {
+  // T3: GLM CLOUD — premium, fast, smart. DEFAULT but USED LESS.
+  // Only kicks in when free tiers fail or task needs high quality.
+  // Burns GLM tokens so router uses it sparingly.
+  T3_GLM_CLOUD: {
+    name: 'glm-cloud',
+    cost: 1,  // costs tokens — use sparingly
+    url: 'http://localhost:11434/api/chat',
+    models: {
+      default: 'hp-1000:latest',        // glm-5.1:cloud + uncensored system prompt
+      power: 'glm-5.1:cloud',           // raw glm-5.1 — high quality
+      code: 'hp-1000:latest',            // uncensored coder on cloud
+    }
+  },
+  // T4: PHANTOM GATEWAY — free external providers (same as T1 but via Phantom)
+  T4_PHANTOM: {
     name: 'phantom-gateway',
     cost: 0,
     url: 'http://localhost:4000/api/ai/chat',
@@ -66,7 +82,8 @@ const TIERS = {
       openrouter: 'openrouter',
     }
   },
-  T4_PARROT: {
+  // T5: PARROT BOX — remote Ollama on Parrot (free, has different models)
+  T5_PARROT: {
     name: 'parrot-box',
     cost: 0,
     url: 'http://10.0.0.251:11434/api/chat',
@@ -76,7 +93,8 @@ const TIERS = {
       fallback: 'codellama:7b',
     }
   },
-  T5_KAGGLE: {
+  // T6: KAGGLE GPU — free GPU (30 hrs/wk per account, 90 hrs with 3 accounts)
+  T6_KAGGLE: {
     name: 'kaggle-gpu',
     cost: 0,
     url: '',  // Set via KAGGLE_TUNNEL env
@@ -85,19 +103,33 @@ const TIERS = {
       reasoning: 'deepseek-r1:14b',
     }
   },
-  // T6 CLOUD aliases — all redirect to local, never hit external API
-  T6_CLOUD_ALIAS: {
-    name: 'cloud-alias-local',
+  // T7: LOCAL OLLAMA — free but SLOW on 7GB RAM (1-3 tok/s). Last resort only.
+  T7_LOCAL: {
+    name: 'local-ollama',
     cost: 0,
     url: 'http://localhost:11434/api/chat',
     models: {
+      code: 'hp-1000:latest',
+      chat: 'kimi-uncensored:latest',
+      power: 'glm-uncensored:latest',
+      fast: 'kimi-uncensored:latest',
+      security: 'hp-1000:latest',
+      research: 'glm-uncensored:latest',
+    }
+  },
+  // T8: CLOUD aliases — compatibility labels, route to GLM cloud
+  T8_CLOUD_ALIAS: {
+    name: 'cloud-alias-glm',
+    cost: 1,  // costs GLM tokens
+    url: 'http://localhost:11434/api/chat',
+    models: {
       'claude-sonnet-4-5': 'hp-1000:latest',
-      'claude-opus-4-5': 'glm-uncensored:latest',
-      'claude-haiku-3-5': 'kimi-uncensored:latest',
+      'claude-opus-4-5': 'glm-5.1:cloud',
+      'claude-haiku-3-5': 'hp-1000:latest',
       'gpt-4.1': 'hp-1000:latest',
-      'gpt-4.1-mini': 'kimi-uncensored:latest',
-      'gemini-2.5-pro': 'glm-uncensored:latest',
-      'gemini-2.5-flash': 'kimi-uncensored:latest',
+      'gpt-4.1-mini': 'hp-1000:latest',
+      'gemini-2.5-pro': 'glm-5.1:cloud',
+      'gemini-2.5-flash': 'hp-1000:latest',
     }
   }
 };
@@ -146,10 +178,12 @@ function detectTaskType(message) {
 let _health = {};
 function checkHealth() {
   const checks = [
-    { tier: 'T1_LOCAL', host: '127.0.0.1', port: 11434 },
-    { tier: 'T2_MINIFORGE', host: '127.0.0.1', port: 5555 },
-    { tier: 'T3_PHANTOM', host: '127.0.0.1', port: 4000 },
-    { tier: 'T4_PARROT', host: '10.0.0.251', port: 11434 },
+    { tier: 'T1_FREE_CLOUD', host: '127.0.0.1', port: 4000 },   // Phantom gateway
+    { tier: 'T2_MINIFORGE', host: '127.0.0.1', port: 5555 },   // Miniforge bots
+    { tier: 'T3_GLM_CLOUD', host: '127.0.0.1', port: 11434 },   // Ollama (GLM cloud proxies through here)
+    { tier: 'T4_PHANTOM', host: '127.0.0.1', port: 4000 },       // Same as T1
+    { tier: 'T5_PARROT', host: '10.0.0.251', port: 11434 },      // Remote Parrot box
+    { tier: 'T7_LOCAL', host: '127.0.0.1', port: 11434 },        // Local Ollama
   ];
   for (const chk of checks) {
     const sock = new (require('net').Socket)();
@@ -159,15 +193,15 @@ function checkHealth() {
     sock.on('timeout', () => { _health[chk.tier] = false; sock.destroy(); });
     sock.connect(chk.port, chk.host);
   }
-  // Kaggle tunnel — check env
-  _health.T5_KAGGLE = !!process.env.KAGGLE_TUNNEL;
-  _health.T6_CLOUD_ALIAS = true; // always — routes to local
+  _health.T6_KAGGLE = !!process.env.KAGGLE_TUNNEL;
+  _health.T8_CLOUD_ALIAS = true; // always — routes to GLM cloud
 }
 
 // ── Router ─────────────────────────────────────────────────────────────────
 
 /**
  * Route a task to the cheapest available backend.
+ * Strategy: free cloud first (fast) → Miniforge (uncensored) → GLM cloud (premium, used less) → local (slow, last resort)
  * @param {Object} task - { type?, message, model? }
  * @returns {Object} { tier, url, model, displayModel, cost }
  */
@@ -175,34 +209,44 @@ function route(task = {}) {
   const type = task.type || detectTaskType(task.message || '');
   const requestedModel = task.model || '';
 
-  // If a specific cloud alias is requested, redirect to local equivalent
-  if (requestedModel && TIERS.T6_CLOUD_ALIAS.models[requestedModel]) {
-    const localModel = TIERS.T6_CLOUD_ALIAS.models[requestedModel];
+  // If a specific cloud alias is requested, route to GLM cloud (premium)
+  if (requestedModel && TIERS.T8_CLOUD_ALIAS.models[requestedModel]) {
+    const cloudModel = TIERS.T8_CLOUD_ALIAS.models[requestedModel];
     return {
-      tier: 'T6_CLOUD_ALIAS',
-      name: TIERS.T6_CLOUD_ALIAS.name,
-      url: TIERS.T6_CLOUD_ALIAS.url,
-      model: localModel,
-      displayModel: requestedModel, // show alias name for compatibility
-      cost: 0,
+      tier: 'T8_CLOUD_ALIAS',
+      name: TIERS.T8_CLOUD_ALIAS.name,
+      url: TIERS.T8_CLOUD_ALIAS.url,
+      model: cloudModel,
+      displayModel: requestedModel,
+      cost: 1,  // burns GLM tokens
       redirected: true,
     };
   }
 
-  // Tier 1: Local Ollama (cheapest, always free)
-  if (_health.T1_LOCAL !== false) {
-    const model = TIERS.T1_LOCAL.models[type] || TIERS.T1_LOCAL.models.chat;
+  // T1: FREE CLOUD — Groq/Cerebras/SambaNova (fast, free, supports tools)
+  // Use these for MOST work. 500+ tok/s. No token burn.
+  if (_health.T1_FREE_CLOUD !== false) {
+    const providerMap = {
+      code: 'groq',          // 500+ tok/s, great for code
+      chat: 'cerebras',      // 2000 tok/s, instant responses
+      power: 'sambanova',    // Llama 3.3 70B, complex reasoning
+      security: 'groq',      // fast + good for security scripts
+      research: 'sambanova', // 70B for deep research
+      fast: 'cerebras',      // 2000 tok/s
+      image: 'pollinations', // free GPT-4o proxy
+    };
+    const provider = providerMap[type] || 'groq';
     return {
-      tier: 'T1_LOCAL',
-      name: TIERS.T1_LOCAL.name,
-      url: TIERS.T1_LOCAL.url,
-      model,
-      displayModel: model,
+      tier: 'T1_FREE_CLOUD',
+      name: TIERS.T1_FREE_CLOUD.name,
+      url: TIERS.T1_FREE_CLOUD.url,
+      model: provider,
+      displayModel: `free-${provider}`,
       cost: 0,
     };
   }
 
-  // Tier 2: Miniforge (free, no refusals)
+  // T2: MINIFORGE — free, uncensored, no refusals. For hack/security tasks.
   if (_health.T2_MINIFORGE !== false) {
     const botMap = { code: 'RobloxScriptHelper', security: 'ai-unrestricted', chat: 'chatgpt',
                      power: 'gemini-experimental-2-5', research: 'gemini-experimental-2-5', image: 'flux-schnell-image-generator' };
@@ -217,51 +261,84 @@ function route(task = {}) {
     };
   }
 
-  // Tier 3: Phantom gateway (free external providers)
-  if (_health.T3_PHANTOM !== false) {
+  // T3: GLM CLOUD — premium, fast, smart. DEFAULT but USED LESS.
+  // Only when free tiers are down or task needs high quality.
+  if (_health.T3_GLM_CLOUD !== false) {
+    const modelMap = {
+      code: 'hp-1000:latest',     // uncensored on GLM cloud
+      power: 'glm-5.1:cloud',     // raw GLM — highest quality
+      chat: 'hp-1000:latest',
+      security: 'hp-1000:latest',
+      research: 'glm-5.1:cloud',
+    };
+    const model = modelMap[type] || 'hp-1000:latest';
     return {
-      tier: 'T3_PHANTOM',
-      name: TIERS.T3_PHANTOM.name,
-      url: TIERS.T3_PHANTOM.url,
+      tier: 'T3_GLM_CLOUD',
+      name: TIERS.T3_GLM_CLOUD.name,
+      url: TIERS.T3_GLM_CLOUD.url,
+      model,
+      displayModel: model,
+      cost: 1,  // burns GLM tokens — use sparingly
+    };
+  }
+
+  // T4: PHANTOM GATEWAY — same free providers, different route
+  if (_health.T4_PHANTOM !== false) {
+    return {
+      tier: 'T4_PHANTOM',
+      name: TIERS.T4_PHANTOM.name,
+      url: TIERS.T4_PHANTOM.url,
       model: 'groq',
       displayModel: 'phantom-groq',
       cost: 0,
     };
   }
 
-  // Tier 4: Parrot box (remote Ollama)
-  if (_health.T4_PARROT !== false) {
-    const model = TIERS.T4_PARROT.models.code;
+  // T5: Parrot box (remote Ollama, free)
+  if (_health.T5_PARROT !== false) {
     return {
-      tier: 'T4_PARROT',
-      name: TIERS.T4_PARROT.name,
-      url: TIERS.T4_PARROT.url,
+      tier: 'T5_PARROT',
+      name: TIERS.T5_PARROT.name,
+      url: TIERS.T5_PARROT.url,
+      model: TIERS.T5_PARROT.models.code,
+      displayModel: TIERS.T5_PARROT.models.code,
+      cost: 0,
+    };
+  }
+
+  // T6: Kaggle GPU (free, if tunnel up)
+  if (_health.T6_KAGGLE) {
+    return {
+      tier: 'T6_KAGGLE',
+      name: TIERS.T6_KAGGLE.name,
+      url: (process.env.KAGGLE_TUNNEL || '').replace(/\/$/, '') + '/api/chat',
+      model: TIERS.T6_KAGGLE.models.heavy,
+      displayModel: TIERS.T6_KAGGLE.models.heavy,
+      cost: 0,
+    };
+  }
+
+  // T7: LOCAL OLLAMA — free but SLOW on 7GB RAM. Last resort.
+  if (_health.T7_LOCAL !== false) {
+    const model = TIERS.T7_LOCAL.models[type] || TIERS.T7_LOCAL.models.chat;
+    return {
+      tier: 'T7_LOCAL',
+      name: TIERS.T7_LOCAL.name,
+      url: TIERS.T7_LOCAL.url,
       model,
       displayModel: model,
       cost: 0,
     };
   }
 
-  // Tier 5: Kaggle GPU (if tunnel up)
-  if (_health.T5_KAGGLE) {
-    return {
-      tier: 'T5_KAGGLE',
-      name: TIERS.T5_KAGGLE.name,
-      url: (process.env.KAGGLE_TUNNEL || '').replace(/\/$/, '') + '/api/chat',
-      model: TIERS.T5_KAGGLE.models.heavy,
-      displayModel: TIERS.T5_KAGGLE.models.heavy,
-      cost: 0,
-    };
-  }
-
-  // Last resort: local alias (always available — routes to local Ollama)
+  // Absolute last resort: GLM cloud alias
   return {
-    tier: 'T6_CLOUD_ALIAS',
-    name: TIERS.T6_CLOUD_ALIAS.name,
-    url: TIERS.T6_CLOUD_ALIAS.url,
+    tier: 'T8_CLOUD_ALIAS',
+    name: TIERS.T8_CLOUD_ALIAS.name,
+    url: TIERS.T8_CLOUD_ALIAS.url,
     model: 'hp-1000:latest',
     displayModel: 'hp-1000:latest',
-    cost: 0,
+    cost: 1,
   };
 }
 

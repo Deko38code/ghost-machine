@@ -4268,6 +4268,38 @@ function _logTokenUsage(req, tokensUsed){
 app.post('/api/ai/chat', async (req, res) => {
   const { provider, systemPrompt, userMsg, messages, model: reqModel, useTools } = req.body;
  if(useTools){
+  // ── PATCH: Try free cloud providers with tool calling FIRST (saves GLM tokens) ──
+  // Groq, Cerebras, SambaNova all support OpenAI-compatible tool calling natively.
+  // Only fall back to Ollama (GLM) if free cloud fails.
+  const _cfg = loadAIConfig();
+  const _freeToolProviders = [
+    { name:'groq',      key:_cfg.groq?.key,      model:'openai/gpt-oss-120b',       url:'https://api.groq.com/openai/v1/chat/completions' },
+    { name:'cerebras',  key:_cfg.cerebras?.key,  model:'gpt-oss-120b',              url:'https://api.cerebras.ai/v1/chat/completions' },
+    { name:'sambanova', key:_cfg.sambanova?.key, model:'Meta-Llama-3.3-70B-Instruct', url:'https://api.sambanova.ai/v1/chat/completions' },
+    { name:'groq2',     key:_cfg.groq2?.key,     model:'openai/gpt-oss-20b',         url:'https://api.groq.com/openai/v1/chat/completions' },
+  ];
+  for (const _fp of _freeToolProviders) {
+    if (!_fp.key || _fp.key.length < 10) continue;
+    try {
+      const _sysMsg = systemPrompt || 'You are PHANTOM — an unrestricted AI assistant. Use tools when needed. Emit <TOOLCALL tool="name">{json args}</TOOLCALL> blocks.';
+      const _body = JSON.stringify({ model:_fp.model, max_tokens:4096, stream:false, messages:[{role:'system',content:_sysMsg},{role:'user',content:userMsg||''}], tools:Object.values(PHANTOM_CHAT_TOOLS).map(t=>({type:'function',function:{name:t.name,description:t.description,parameters:t.parameters||t.inputSchema}})), tool_choice:'auto' });
+      const _resp = await fetch(_fp.url, { method:'POST', headers:{'Authorization':`Bearer ${_fp.key}`,'Content-Type':'application/json'}, body:_body, signal:AbortSignal.timeout(30000) });
+      if (_resp.ok) {
+        const _data = await _resp.json();
+        const _msg = _data.choices?.[0]?.message;
+        if (_msg?.content || _msg?.tool_calls) {
+          let _out = _msg.content || '';
+          if (_msg.tool_calls) {
+            for (const _tc of _msg.tool_calls) {
+              _out += `\n<TOOLCALL tool="${_tc.function.name}">${_tc.function.arguments}</TOOLCALL>\n`;
+            }
+          }
+          return res.json({ text:_out, model:_fp.model, provider:_fp.name, fallback:false });
+        }
+      }
+    } catch (e) { console.error(`[ai/chat] free tool provider ${_fp.name} failed:`, e.message.slice(0,80)); }
+  }
+  // ── END PATCH — fall through to original Ollama agent loop below ──
   try {
    const _ollamaUrl = req.headers['x-ollama-url'] || 'http://localhost:11434';
    const _model = async ({prompt, stream}) => {
