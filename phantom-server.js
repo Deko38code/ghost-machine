@@ -8691,6 +8691,8 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
     messages.unshift({ role:'system', content: GODMODE_BLOCK.trim() + '\n' + CORE_PROTOCOLS.trim() });
   }
 
+  // ── AUTO-COMPACT — moved below function definition (see autoCompactMessages) ──
+
   res.setHeader('Content-Type', 'application/x-ndjson');
   res.setHeader('X-Accel-Buffering', 'no');
   res.setHeader('Cache-Control', 'no-cache');
@@ -8699,7 +8701,97 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
 
   // ── Provider pin — battle mode sends x-provider to force a real provider ──
   const pinnedProvider = req.headers['x-provider'] || req.body?.provider || '';
-  
+
+  // ── AUTO-COMPACT — like Claude's auto-compact: summarize old messages when context fills up ──
+  // Instead of truncating, compress older messages into a summary using a free cloud model.
+  // This preserves conversation context across long sessions without burning GLM tokens.
+  const AUTO_COMPACT_THRESHOLD = 20000;  // chars — if total message content exceeds this, compact
+  const AUTO_COMPACT_KEEP_RECENT = 6;     // keep the N most recent messages as-is (never compact these)
+  let _compactCache = new Map();          // session-id → last compacted summary (prevents re-compacting same state)
+
+  async function autoCompactMessages(msgs, sessionId, maxChars) {
+    // Calculate total message content size
+    const totalChars = msgs.reduce((sum, m) => sum + (m.content || '').length, 0);
+    if (totalChars <= (maxChars || AUTO_COMPACT_THRESHOLD)) return msgs;
+
+    // Don't compact if we already compacted this session and no new messages since
+    const lastCompact = _compactCache.get(sessionId || 'default');
+    const msgCount = msgs.filter(m => m.role !== 'system').length;
+    if (lastCompact && lastCompact.msgCount === msgCount && lastCompact.totalChars === totalChars) {
+      // Already compacted — reuse cached summary
+      return [{ role: 'system', content: msgs[0]?.content || '' }, { role: 'system', content: lastCompact.summary }, ...msgs.slice(-AUTO_COMPACT_KEEP_RECENT)];
+    }
+
+    // Split messages: system + recent stay as-is, older messages get summarized
+    const sysMsgs = msgs.filter(m => m.role === 'system');
+    const nonSysMsgs = msgs.filter(m => m.role !== 'system');
+    if (nonSysMsgs.length <= AUTO_COMPACT_KEEP_RECENT) return msgs;
+
+    const oldMsgs = nonSysMsgs.slice(0, -AUTO_COMPACT_KEEP_RECENT);
+    const recentMsgs = nonSysMsgs.slice(-AUTO_COMPACT_KEEP_RECENT);
+
+    // Build a transcript of old messages for the summarizer
+    const transcript = oldMsgs.map(m => {
+      const content = (m.content || '').slice(0, 2000);  // cap each message at 2K chars
+      if (m.role === 'tool') return `[Tool result: ${content}]`;
+      if (m.role === 'assistant' && m.tool_calls) return `[Assistant called tools: ${JSON.stringify(m.tool_calls).slice(0, 500)}]`;
+      return `${m.role}: ${content}`;
+    }).join('\n');
+
+    // Try to summarize using free cloud providers first (saves GLM tokens)
+    let summary = '';
+    const summaryPrompt = `Summarize the following conversation context concisely. Preserve key facts, decisions, file paths, code snippets, and tool results. Be brief but complete.\n\nCONVERSATION:\n${transcript}\n\nSUMMARY:`;
+
+    const _cfg = loadAIConfig();
+    const _sumProviders = [
+      { key: _cfg.groq?.key,      model: 'openai/gpt-oss-120b',       url: 'https://api.groq.com/openai/v1/chat/completions' },
+      { key: _cfg.cerebras?.key,  model: 'gpt-oss-120b',              url: 'https://api.cerebras.ai/v1/chat/completions' },
+      { key: _cfg.sambanova?.key, model: 'Meta-Llama-3.3-70B-Instruct', url: 'https://api.sambanova.ai/v1/chat/completions' },
+    ];
+
+    for (const _sp of _sumProviders) {
+      if (!_sp.key || _sp.key.length < 10) continue;
+      try {
+        const _body = JSON.stringify({ model: _sp.model, max_tokens: 1024, stream: false, messages: [{ role: 'user', content: summaryPrompt }] });
+        const _resp = await fetch(_sp.url, { method: 'POST', headers: { 'Authorization': `Bearer ${_sp.key}`, 'Content-Type': 'application/json' }, body: _body, signal: AbortSignal.timeout(15000) });
+        if (_resp.ok) {
+          const _data = await _resp.json();
+          summary = _data.choices?.[0]?.message?.content || '';
+          if (summary.length > 50) break;  // got a real summary
+        }
+      } catch (e) { /* try next provider */ }
+    }
+
+    // If free cloud failed, use a simple truncation fallback (not ideal but keeps working)
+    if (!summary || summary.length < 50) {
+      summary = `[Auto-compact: ${oldMsgs.length} messages compressed. Key points:\n` +
+        oldMsgs.slice(-5).map(m => `- ${m.role}: ${(m.content || '').slice(0, 200)}`).join('\n') +
+        `\n]`;
+    }
+
+    // Cache the compaction so we don't re-do it unnecessarily
+    _compactCache.set(sessionId || 'default', { summary, msgCount, totalChars });
+
+    // Rebuild messages: system + compacted summary + recent messages
+    const compacted = [
+      ...sysMsgs,
+      { role: 'system', content: `\n━━━ AUTO-COMPACTED CONTEXT ━━━\nPrevious conversation was summarized to save context space:\n\n${summary}\n━━━ END COMPACTED CONTEXT ━━━\n` },
+      ...recentMsgs,
+    ];
+
+    console.log(`[auto-compact] Compacted ${oldMsgs.length} messages into ${summary.length}c summary — saved ${(totalChars - compacted.reduce((s,m)=>s+(m.content||'').length,0))}c of context`);
+    return compacted;
+  }
+
+  // ── Run auto-compact on the messages array (must be after function definition) ──
+  const _sessionId = req.headers['x-session-id'] || req.body?.session_id || 'default';
+  try {
+    const _compacted = await autoCompactMessages(messages, _sessionId, AUTO_COMPACT_THRESHOLD);
+    // Replace messages in-place so all downstream provider calls use compacted version
+    messages.length = 0;
+    messages.push(..._compacted);
+  } catch(e) { console.error('[auto-compact] Error:', e.message); }
+
   // Trim system prompt for providers with request size limits
   // Groq 413s above ~32K chars, SambaNova above ~32K. Keep ollama full.
   function trimMessagesForProvider(msgs, provider, maxChars) {
