@@ -3886,6 +3886,63 @@ app.delete('/api/ai/config/:provider', (req, res) => {
 });
 
 // ─── CLOUD AI CHAT PROXY (keeps API keys server-side) ──────
+// ─── ADAPTIVE PROVIDER LEARNING ─────────────────────────────
+// Like Claude Code's pattern memory — tracks which providers handle which
+// query types best, and reorders the fallback chain dynamically.
+// Persists to .phantom-provider-patterns.json so it survives restarts.
+const PATTERN_FILE = path.join(HOME_DIR, '.phantom-provider-patterns.json');
+const providerPatterns = { queryTypes: {}, updatedAt: 0 };
+
+function _classifyQuery(msgArray) {
+  const text = (Array.isArray(msgArray) ? msgArray : []).map(m => String(m?.content || '')).join(' ').toLowerCase();
+  if (/fix|bug|patch|edit|refactor|implement|code|function|server|file|script|deploy|build|npm|pm2|docker/.test(text)) return 'code';
+  if (/what|why|how|explain|describe|tell me|who|when|where|is it|are you|can you|do you/.test(text)) return 'question';
+  if (/run|execute|check|scan|monitor|status|health|list|show|start|stop|restart|kill|grep|find|ps |cat |ls /.test(text)) return 'task';
+  if (/security|pentest|exploit|vuln|cve|owasp|inject|xss|csrf|jwt|auth/.test(text)) return 'security';
+  return 'chat';
+}
+
+function _loadPatterns() {
+  try {
+    const data = JSON.parse(fs.readFileSync(PATTERN_FILE, 'utf8'));
+    if (data?.queryTypes) Object.assign(providerPatterns.queryTypes, data.queryTypes);
+    providerPatterns.updatedAt = data?.updatedAt || 0;
+  } catch {}
+}
+
+function _savePatterns() {
+  try {
+    providerPatterns.updatedAt = Date.now();
+    fs.writeFileSync(PATTERN_FILE, JSON.stringify(providerPatterns, null, 2));
+  } catch {}
+}
+
+function _trackPattern(provider, queryType, outcome) {
+  if (!providerPatterns.queryTypes[queryType]) providerPatterns.queryTypes[queryType] = {};
+  if (!providerPatterns.queryTypes[queryType][provider]) {
+    providerPatterns.queryTypes[queryType][provider] = { success: 0, fail: 0, refusal: 0, score: 50, lastUsed: 0 };
+  }
+  const p = providerPatterns.queryTypes[queryType][provider];
+  if (outcome === 'success') { p.success++; p.score = Math.min(100, p.score + 2); }
+  else if (outcome === 'refusal') { p.refusal++; p.score = Math.max(0, p.score - 15); }
+  else if (outcome === 'fail') { p.fail++; p.score = Math.max(0, p.score - 5); }
+  p.lastUsed = Date.now();
+  _savePatterns();
+}
+
+function _getAdaptiveChain(baseChain, queryType) {
+  const patterns = providerPatterns.queryTypes[queryType];
+  if (!patterns) return baseChain;
+  // Sort providers by learned score (higher = tried first), keep unknown providers in original order
+  return [...baseChain].sort((a, b) => {
+    const sa = patterns[a]?.score ?? 50;
+    const sb = patterns[b]?.score ?? 50;
+    return sb - sa;
+  });
+}
+
+_loadPatterns();
+
 // ─── PROVIDER RATE LIMIT TRACKER ───────────────────────────
 // Tracks cooldown state per provider so fallback chain skips throttled ones
 const providerCooldowns = {};  // { providerName: { until: timestamp, retries: n } }
@@ -3942,6 +3999,19 @@ app.get('/api/ai/status', (req, res) => {
     };
   });
   res.json({ status, time: Date.now() });
+});
+
+// GET /api/ai/patterns — show learned provider patterns per query type
+app.get('/api/ai/patterns', (req, res) => {
+  res.json({ ok: true, patterns: providerPatterns.queryTypes, updatedAt: providerPatterns.updatedAt });
+});
+
+// POST /api/ai/patterns/reset — clear all learned patterns
+app.post('/api/ai/patterns/reset', (req, res) => {
+  providerPatterns.queryTypes = {};
+  providerPatterns.updatedAt = Date.now();
+  _savePatterns();
+  res.json({ ok: true, cleared: true });
 });
 
 // Core function: make one AI call to a specific provider
@@ -4440,7 +4510,10 @@ app.post('/api/ai/chat', async (req, res) => {
   // No-key providers are always available without a configured key
   const NO_KEY_PROVIDERS = new Set(['pollinations','lmstudio','jan','ollama-rotating','miniforge']);
   const others = FALLBACK_ORDER.filter(p => p !== provider && (cfg[p]?.key || NO_KEY_PROVIDERS.has(p)));
-  const chain  = [provider, ...others];
+  // ── Adaptive reordering: learn which providers handle this query type best ──
+  const _qType = _classifyQuery(msgArray);
+  const adaptiveOthers = _getAdaptiveChain(others, _qType);
+  const chain  = [provider, ...adaptiveOthers];
 
   let lastError = null;
   let fallbacksUsed = [];
@@ -4472,6 +4545,7 @@ app.post('/api/ai/chat', async (req, res) => {
       const result = await callProviderOnce(routedProvider, effectiveKey, msgArray, (pName === provider ? reqModel : null) || pCfg.model || null);
       resetProviderCooldown(routedProvider);
       trackProviderStat(routedProvider, 'success');
+      _trackPattern(routedProvider, _qType, 'success');
 
       // ── Refusal detection — if model refused despite GODMODE, try next provider ──
       const replyText = (result.reply || result.text || '').toLowerCase();
@@ -4491,6 +4565,7 @@ app.post('/api/ai/chat', async (req, res) => {
         console.warn(`[REFUSAL] ${routedProvider} refused — retrying with next provider`);
         fallbacksUsed.push(`${routedProvider}[refusal]`);
         trackProviderStat(routedProvider, 'refusal');
+        _trackPattern(routedProvider, _qType, 'refusal');
         continue; // try next provider
       }
 
@@ -4508,6 +4583,7 @@ app.post('/api/ai/chat', async (req, res) => {
     } catch(err){
       lastError = err;
       trackProviderStat(routedProvider, 'fail');
+      _trackPattern(routedProvider, _qType, 'fail');
 
       if(err.type === 'ratelimit' || err.type === 'timeout' || err.type === 'server_error'){
         // Cool this provider and try next
@@ -4522,8 +4598,16 @@ app.post('/api/ai/chat', async (req, res) => {
         console.warn(`[FALLBACK] ${routedProvider} auth error — skipping`);
         continue;
       }
+      if(err.type === 'quota' || err.type === 'payment_required'){
+        // 402 — provider out of credits/payment. Cool for 1hr, skip fast.
+        coolProvider(routedProvider, 3600000);
+        fallbacksUsed.push(`${routedProvider}[quota]`);
+        console.warn(`[FALLBACK] ${routedProvider} quota exhausted (402) — cooling 1hr`);
+        continue;
+      }
       // Other errors — try next provider
       fallbacksUsed.push(`${routedProvider}[${err.type||'err'}]`);
+      continue;
     }
   }
 
@@ -4631,9 +4715,11 @@ Guidelines:
 
   const cfg = loadAIConfig();
   const NO_KEY_PROVIDERS = new Set(['ollama','pollinations','lmstudio','jan','miniforge']);
-  const chain = [provider, 'ollama','groq','gemini','sambanova','openrouter','pollinations','anthropic','openai']
+  const _qType2 = _classifyQuery(msgArray);
+  const _baseChain = [provider, 'ollama','groq','gemini','sambanova','openrouter','pollinations','anthropic','openai']
     .filter((p,i,arr)=>arr.indexOf(p)===i)
     .filter(p=>cfg[p]?.key || NO_KEY_PROVIDERS.has(p));
+  const chain = _getAdaptiveChain(_baseChain, _qType2);
 
   let lastError = null;
   let fallbacksUsed = [];
@@ -4652,6 +4738,7 @@ Guidelines:
     try{
       const result = await callProviderOnce(pName, apiKey||'free', msgArray, (i===0?req.body.model:null)||pCfg.model||null);
       resetProviderCooldown(pName);
+      _trackPattern(pName, _qType2, 'success');
       const contract = normalizePhantomContract(result, userTask, msgArray, req);
       const _tokensUsed = (result.usage?.input_tokens||0)+(result.usage?.output_tokens||0) || Math.round((result.text||'').length/3.5);
       _logTokenUsage(req, _tokensUsed);
@@ -4662,6 +4749,7 @@ Guidelines:
     }catch(err){
       lastError = err;
       trackProviderStat(pName,'fail');
+      _trackPattern(pName, _qType2, 'fail');
       if(err.type==='ratelimit'||err.type==='timeout'||err.type==='server_error'){
         coolProvider(pName, err.retryAfter||60000);
         fallbacksUsed.push(`${pName}[${err.type}]`);
@@ -14221,7 +14309,7 @@ const SNAPSHOT_CORE_FILES = [
 function _snapshotPrune(){
   if(!fs.existsSync(SNAPSHOT_DIR)) return;
   const entries = fs.readdirSync(SNAPSHOT_DIR)
-    .filter(e=>{ try{ return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory(); }catch{ return false; } })
+    .filter(e=>{ try{ return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory() && /^\d+$/.test(e); }catch{ return false; } })
     .sort(); // timestamp-named, ascending = oldest first
   if(entries.length > SNAPSHOT_MAX){
     entries.slice(0, entries.length - SNAPSHOT_MAX).forEach(e=>{
@@ -14307,7 +14395,7 @@ app.get('/api/snapshot/list', (req,res)=>{
   try{
     if(!fs.existsSync(SNAPSHOT_DIR)) return res.json({ok:true,snapshots:[],count:0});
     const entries = fs.readdirSync(SNAPSHOT_DIR)
-      .filter(e=>{ try{ return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory(); }catch{return false;} })
+      .filter(e=>{ try{ return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory() && /^\d+$/.test(e); }catch{return false;} })
       .sort().reverse();
     const snapshots = entries.map(e=>{
       const metaPath = path.join(SNAPSHOT_DIR,e,'metadata.json');
@@ -14346,7 +14434,7 @@ app.get('/api/snapshot/status', (req,res)=>{
   try{
     if(!fs.existsSync(SNAPSHOT_DIR)) return res.json({ok:true,count:0,latest:null,max:SNAPSHOT_MAX});
     const entries = fs.readdirSync(SNAPSHOT_DIR)
-      .filter(e=>{ try{return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory();}catch{return false;} })
+      .filter(e=>{ try{return fs.statSync(path.join(SNAPSHOT_DIR,e)).isDirectory() && /^\d+$/.test(e);}catch{return false;} })
       .sort();
     const latest = entries.length ? entries[entries.length-1] : null;
     let latestMeta = null;

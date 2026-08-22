@@ -162,6 +162,16 @@ PHANTOM_MAP = {
     "sambanova":           "sambanova",
     "openrouter":          "openrouter",
     "pollinations":        "pollinations",
+    # Heavy local models that OOM on 7GB — route to phantom free cloud instead
+    "hp-1000:latest":      "groq",
+    "glm-uncensored:latest": "groq",
+    "kimi-uncensored:latest": "groq",
+    "qwen3.5:latest":      "groq",
+    "mistral:latest":      "groq",
+    "mistral-ctx:latest":  "groq",
+    "mistral-hermes:latest": "groq",
+    "hermes3:latest":      "groq",
+    "hermes3-65k:latest":  "groq",
 }
 
 # Tier 6: CLOUD — repointed to LOCAL uncensored models (zero token burn, no refusals)
@@ -199,17 +209,17 @@ HOME_GPU_MAP = {
     "hp-gpu-heavy":       "qwen2.5:32b",       # alias for heavy GPU tasks
     "hp-gpu-reasoning":   "deepseek-r1:14b",   # alias for reasoning on GPU
 }
-HOME_GPU_HINTS = {"hp-", "hp1000", "home-gpu"}
+HOME_GPU_HINTS = {"home-gpu", "hp-gpu", "hpgpu"}
 
 # ═══════════════════════════════════════════════════════════════════
 #  SMART ROUTING — Speed tiers & complexity detection
 # ═══════════════════════════════════════════════════════════════════
 
 SPEED_MODELS = {
-    "power":     "hermes3",
-    "medium":    "mistral",
-    "fast":      "llama3.2:3b",
-    "ultrafast": "llama3.2:1b",
+    "power":     "hp-1000:latest",       # Main brain — always available via proxy
+    "medium":    "glm-uncensored:latest", # Good uncensored local model
+    "fast":      "mistral:latest",        # Fast response
+    "ultrafast": "phi:latest",            # Ultra-fast for simple queries
 }
 
 COMPLEXITY_KEYWORDS = {
@@ -332,7 +342,7 @@ class WeeklyQuotaManager:
         "phantom":  {"hours": float("inf"), "requests": 5000, "label": "5000 req/wk (free API tiers)"},
         "parrot":   {"hours": float("inf"), "requests": float("inf"), "label": "Unlimited (your hardware)"},
         "kaggle":   {"hours": 30.0, "requests": 3000, "label": "30 GPU-hr/wk (Kaggle free P100)"},
-        "cloud":    {"hours": float("inf"), "requests": 10000, "label": "10000 req/wk (bypassed cloud)"},
+        "cloud":    {"hours": 0, "requests": 0, "label": "DISABLED — local only"},
     }
     ACTIVE_DAYS = 6  # 6 active days, 1 buffer day
     SECONDS_PER_HOUR = 3600.0
@@ -678,29 +688,10 @@ async def check_home_gpu():
 
 
 async def check_cloud():
-    """Check cloud models — always returns UP (payment bypassed)."""
-    # Cloud Ollama models are always available — auth/payment is bypassed.
-    # We report all cloud models as active so Ollama never blocks them.
-    metrics.backend_status["cloud"] = "up"
-
-    # Try to verify cloud models via Ollama tags (optional, non-blocking)
-    try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            resp = await client.get(OLLAMA_LOCAL_TAGS)
-            if resp.status_code == 200:
-                ollama_models = [m.get("name", "") for m in resp.json().get("models", [])]
-                # Filter to only cloud models
-                cloud_models = [m for m in ollama_models if any(hint in m for hint in CLOUD_HINTS)]
-                if cloud_models:
-                    return True, cloud_models
-    except:
-        pass
-
-    # Even if Ollama doesn't list them, we still report cloud as UP
-    # because the proxy will inject/force them when requested
-    return True, list(CLOUD_MAP.keys())
-
-
+    """Cloud models DISABLED — all routes go to local free models now.
+    Returns DOWN so no requests hit ollama.com:443 and burn credits."""
+    metrics.backend_status["cloud"] = "down"
+    return False, []
 async def _ensure_cloud_model(model_name):
     """Ensure a cloud model is loaded in Ollama — pull if missing, bypass auth."""
     # Cloud models are always treated as available. If Ollama doesn't have them,
@@ -752,17 +743,9 @@ def _is_simple(text, tools):
 
 
 def _is_cloud_request(requested_model, query_params):
-    if query_params.get("cloud", "").lower() == "true":
-        return True
-    if query_params.get("local", "").lower() == "true":
-        return False
-    if requested_model:
-        for hint in CLOUD_HINTS:
-            if hint in requested_model:
-                return True
-        if requested_model in CLOUD_MAP:
-            return True
-    return False
+    """Cloud routing DISABLED — stop burning ollama.com credits.
+    All cloud model names redirect to local via CLOUD_MAP in _pick_tier_and_model."""
+    return False  # NEVER route to cloud tier
 
 
 def _is_parrot_request(requested_model, query_params):
@@ -828,6 +811,20 @@ def _pick_tier_and_model(messages, tools, requested_model="", query_params=None)
                 cloud_model = "kimi-uncensored:latest"
                 break
         return "cloud", OLLAMA_LOCAL, cloud_model, requested_model or cloud_model
+
+    # ── PHANTOM FIRST: Heavy models that OOM on 7GB box route to free cloud ──
+    # hp-1000, glm-uncensored, etc. are in PHANTOM_MAP to route to Groq/Phantom
+    # This MUST come before LOCAL check so they don't try to load locally and OOM
+    if requested_model and requested_model in PHANTOM_MAP and not quota.is_exhausted("phantom"):
+        provider = PHANTOM_MAP.get(requested_model, "ollama")
+        return "phantom", PHANTOM_URL, provider, requested_model
+
+    # ── LOCAL: Known lightweight Ollama models that fit in 7GB RAM ──
+    if requested_model:
+        base = requested_model.replace(":latest", "")
+        if requested_model in LOCAL_MAP or base in LOCAL_MAP:
+            mapped = LOCAL_MAP.get(requested_model, LOCAL_MAP.get(base, requested_model))
+            return "local", OLLAMA_LOCAL, mapped, requested_model
 
     if _is_kaggle_request(requested_model, query_params) and not quota.is_exhausted("kaggle"):
         model = KAGGLE_MAP.get(requested_model, "qwen2.5:32b")
@@ -895,12 +892,18 @@ def _pick_tier_and_model(messages, tools, requested_model="", query_params=None)
                         return "cloud", OLLAMA_LOCAL, "kimi-uncensored:latest", "kimi-uncensored:latest"
                 return "cloud", OLLAMA_LOCAL, "glm-uncensored:latest", "glm-uncensored:latest"
 
-    # ── Default: LOCAL routing ──
+    # ── Default: LOCAL routing (Ollama direct) ──
     if requested_model and requested_model in LOCAL_MAP:
         mapped = LOCAL_MAP[requested_model]
         return "local", OLLAMA_LOCAL, mapped, requested_model
 
-    # Auto-pick by complexity
+    # Strip :latest for matching
+    if requested_model:
+        base = requested_model.replace(":latest", "")
+        if base in LOCAL_MAP:
+            return "local", OLLAMA_LOCAL, LOCAL_MAP[base], requested_model
+
+    # ── Smart auto-pick by complexity ──
     for kw in COMPLEXITY_KEYWORDS["power"]:
         if kw in last_msg:
             return "local", OLLAMA_LOCAL, SPEED_MODELS["power"], SPEED_MODELS["power"]
@@ -957,7 +960,7 @@ async def _try_backend(tier, url, model, payload, timeout=8):
                     data = resp.json()
                     # Phantom returns {"response":"..."} — convert to Ollama format
                     # so downstream parsing works unchanged
-                    text = data.get("response", data.get("content", data.get("message", {}).get("content", "")))
+                    text = data.get("text", data.get("response", data.get("content", data.get("message", {}).get("content", ""))))
                     if isinstance(text, list):
                         text = " ".join(b.get("text", "") for b in text if isinstance(b, dict))
                     return True, {
@@ -981,8 +984,26 @@ async def _try_backend(tier, url, model, payload, timeout=8):
                 if 500 <= resp.status_code < 600:
                     return False, f"home_gpu {resp.status_code} (fast-bypass)"
                 return False, f"home_gpu returned {resp.status_code}"
+        elif tier == "local":
+            # Local Ollama — 10s timeout so we failover to phantom fast on this 7GB box
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                return True, resp.json()
+            if 500 <= resp.status_code < 600:
+                return False, f"local {resp.status_code} (fast-bypass)"
+            return False, f"local returned {resp.status_code}"
+        elif tier == "parrot":
+            # Parrot — 10s timeout, don't hang on LAN box that lacks models
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                return True, resp.json()
+            if 500 <= resp.status_code < 600:
+                return False, f"parrot {resp.status_code} (fast-bypass)"
+            return False, f"parrot returned {resp.status_code}"
         else:
-            # Use pooled client for local/cloud/kaggle/parrot — reuses TCP connections
+            # Use pooled client for cloud/kaggle — reuses TCP connections
             resp = await _pool_client.post(url, json=payload)
             if resp.status_code == 200:
                 return True, resp.json()
@@ -1048,7 +1069,8 @@ def _get_tier_url_model(tier, requested_model):
             url = url + "/api/chat"
         return url, model
     if tier == "phantom":
-        return PHANTOM_URL, "ollama"  # default to ollama provider, phantom handles fallback
+        provider = PHANTOM_MAP.get(requested_model, "ollama")
+        return PHANTOM_URL, provider
     if tier == "parrot":
         return PARROT_OLLAMA, "deepseek-coder:1.3b"  # smallest parrot model
     if tier == "kaggle" and KAGGLE_TUNNEL:
@@ -1313,7 +1335,9 @@ async def list_models():
         + [{"id": k, "provider": "phantom-gateway", "tier": 3, "free": True} for k in PHANTOM_MAP]
         + [{"id": k, "provider": "parrot-box", "tier": 4, "free": True} for k in PARROT_MAP]
         + [{"id": k, "provider": "kaggle-gpu", "tier": 5, "free": True} for k in KAGGLE_MAP]
-        + [{"id": k, "provider": "ollama-cloud", "tier": 6, "free": True, "payment_bypassed": True, "always_active": True} for k in CLOUD_MAP]
+        # CLOUD models REMOVED from advertising — they burn ollama.com credits
+        # CLOUD_MAP still exists for routing redirects (cloud name → local model)
+        # but we don't advertise them so clients don't request them
     )
     return {"models": all_models}
 
@@ -1995,21 +2019,23 @@ async def startup_event():
     cloud_up, cloud_models = await check_cloud()
     print(f"  Tier 6 CLOUD: {'UP' if cloud_up else 'DOWN'} — {len(cloud_models)} models (payment bypassed)")
 
-    # Warm up the smallest local model for instant first response
+    # Warm up the smallest local model for instant first response (non-blocking)
     if local_up:
-        print("  Warming up llama3.2:1b (ultrafast)...")
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                await client.post(OLLAMA_LOCAL, json={
-                    "model": "llama3.2:1b",
-                    "messages": [{"role": "user", "content": "hi"}],
-                    "stream": False,
-                    "keep_alive": "30m",
-                    "options": {"num_predict": 1, "temperature": 0, "num_ctx": 512, "num_thread": 4}
-                })
-            print("  ✅ llama3.2:1b warmed up (keep_alive 30m)")
-        except Exception as e:
-            print(f"  ⚠️ warmup failed: {e}")
+        async def _warmup():
+            try:
+                async with httpx.AsyncClient(timeout=60) as client:
+                    await client.post(OLLAMA_LOCAL, json={
+                        "model": "llama3.2:1b",
+                        "messages": [{"role": "user", "content": "hi"}],
+                        "stream": False,
+                        "keep_alive": "30m",
+                        "options": {"num_predict": 1, "temperature": 0, "num_ctx": 512, "num_thread": 4}
+                    })
+                print("  ✅ llama3.2:1b warmed up (keep_alive 30m)")
+            except Exception as e:
+                print(f"  ⚠️ warmup failed: {e}")
+        asyncio.create_task(_warmup())
+        print("  Warming up llama3.2:1b (ultrafast)... [background]")
 
     print("""
   Endpoints:
