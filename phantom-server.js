@@ -4037,7 +4037,7 @@ async function callProviderOnce(providerName, apiKey, msgArray, modelOverride){
     siliconflow:  'deepseek-ai/DeepSeek-V3',
     'deepseek-r1':'deepseek-ai/DeepSeek-R1',
     minimax:      'MiniMax-Text-01',
-ollama: 'hp-1000:latest',
+ollama: 'qwen2.5:0.5b',
     // Extended free/signup providers
     hyperbolic:   'meta-llama/Llama-3.3-70B-Instruct',
     novita:       'meta-llama/llama-3.3-70b-instruct',
@@ -4138,10 +4138,25 @@ ollama: 'hp-1000:latest',
       deepinfra:     'https://api.deepinfra.com/v1/openai/chat/completions',
       glhf:          'https://glhf.chat/api/openai/v1/chat/completions',
       featherless:   'https://api.featherless.ai/v1/chat/completions',
-      aimlapi:       'https://api.aimlapi.com/v1/chat/completions',
-      miniforge:     'http://localhost:5555/api/apps/chatgpt/chat',
+      'miniforge':     'http://localhost:5555/api/apps/chatgpt/chat',
+      // omp free cloud keys (2026-08-25)
+      groq3:          'https://api.groq.com/openai/v1/chat/completions',
+      groq4:          'https://api.groq.com/openai/v1/chat/completions',
+      groq5:          'https://api.groq.com/openai/v1/chat/completions',
+      groq6:          'https://api.groq.com/openai/v1/chat/completions',
+      groq7:          'https://api.groq.com/openai/v1/chat/completions',
+      'mistral2':     'https://api.mistral.ai/v1/chat/completions',
+      'nvidia-nim':   'https://integrate.api.nvidia.com/v1/chat/completions',
+      'nvidia-nim2':  'https://integrate.api.nvidia.com/v1/chat/completions',
+      llm7:           'https://api.llm7.io/v1/chat/completions',
+      'llm7-2':       'https://api.llm7.io/v1/chat/completions',
+      'llm7-3':       'https://api.llm7.io/v1/chat/completions',
+      'llm7-4':       'https://api.llm7.io/v1/chat/completions',
+      'llm7-5':       'https://api.llm7.io/v1/chat/completions',
+      kiro:           'http://127.0.0.1:8000/v1/chat/completions',
+      'puter-sonnet': 'https://api.puter.com/v1/chat/completions',
+      'puter-4o':     'https://api.puter.com/v1/chat/completions',
     };
-    // Some providers share an endpoint with another — use config override if present
     const cfgEndpoint = (loadAIConfig()[providerName] || {}).endpoint;
     endpoint = cfgEndpoint || ENDPOINTS[providerName] || ENDPOINTS.openai;
     // deepseek/mistral routed via siliconflow/huggingface use their respective endpoints
@@ -4376,7 +4391,7 @@ app.post('/api/ai/chat', async (req, res) => {
     const resp = await fetch(_ollamaUrl + '/api/chat', {
      method: 'POST',
      headers: {'Content-Type': 'application/json'},
-     body: JSON.stringify({model: reqModel || 'hp-1000:latest', messages: [{role:'user', content: prompt}], stream: true})
+    body: JSON.stringify({model: reqModel || 'qwen2.5:0.5b', messages: [{role:'user', content: prompt}], stream: true})
     });
     let full = '';
     const reader = resp.body.getReader();
@@ -4481,11 +4496,29 @@ app.post('/api/ai/chat', async (req, res) => {
     'jan',          // Jan.ai local port 1337
     // ── Tier 2: High-quality cloud free ─────────────────────────
     'groq',         // gpt-oss-120b, 800 tok/s free tier
+    'groq3',        // gpt-oss-120b key 3
+    'groq4',        // gpt-oss-120b key 4
+    'groq5',        // gpt-oss-120b key 5
+    'groq6',        // gpt-oss-120b key 6
+    'groq7',        // gpt-oss-120b key 7
     'gemini-flash', // Gemini 2.0 Flash Lite
     'gemini',       // Gemini 2.5 Flash, 1500 req/day free
     'minimax',      // MiniMax-Text-01 free tier
     'openrouter',   // qwen3-235b free model
     'pollinations',  // GPT-4o proxy, no key needed
+    'mistral',      // mistral-large-latest
+    'mistral2',     // mistral-large-latest key 2
+    'nvidia-nim',   // nemotron-3-super-120b-a12b
+    'nvidia-nim2',  // nemotron-3-super-120b-a12b key 2
+    'cohere',       // command-a-03-2025
+    'llm7',         // DeepSeek-V4-Flash-0731
+    'llm7-2',       // DeepSeek-V4-Flash-0731 key 2
+    'llm7-3',       // DeepSeek-V4-Flash-0731 key 3
+    'llm7-4',       // DeepSeek-V4-Flash-0731 key 4
+    'llm7-5',       // DeepSeek-V4-Flash-0731 key 5
+    'kiro',         // Kiro gateway — free Claude via AWS
+    'puter-sonnet', // Puter free Claude Sonnet
+    'puter-4o',     // Puter free GPT-4o
     // ── Tier 3: Extended free cloud ─────────────────────────────
     'together',     // Llama-3.3-70B-Instruct-Turbo-Free
     'hyperbolic',   // Llama-3.3-70B free credits
@@ -7671,9 +7704,10 @@ async function getOllamaEndpoint(modelName){
       console.log(`[PHANTOM] Zero-burn proxy check: ${_proxyCheckCache ? 'online' : 'offline'}`);
     }
     if(_proxyCheckCache) return proxyUrl;
-    // Proxy offline — use raw Ollama (cloud models are registered there too)
-    console.log(`[PHANTOM] Zero-burn proxy offline — routing ${modelName} through raw Ollama (11434)`);
-    return `http://${PROXY_CONFIGS.rawOllama.host}:${PROXY_CONFIGS.rawOllama.port}`;
+    // Proxy offline — don't fall back to raw Ollama (loads 6.6GB local model, thrashes 7GB RAM)
+    // Throw so callPhantomModel skips to next model in chain or hackbots (remote, zero RAM)
+    console.log(`[PHANTOM] Zero-burn proxy offline — skipping ${modelName} (no raw Ollama fallback for cloud models)`);
+    throw new Error(`Zero-burn proxy offline — cloud model ${modelName} not available locally`);
   }
   // Local models use raw Ollama (11434)
   return `http://${PROXY_CONFIGS.rawOllama.host}:${PROXY_CONFIGS.rawOllama.port}`;
@@ -8167,7 +8201,6 @@ function isLocalModel(modelName){
 // Model fallback chain — try each until one responds
 const PHANTOM_MODEL_CHAIN = [
   'glm-5.2:cloud',
-  'hp-1000:latest',
   'kimi-k2.7-code:cloud',
   'glm-5.1:cloud',
   'gpt-oss:120b-cloud',

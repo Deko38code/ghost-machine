@@ -883,6 +883,7 @@ button,a,.clickable,[onclick]{cursor:pointer;}
 @keyframes overlayPulse{0%,100%{background:rgba(5,5,8,.45);}50%{background:rgba(5,5,8,.25);}}
 .preview-build-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px 24px;border:1px solid #00ff4133;border-radius:12px;background:rgba(8,10,18,.98);box-shadow:0 0 30px #00ff4122;width:100%;max-width:100%;height:100%;}
 .preview-build-spinner{will-change:transform;position:relative;width:clamp(60px,15vmin,120px);height:clamp(60px,15vmin,120px);margin:4px 0;}
+@keyframes skullPulse{0%{transform:scale(.85) rotate(-3deg);opacity:.7;}100%{transform:scale(1.1) rotate(3deg);opacity:1;}}
 .preview-build-lines{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%;margin-top:4px;}
 .preview-build-line{border-radius:4px;height:4px;transition:width .6s ease;}
 .preview-build-line.lg{width:80px;background:linear-gradient(90deg,#00ff4100,#00ff4166,#00ff4100);}
@@ -2349,11 +2350,17 @@ body.tab-hidden .battle-live-dot{animation-play-state:paused!important;}
       <div id="preview-frame-wrap" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#10122a;">
       <div id="preview-build-overlay" class="preview-build-overlay" aria-live="polite" aria-hidden="true">
         <div class="preview-build-card" style="justify-content:flex-start;overflow-y:auto;padding:12px 14px;gap:8px;">
-          <!-- Skull video -->
-          <div class="preview-build-spinner" style="width:100%;flex:0 0 auto;height:clamp(120px,28vh,240px);position:relative;background:#000;border-radius:8px;overflow:hidden;">
-            <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:contain;display:block;">
-              <source src="/intro.mp4" type="video/mp4">
-            </video>
+          <!-- Skull spinner (CSS animated, no external file) -->
+          <div class="preview-build-spinner" style="width:100%;flex:0 0 auto;height:clamp(120px,28vh,240px);position:relative;background:radial-gradient(circle at 50% 40%,#0a0a12,#000);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 100 100" style="width:clamp(50px,12vmin,90px);height:clamp(50px,12vmin,90px);filter:drop-shadow(0 0 10px #00ff41cc) drop-shadow(0 0 30px #00ff4166);animation:skullPulse 1.2s ease-in-out infinite alternate;">
+              <defs><radialGradient id="skullG" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#00ff41" stop-opacity="1"/><stop offset="60%" stop-color="#00cc33" stop-opacity=".8"/><stop offset="100%" stop-color="#00ff41" stop-opacity=".3"/></radialGradient></defs>
+              <path d="M50 8C28 8 14 24 14 44v16c0 3-2 5-4 6-2 1-4 3-4 6v6c0 3 2 5 4 5h4c0 4 3 7 7 7h6v6c0 2 2 4 4 4h38c2 0 4-2 4-4v-6h6c4 0 7-3 7-7h4c2 0 4-2 4-5v-6c0-3-2-5-4-6-2-1-4-3-4-6V44C86 24 72 8 50 8z" fill="url(#skullG)" stroke="#00ff41" stroke-width="1.5" stroke-opacity=".6"/>
+              <circle cx="35" cy="42" r="9" fill="#000"/><circle cx="65" cy="42" r="9" fill="#000"/>
+              <circle cx="37" cy="40" r="3" fill="#00ff41"/><circle cx="67" cy="40" r="3" fill="#00ff41"/>
+              <path d="M42 58c3 4 13 4 16 0" stroke="#00ff41" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+              <rect x="38" y="62" width="3" height="6" fill="#000"/><rect x="44" y="62" width="3" height="6" fill="#000"/><rect x="50" y="62" width="3" height="6" fill="#000"/><rect x="56" y="62" width="3" height="6" fill="#000"/><rect x="62" y="62" width="3" height="6" fill="#000"/>
+            </svg>
+            <div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.5rem;color:#00ff4133;letter-spacing:.3em;font-family:'Orbitron',monospace;">PHANTOM</div>
           </div>
           <!-- Label -->
           <div class="preview-build-label" id="preview-build-label" style="font-size:clamp(.7rem,2vmin,1.1rem);letter-spacing:.2em;">PHANTOM IS AT WORK</div>

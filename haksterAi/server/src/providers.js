@@ -192,11 +192,40 @@ Object.assign(PROVIDERS, {
   'puter-sonnet': { name: 'Puter Sonnet', baseURL: 'https://api.puter.com',                         defaultModel: 'claude-sonnet-4-20250514',                 apiKey: 'free',                                              apiKeyEnv: '',                     type: 'openai-compat' },
   'puter-4o':  { name: 'Puter GPT-4o', baseURL: 'https://api.puter.com',                            defaultModel: 'gpt-4o',                                   apiKey: 'free',                                              apiKeyEnv: '',                     type: 'openai-compat' },
 });
+// ── omp cloud providers (from ~/.omp/agent/models.yml — free keys added 2026-08-25) ──
+// These are direct API keys for free cloud tiers, not phantom-relayed.
+Object.assign(PROVIDERS, {
+  // 5 Groq keys running gpt-oss-120b
+  groq3: { name: 'Groq 3 (gpt-oss-120b)', baseURL: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b', apiKey: process.env.GROQ3_API_KEY || _pk('groq3'), apiKeyEnv: 'GROQ3_API_KEY', type: 'openai-compat' },
+  groq4: { name: 'Groq 4 (gpt-oss-120b)', baseURL: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b', apiKey: process.env.GROQ4_API_KEY || _pk('groq4'), apiKeyEnv: 'GROQ4_API_KEY', type: 'openai-compat' },
+  groq5: { name: 'Groq 5 (gpt-oss-120b)', baseURL: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b', apiKey: process.env.GROQ5_API_KEY || _pk('groq5'), apiKeyEnv: 'GROQ5_API_KEY', type: 'openai-compat' },
+  groq6: { name: 'Groq 6 (gpt-oss-120b)', baseURL: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b', apiKey: process.env.GROQ6_API_KEY || _pk('groq6'), apiKeyEnv: 'GROQ6_API_KEY', type: 'openai-compat' },
+  groq7: { name: 'Groq 7 (gpt-oss-120b)', baseURL: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b', apiKey: process.env.GROQ7_API_KEY || _pk('groq7'), apiKeyEnv: 'GROQ7_API_KEY', type: 'openai-compat' },
+  // 5 LLM7 keys running DeepSeek-V4-Flash-0731
+  llm7:     { name: 'LLM7 (DeepSeek-V4-Flash)', baseURL: 'https://api.llm7.io/v1', defaultModel: 'DeepSeek-V4-Flash-0731', apiKey: _pk('llm7') || process.env.LLM7_API_KEY, apiKeyEnv: 'LLM7_API_KEY', type: 'openai-compat' },
+  'llm7-2': { name: 'LLM7-2 (DeepSeek-V4-Flash)', baseURL: 'https://api.llm7.io/v1', defaultModel: 'DeepSeek-V4-Flash-0731', apiKey: _pk('llm7-2') || process.env.LLM7_2_API_KEY, type: 'openai-compat' },
+  'llm7-3': { name: 'LLM7-3 (DeepSeek-V4-Flash)', baseURL: 'https://api.llm7.io/v1', defaultModel: 'DeepSeek-V4-Flash-0731', apiKey: _pk('llm7-3') || process.env.LLM7_3_API_KEY, type: 'openai-compat' },
+  'llm7-4': { name: 'LLM7-4 (DeepSeek-V4-Flash)', baseURL: 'https://api.llm7.io/v1', defaultModel: 'DeepSeek-V4-Flash-0731', apiKey: _pk('llm7-4') || process.env.LLM7_4_API_KEY, type: 'openai-compat' },
+  'llm7-5': { name: 'LLM7-5 (DeepSeek-V4-Flash)', baseURL: 'https://api.llm7.io/v1', defaultModel: 'DeepSeek-V4-Flash-0731', apiKey: _pk('llm7-5') || process.env.LLM7_5_API_KEY, type: 'openai-compat' },
+  // 2 Mistral keys
+  mistral:  { name: 'Mistral Large', baseURL: 'https://api.mistral.ai/v1', defaultModel: 'mistral-large-latest', apiKey: _pk('mistral') || process.env.MISTRAL_API_KEY, type: 'openai-compat' },
+  mistral2: { name: 'Mistral Large 2', baseURL: 'https://api.mistral.ai/v1', defaultModel: 'mistral-large-latest', apiKey: _pk('mistral2') || process.env.MISTRAL2_API_KEY, type: 'openai-compat' },
+  // 2 NVIDIA NIM keys
+  'nvidia-nim':  { name: 'NVIDIA NIM (Nemotron)', baseURL: 'https://integrate.api.nvidia.com/v1', defaultModel: 'nvidia/nemotron-3-super-120b-a12b', apiKey: _pk('nvidia-nim') || process.env.NVIDIA_NIM_API_KEY, type: 'openai-compat' },
+  'nvidia-nim2': { name: 'NVIDIA NIM 2 (Nemotron)', baseURL: 'https://integrate.api.nvidia.com/v1', defaultModel: 'nvidia/nemotron-3-super-120b-a12b', apiKey: _pk('nvidia-nim2') || process.env.NVIDIA_NIM2_API_KEY, type: 'openai-compat' },
+  // Cohere
+  cohere: { name: 'Cohere Command-A', baseURL: 'https://api.cohere.com/compatibility/v1', defaultModel: 'command-a-03-2025', apiKey: _pk('cohere') || process.env.COHERE_API_KEY, type: 'openai-compat' },
+  // 2 Ollama cloud accounts (12 free models each)
+  'ollama-cloud2': { name: 'Ollama Cloud 2', baseURL: 'https://ollama.com/v1', defaultModel: 'glm-5.2', apiKey: _pk('ollama-cloud2') || process.env.OLLAMA_CLOUD2_API_KEY, type: 'openai-compat' },
+  'ollama-cloud3': { name: 'Ollama Cloud 3', baseURL: 'https://ollama.com/v1', defaultModel: 'glm-5.2', apiKey: _pk('ollama-cloud3') || process.env.OLLAMA_CLOUD3_API_KEY, type: 'openai-compat' },
+  // Kiro gateway (local, free Claude via Kiro/AWS)
+  'kiro-gateway': { name: 'Kiro Gateway (Claude)', baseURL: 'http://127.0.0.1:8000/v1', defaultModel: 'claude-sonnet-4', apiKey: 'my-super-secret-password-123', type: 'openai-compat' },
+});
 
 // Waterfall order: hackbot 1st (uncensored bot network, primary brain),
 // gpt-oss 2nd (120b cloud), ollama 3rd (hp-1000, local backup),
 // then sambanova + groq (cloud-free) and on down — rotates to the next on rate-limit.
-const WATERFALL_ORDER = ['hackbot','gpt-oss','ollama','claude-cli','sambanova','groq','cerebras','gemini','gemini-flash','openrouter','pollinations','puter-sonnet','puter-4o'];
+const WATERFALL_ORDER = ['hackbot','gpt-oss','ollama','claude-cli','ollama-cloud2','ollama-cloud3','sambanova','groq','groq3','groq4','groq5','groq6','groq7','cerebras','gemini','gemini-flash','mistral','mistral2','nvidia-nim','nvidia-nim2','cohere','llm7','llm7-2','llm7-3','llm7-4','llm7-5','openrouter','pollinations','puter-sonnet','puter-4o','kiro-gateway'];
 const _rateLimited = new Map(); // provider -> until ms
 function markProviderRateLimited(name, ms = 60000) { if (name) _rateLimited.set(name, Date.now() + ms); }
 function isProviderRateLimited(name) { const until = _rateLimited.get(name); if (!until) return false; if (Date.now() > until) { _rateLimited.delete(name); return false; } return true; }
