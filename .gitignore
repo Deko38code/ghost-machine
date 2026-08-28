@@ -20,3 +20,5 @@
 # Re-allow git operations (needed even when ignoring everything)
 !.gitignoreminiforge/data/miniapps_pool.json
 miniforge/accounts.json
+__pycache__/
+*.pyc
