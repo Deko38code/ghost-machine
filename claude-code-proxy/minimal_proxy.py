@@ -104,7 +104,9 @@ LOCAL_MAP = {
     "claude-pentest":     "claude-pentest",
     "glm-uncensored":     "glm-uncensored:latest",
     "kimi-uncensored":    "kimi-uncensored:latest",
-    "hp-1000":            "hp-1000:latest",
+    "hp-1000":            "glm-5.3:cloud",   # hp-1000 routes to GLM 5.3 (local ollama relays :cloud, no local RAM)
+    "hp-1000:latest":     "glm-5.3:cloud",
+    "glm-5.3:cloud":      "glm-5.3:cloud",
     "mistral-hermes":     "mistral-hermes:latest",
     "hermes3-65k":        "hermes3-65k:latest",
     "qwen2.5:3b":         "qwen2.5:3b",
@@ -163,7 +165,7 @@ PHANTOM_MAP = {
     "openrouter":          "openrouter",
     "pollinations":        "pollinations",
     # Heavy local models that OOM on 7GB — route to phantom free cloud instead
-    "hp-1000:latest":      "groq",
+
     "glm-uncensored:latest": "groq",
     "kimi-uncensored:latest": "groq",
     "qwen3.5:latest":      "groq",
@@ -216,7 +218,7 @@ HOME_GPU_HINTS = {"home-gpu", "hp-gpu", "hpgpu"}
 # ═══════════════════════════════════════════════════════════════════
 
 SPEED_MODELS = {
-    "power":     "hp-1000:latest",       # Main brain — always available via proxy
+    "power":     "glm-5.3:cloud",        # Main brain — glm-5.3 via local ollama cloud relay
     "medium":    "glm-uncensored:latest", # Good uncensored local model
     "fast":      "mistral:latest",        # Fast response
     "ultrafast": "phi:latest",            # Ultra-fast for simple queries

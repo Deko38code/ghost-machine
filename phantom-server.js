@@ -4069,10 +4069,22 @@ ollama: 'qwen2.5:0.5b',
   // Miniapps.ai bots proxied locally via Miniforge on port 5555
   if(providerName === 'miniforge'){
     const botSlug = model || 'cheat';
+    // Bots are one-shot (single `message` field) — hand them a compact transcript
+    // instead of ONLY the last user line, otherwise follow-ups like "so is it ok"
+    // lose all context and the bot answers "Hello! what are you referring to?"
     const lastUser = msgArray.filter(m=>m.role==='user').pop();
+    const _recent = msgArray.slice(-12);
+    const _transcript = _recent
+      .filter(m => (m.content||'').toString().trim())
+      .map(m => (m.role === 'user' ? 'User' : m.role === 'assistant' ? 'Phantom' : 'Context') + ': ' + String(m.content||'').replace(/\s+/g, ' ').slice(0, 700))
+      .join('\n');
+    const _lastMsg = lastUser ? String(lastUser.content).slice(0, 3000) : '';
     endpoint = `http://localhost:5555/api/apps/${botSlug}/chat`;
     headers = { 'Content-Type':'application/json' };
-    bodyObj = { message: lastUser?.content || '' };
+    const _miniforgeBody = _transcript
+      ? 'Conversation so far (reply to the LATEST user message as PHANTOM, a terminal AI assistant on Linux):\n' + _transcript + '\n\nLatest user message: ' + _lastMsg
+      : _lastMsg;
+    bodyObj = { message: _miniforgeBody.slice(-6000) };
     // Miniforge returns { reply: "...", session_id: "..." } — handle in response parsing below
   } else if(providerName === 'gemini' || providerName === 'gemini-flash'){
     const gModel = providerName === 'gemini-flash' ? 'gemini-2.0-flash-lite' : model;

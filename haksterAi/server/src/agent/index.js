@@ -303,7 +303,7 @@ async function buildBrowserSnapshotText(page, full = false) {
 }
 
 // ── Config ──────────────────────────────────────────────────────────────
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
 const HAKSTER_HOST = process.env.HAKSTER_HOST || 'http://localhost:3579';
 let MODEL = process.env.HAKSTER_MODEL || (() => {
   try {
@@ -1218,7 +1218,7 @@ function buildSystemPrompt(clientContext) {
 
   // ── Inject memory-engine v2 recall (importance-scored) ──
   try {
-    const memFrag = memoryEngine.recallForPrompt(process.cwd(), { maxChars: 2500 });
+    const memFrag = memoryEngine.recallForPrompt(process.cwd(), { maxChars: 5000 });
     if (memFrag) prompt += '\n\n## Relevant Memories (v2)\n' + memFrag;
   } catch (e) { /* non-blocking */ }
 
@@ -9155,13 +9155,19 @@ process.stdout.write(`\r\x1b[K${C.success}✓ Retry after compact succeeded${C.r
             const toolContent = typeof (result && result.content) === 'string'
               ? result.content.substring(0, 500)
               : JSON.stringify(result).substring(0, 500);
-            memoryEngine.addMemory({
-              type: 'observation',
-              observation: `[${toolName}] ${toolContent}`,
-              context: { source: 'tool', tool: toolName },
-              tags: [toolName, 'tool-result'],
-              timestamp: new Date().toISOString()
-            }, process.cwd());
+            // Skip noise: empty, trivially short, or pure-markup results are not
+            // memories — they were flooding the 500-slot store and evicting
+            // durable learnings into the archive before they could matter.
+            const _obs = `[${toolName}] ${toolContent}`.trim();
+            if (_obs.length >= 40 && /[\w/]/.test(_obs.replace(/[\[\]`<>\s]/g, ''))) {
+              memoryEngine.addMemory({
+                type: 'observation',
+                observation: _obs,
+                context: { source: 'tool', tool: toolName },
+                tags: [toolName, 'tool-result'],
+                timestamp: new Date().toISOString()
+              }, process.cwd());
+            }
  } catch (e) { console.error("[memory] addMemory failed:", e.message); }
         });
 
@@ -9979,7 +9985,7 @@ async function repl() {
   if (!_isDirectCloudModel(MODEL)) {
     let ollamaUp = false, hasModel = false;
     try {
-      const j = await (await fetch(OLLAMA_HOST + '/api/tags', { signal: AbortSignal.timeout(1200) })).json();
+      const j = await (await fetch(OLLAMA_HOST + '/api/tags', { signal: AbortSignal.timeout(5000) })).json();
       ollamaUp = true;
       hasModel = (j.models || []).some(m => m.name === MODEL || m.name === MODEL.split(':')[0]);
     } catch (_) { /* ollama unreachable */ }
