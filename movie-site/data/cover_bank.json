@@ -12,7 +12,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:14.643Z"
+    "updatedAt": "2026-08-29T20:07:05.000Z"
   },
   "tmdb_2190": {
     "id": 2190,
@@ -27,7 +27,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:14.918Z"
+    "updatedAt": "2026-08-29T20:07:05.134Z"
   },
   "tmdb_2316": {
     "id": 2316,
@@ -42,7 +42,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:15.197Z"
+    "updatedAt": "2026-08-29T20:07:05.257Z"
   },
   "tmdb_57243": {
     "id": 57243,
@@ -57,7 +57,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:15.439Z"
+    "updatedAt": "2026-08-29T20:07:07.014Z"
   },
   "tmdb_60573": {
     "id": 60573,
@@ -72,7 +72,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:15.657Z"
+    "updatedAt": "2026-08-29T20:07:02.891Z"
   },
   "tmdb_82819": {
     "id": 82819,
@@ -87,11 +87,11 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:15.933Z"
+    "updatedAt": "2026-08-29T20:07:08.224Z"
   },
   "tmdb_1100": {
     "id": 1100,
-    "poster": "https://images.metahub.space/poster/medium/tt0364845/img",
+    "poster": "https://images.metahub.space/poster/small/tt0364845/img",
     "backdrop": null,
     "dvdCover": null,
     "source": "cinemeta",
@@ -102,7 +102,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:33.386Z"
+    "updatedAt": "2026-08-29T20:07:15.924Z"
   },
   "tmdb_1399": {
     "id": 1399,
@@ -117,7 +117,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:41.838Z"
+    "updatedAt": "2026-08-29T20:07:07.177Z"
   },
   "tmdb_1396": {
     "id": 1396,
@@ -132,7 +132,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:41.511Z"
+    "updatedAt": "2026-08-29T20:07:08.483Z"
   },
   "tmdb_1434": {
     "id": 1434,
@@ -147,7 +147,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:16.144Z"
+    "updatedAt": "2026-08-29T20:07:14.309Z"
   },
   "tmdb_66732": {
     "id": 66732,
@@ -162,7 +162,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:20.618Z"
+    "updatedAt": "2026-08-29T20:07:08.866Z"
   },
   "tmdb_71912": {
     "id": 71912,
@@ -177,7 +177,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:29.231Z"
+    "updatedAt": "2026-08-29T20:07:08.607Z"
   },
   "tmdb_4614": {
     "id": 4614,
@@ -192,7 +192,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:21.195Z"
+    "updatedAt": "2026-08-29T20:07:08.361Z"
   },
   "tmdb_76479": {
     "id": 76479,
@@ -207,7 +207,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:41.020Z"
+    "updatedAt": "2026-08-29T20:07:08.987Z"
   },
   "tmdb_60625": {
     "id": 60625,
@@ -222,7 +222,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:07.262Z"
+    "updatedAt": "2026-08-29T20:07:09.398Z"
   },
   "tmdb_557": {
     "id": 557,
@@ -237,7 +237,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:40.535Z"
+    "updatedAt": "2026-08-29T20:07:14.046Z"
   },
   "tmdb_558": {
     "id": 558,
@@ -252,7 +252,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:34.395Z"
+    "updatedAt": "2026-08-29T20:07:14.171Z"
   },
   "tmdb_1622": {
     "id": 1622,
@@ -267,7 +267,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:21.610Z"
+    "updatedAt": "2026-08-29T20:07:09.281Z"
   },
   "tmdb_559": {
     "id": 559,
@@ -282,7 +282,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:02.397Z"
+    "updatedAt": "2026-08-29T20:07:22.365Z"
   },
   "tmdb_102611": {
     "id": 102611,
@@ -297,7 +297,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:31.595Z"
+    "updatedAt": "2026-08-29T20:07:22.487Z"
   },
   "tmdb_324549": {
     "id": 324549,
@@ -312,7 +312,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:32.138Z"
+    "updatedAt": "2026-08-29T20:07:22.603Z"
   },
   "tmdb_324552": {
     "id": 324552,
@@ -327,7 +327,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:36.056Z"
+    "updatedAt": "2026-08-29T20:07:22.728Z"
   },
   "tmdb_76338": {
     "id": 76338,
@@ -342,7 +342,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:43.280Z"
+    "updatedAt": "2026-08-29T20:07:22.971Z"
   },
   "tmdb_102610": {
     "id": 102610,
@@ -357,7 +357,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:42.065Z"
+    "updatedAt": "2026-08-29T20:07:09.127Z"
   },
   "tmdb_693134": {
     "id": 693134,
@@ -372,7 +372,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:30.798Z"
+    "updatedAt": "2026-08-29T20:07:03.041Z"
   },
   "tmdb_533535": {
     "id": 533535,
@@ -387,7 +387,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:11.870Z"
+    "updatedAt": "2026-08-29T20:07:18.452Z"
   },
   "tmdb_823464": {
     "id": 823464,
@@ -402,7 +402,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:42.931Z"
+    "updatedAt": "2026-08-29T20:07:19.265Z"
   },
   "tmdb_786892": {
     "id": 786892,
@@ -417,7 +417,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:30.719Z"
+    "updatedAt": "2026-08-29T20:07:19.385Z"
   },
   "tmdb_945961": {
     "id": 945961,
@@ -432,7 +432,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:12.858Z"
+    "updatedAt": "2026-08-29T20:07:03.168Z"
   },
   "tmdb_1022789": {
     "id": 1022789,
@@ -447,7 +447,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:31.600Z"
+    "updatedAt": "2026-08-29T20:07:16.139Z"
   },
   "tmdb_653346": {
     "id": 653346,
@@ -462,7 +462,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:42.674Z"
+    "updatedAt": "2026-08-29T20:07:19.687Z"
   },
   "tmdb_840705": {
     "id": 840705,
@@ -477,7 +477,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:13.250Z"
+    "updatedAt": "2026-08-29T20:07:20.887Z"
   },
   "tmdb_1034541": {
     "id": 1034541,
@@ -492,7 +492,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:30.355Z"
+    "updatedAt": "2026-08-29T20:07:22.017Z"
   },
   "tmdb_940721": {
     "id": 940721,
@@ -507,7 +507,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:32.283Z"
+    "updatedAt": "2026-08-29T20:07:04.866Z"
   },
   "tmdb_1249213": {
     "id": 1249213,
@@ -522,7 +522,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:13.897Z"
+    "updatedAt": "2026-08-29T20:07:22.254Z"
   },
   "tmdb_1771": {
     "id": 1771,
@@ -537,7 +537,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:25.977Z"
+    "updatedAt": "2026-08-29T20:07:23.089Z"
   },
   "tmdb_68721": {
     "id": 68721,
@@ -552,7 +552,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:44.488Z"
+    "updatedAt": "2026-08-29T20:07:23.207Z"
   },
   "tmdb_299534": {
     "id": 299534,
@@ -567,7 +567,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:43.850Z"
+    "updatedAt": "2026-08-29T20:07:18.899Z"
   },
   "tmdb_429617": {
     "id": 429617,
@@ -582,7 +582,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:16.346Z"
+    "updatedAt": "2026-08-29T20:07:23.775Z"
   },
   "tmdb_566525": {
     "id": 566525,
@@ -597,7 +597,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:29.347Z"
+    "updatedAt": "2026-08-29T20:07:14.431Z"
   },
   "tmdb_361743": {
     "id": 361743,
@@ -612,7 +612,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:26.360Z"
+    "updatedAt": "2026-08-29T20:07:23.634Z"
   },
   "tmdb_299537": {
     "id": 299537,
@@ -627,7 +627,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:23.825Z"
+    "updatedAt": "2026-08-29T20:07:23.341Z"
   },
   "tmdb_155": {
     "id": 155,
@@ -642,7 +642,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:45.519Z"
+    "updatedAt": "2026-08-29T20:07:19.939Z"
   },
   "tmdb_238": {
     "id": 238,
@@ -657,7 +657,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:50.475Z"
+    "updatedAt": "2026-08-29T20:07:20.770Z"
   },
   "tmdb_278": {
     "id": 278,
@@ -672,7 +672,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:22.519Z"
+    "updatedAt": "2026-08-29T20:07:19.516Z"
   },
   "tmdb_603": {
     "id": 603,
@@ -687,7 +687,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:35.671Z"
+    "updatedAt": "2026-08-29T20:07:20.178Z"
   },
   "tmdb_496243": {
     "id": 496243,
@@ -702,7 +702,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:47.769Z"
+    "updatedAt": "2026-08-29T20:07:20.419Z"
   },
   "tmdb_157336": {
     "id": 157336,
@@ -717,7 +717,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:52.736Z"
+    "updatedAt": "2026-08-29T20:07:19.812Z"
   },
   "tmdb_281338": {
     "id": 281338,
@@ -732,7 +732,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:33.100Z"
+    "updatedAt": "2026-08-29T20:07:11.957Z"
   },
   "tmdb_51439": {
     "id": 51439,
@@ -747,7 +747,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:09.881Z"
+    "updatedAt": "2026-08-29T20:07:12.339Z"
   },
   "tmdb_245891": {
     "id": 245891,
@@ -762,7 +762,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:12.504Z"
+    "updatedAt": "2026-08-29T20:07:18.595Z"
   },
   "tmdb_954": {
     "id": 954,
@@ -777,7 +777,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:10.899Z"
+    "updatedAt": "2026-08-29T20:07:13.930Z"
   },
   "tmdb_550": {
     "id": 550,
@@ -792,7 +792,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:11.274Z"
+    "updatedAt": "2026-08-29T20:07:21.414Z"
   },
   "tmdb_680": {
     "id": 680,
@@ -807,7 +807,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:06.381Z"
+    "updatedAt": "2026-08-29T20:07:20.299Z"
   },
   "tmdb_13": {
     "id": 13,
@@ -822,7 +822,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:46.319Z"
+    "updatedAt": "2026-08-29T20:07:20.060Z"
   },
   "tmdb_424": {
     "id": 424,
@@ -837,7 +837,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:09.561Z"
+    "updatedAt": "2026-08-29T20:07:20.651Z"
   },
   "tmdb_346": {
     "id": 346,
@@ -852,7 +852,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:10.245Z"
+    "updatedAt": "2026-08-29T20:07:21.299Z"
   },
   "tmdb_293660": {
     "id": 293660,
@@ -867,7 +867,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:33.094Z"
+    "updatedAt": "2026-08-29T20:07:18.166Z"
   },
   "tmdb_122": {
     "id": 122,
@@ -882,7 +882,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:49.289Z"
+    "updatedAt": "2026-08-29T20:07:21.010Z"
   },
   "tmdb_11": {
     "id": 11,
@@ -897,7 +897,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:36.783Z"
+    "updatedAt": "2026-08-29T20:07:21.655Z"
   },
   "tmdb_947": {
     "id": 947,
@@ -912,7 +912,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:13.498Z"
+    "updatedAt": "2026-08-29T20:07:19.145Z"
   },
   "tmdb_508943": {
     "id": 508943,
@@ -927,7 +927,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:13.774Z"
+    "updatedAt": "2026-08-29T20:06:41.889Z"
   },
   "tmdb_497": {
     "id": 497,
@@ -942,7 +942,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:48.310Z"
+    "updatedAt": "2026-08-29T20:07:20.528Z"
   },
   "tmdb_8": {
     "id": 8,
@@ -957,7 +957,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:17.946Z"
+    "updatedAt": "2026-08-29T20:07:21.771Z"
   },
   "tmdb_862": {
     "id": 862,
@@ -972,7 +972,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:49.991Z"
+    "updatedAt": "2026-08-29T20:07:21.900Z"
   },
   "tmdb_218": {
     "id": 218,
@@ -987,7 +987,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:04:18.728Z"
+    "updatedAt": "2026-08-29T20:07:21.165Z"
   },
   "tmdb_tt0378799": {
     "id": "tt0378799",
@@ -1017,7 +1017,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:18.177Z"
+    "updatedAt": "2026-08-29T20:07:01.384Z"
   },
   "tmdb_609": {
     "id": 609,
@@ -1032,7 +1032,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:37.016Z"
+    "updatedAt": "2026-08-29T20:07:06.721Z"
   },
   "tmdb_43964": {
     "id": 43964,
@@ -1047,7 +1047,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:38.739Z"
+    "updatedAt": "2026-08-29T20:07:06.855Z"
   },
   "tmdb_457232": {
     "id": 457232,
@@ -1077,7 +1077,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:20.688Z"
+    "updatedAt": "2026-08-29T20:07:01.523Z"
   },
   "tmdb_552524": {
     "id": 552524,
@@ -1092,7 +1092,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:19.799Z"
+    "updatedAt": "2026-08-29T20:07:01.663Z"
   },
   "tmdb_986056": {
     "id": 986056,
@@ -1107,7 +1107,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:13.743Z"
+    "updatedAt": "2026-08-29T20:07:02.220Z"
   },
   "tmdb_1233413": {
     "id": 1233413,
@@ -1122,7 +1122,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:19.604Z"
+    "updatedAt": "2026-08-29T20:07:02.405Z"
   },
   "tmdb_870028": {
     "id": 870028,
@@ -1137,7 +1137,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:48.307Z"
+    "updatedAt": "2026-08-29T20:07:01.948Z"
   },
   "tmdb_574475": {
     "id": 574475,
@@ -1152,7 +1152,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:07:21.579Z"
+    "updatedAt": "2026-08-29T20:07:02.732Z"
   },
   "tmdb_67915": {
     "id": 67915,
@@ -1167,7 +1167,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:33.802Z"
+    "updatedAt": "2026-08-29T20:07:02.082Z"
   },
   "tmdb_1234821": {
     "id": 1234821,
@@ -9833,7 +9833,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:33.333Z"
+    "updatedAt": "2026-08-29T20:07:01.803Z"
   },
   "tmdb_822119": {
     "id": 822119,
@@ -9848,7 +9848,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:09:39.877Z"
+    "updatedAt": "2026-08-29T20:07:02.581Z"
   },
   "tmdb_1007757": {
     "id": 1007757,
@@ -14858,7 +14858,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-08-02T16:00:36.703Z"
+    "updatedAt": "2026-08-29T20:07:22.142Z"
   },
   "tt34611082": {
     "poster": "https://live.metahub.space/poster/medium/tt34611082/img",
@@ -17245,7 +17245,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:29.291Z"
+    "updatedAt": "2026-08-29T20:05:17.820Z"
   },
   "tmdb_13811": {
     "id": 13811,
@@ -17260,7 +17260,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:29.561Z"
+    "updatedAt": "2026-08-29T20:05:18.537Z"
   },
   "tmdb_584": {
     "id": 584,
@@ -17275,7 +17275,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:29.029Z"
+    "updatedAt": "2026-08-29T20:05:17.675Z"
   },
   "tmdb_168259": {
     "id": 168259,
@@ -17290,7 +17290,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:30.322Z"
+    "updatedAt": "2026-08-29T20:05:18.924Z"
   },
   "tmdb_337339": {
     "id": 337339,
@@ -17305,7 +17305,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:30.856Z"
+    "updatedAt": "2026-08-29T20:05:19.207Z"
   },
   "tmdb_385687": {
     "id": 385687,
@@ -17320,7 +17320,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:31.126Z"
+    "updatedAt": "2026-08-29T20:05:18.114Z"
   },
   "tmdb_10721": {
     "id": 10721,
@@ -21492,7 +21492,7 @@
     "releaseDate": "",
     "type": "movie",
     "aliases": [],
-    "updatedAt": "2026-06-08T19:11:31.360Z"
+    "updatedAt": "2026-08-29T20:05:19.351Z"
   },
   "tmdb_361197": {
     "id": 361197,

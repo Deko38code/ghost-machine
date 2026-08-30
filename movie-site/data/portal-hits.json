@@ -6,8 +6,8 @@
       "channels": "?",
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.329Z",
-      "found": "2026-08-02T16:09:36.329Z"
+      "lastChecked": "2026-08-29T20:07:00.406Z",
+      "found": "2026-08-29T20:07:00.406Z"
     },
     {
       "portal": "http://www.streamtv.to:8080/c/",
@@ -15,8 +15,8 @@
       "channels": 280,
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.313Z",
-      "found": "2026-08-02T16:09:36.313Z"
+      "lastChecked": "2026-08-29T20:07:00.401Z",
+      "found": "2026-08-29T20:07:00.401Z"
     },
     {
       "portal": "http://www.streamtv.to:8080/",
@@ -24,8 +24,8 @@
       "channels": "?",
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.369Z",
-      "found": "2026-08-02T16:09:36.369Z"
+      "lastChecked": "2026-08-29T20:07:00.421Z",
+      "found": "2026-08-29T20:07:00.421Z"
     },
     {
       "portal": "http://www.streamtv.to:8080",
@@ -33,8 +33,8 @@
       "channels": 280,
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.334Z",
-      "found": "2026-08-02T16:09:36.334Z"
+      "lastChecked": "2026-08-29T20:07:00.396Z",
+      "found": "2026-08-29T20:07:00.396Z"
     },
     {
       "portal": "http://www.streamtv.to:8080/",
@@ -42,8 +42,8 @@
       "channels": "?",
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.326Z",
-      "found": "2026-08-02T16:09:36.326Z"
+      "lastChecked": "2026-08-29T20:07:00.410Z",
+      "found": "2026-08-29T20:07:00.410Z"
     },
     {
       "portal": "http://www.streamtv.to:8080/",
@@ -51,8 +51,8 @@
       "channels": "?",
       "status": "hit",
       "method": "localStorage-sync",
-      "lastChecked": "2026-08-02T16:09:36.374Z",
-      "found": "2026-08-02T16:09:36.374Z"
+      "lastChecked": "2026-08-29T20:07:00.424Z",
+      "found": "2026-08-29T20:07:00.424Z"
     }
   ],
   "lastScan": null

@@ -6958,31 +6958,34 @@ const{chromium}=require('playwright');
  },
 
  // ── account_pool_refresh — force-register fresh free accounts now ──
- // Triggers fresh-accounts.js to create N new accounts and login-accounts.js
- // to authenticate them into the pool. Use when credits are low.
+ // Spawns the real registrar + pool login detached so long registration runs
+ // never block the tool loop. Use when credits are low.
  account_pool_refresh: async (args) => {
-  const { count = 10 } = args;
+  const { count = 10 } = args || {};
   try {
-   const { execSync } = require('child_process');
-   // Register new accounts
-   const regOut = execSync(`cd /home/ghost/miniforge && node -e "
-     const f = require('./fresh-accounts.js');
-   " 2>&1 || echo "fresh-accounts.js needs manual run"`, { timeout: 5000 }).toString().trim();
-   // Just trigger a pool reload via Miniforge API
-   const resp = await fetch(`${MINIFORGE_BASE}/api/pool/status`, { signal: AbortSignal.timeout(10000) });
+   const { exec } = require('child_process');
+   const n = Math.max(1, Math.min(50, parseInt(count, 10) || 10));
+   const child = exec(`cd /home/ghost/miniforge && node fresh-accounts-vpn.js ${n} >> data/top-up.log 2>&1 && node login-accounts.js >> data/top-up.log 2>&1`,
+    { detached: true, timeout: 0 });
+   child.unref();
+   // Immediate pool health from the live Miniforge pool manager
    let poolInfo = null;
-   if(resp.ok) poolInfo = await resp.json();
+   try {
+    const resp = await fetch(`${MINIFORGE_BASE}/api/pool/stats`, { signal: AbortSignal.timeout(10000) });
+    if(resp.ok) poolInfo = await resp.json();
+   } catch {}
    return {
-    action: 'refresh_requested',
-    count,
+    action: 'refresh_started',
+    count: n,
     pool_status: poolInfo,
-    hint: 'Miniforge poller auto-registers new accounts every 60s. To force-create accounts manually: cd /home/ghost/miniforge && node fresh-accounts.js && node login-accounts.js',
+    log: '/home/ghost/miniforge/data/top-up.log',
+    hint: 'Registrar running in background. Re-run account_pool_status in ~2 min for new totals.',
    };
   } catch(e) {
    return {
     action: 'refresh_failed',
     error: e.message,
-    hint: 'Run manually: cd /home/ghost/miniforge && node fresh-accounts.js && node login-accounts.js',
+    hint: 'Run manually: cd /home/ghost/miniforge && node fresh-accounts-vpn.js 10 && node login-accounts.js',
    };
   }
  },
