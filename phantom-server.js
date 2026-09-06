@@ -9587,7 +9587,7 @@ app.get('/api/ollama/tags', (req, res) => {
   mod.get({ hostname: url.hostname, port: url.port || 80, path: url.pathname }, proxyRes => {
     let data = '';
     proxyRes.on('data', d => data += d);
-    proxyRes.on('end', () => { try{ res.json(JSON.parse(data)); }catch{ res.status(500).send(data); } });
+    proxyRes.on('end', () => { try{ const j = JSON.parse(data); if(j && Array.isArray(j.models)) j.models = j.models.filter(m => !String(m.name||'').includes('.disabled-')); res.json(j); }catch{ res.status(500).send(data); } });
   }).on('error', e => res.status(502).json({ error: e.message }));
 });
 
