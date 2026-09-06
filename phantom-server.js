@@ -9561,6 +9561,8 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
 
 app.post('/api/ollama/chat', (req, res) => {
   const ollamaUrl = req.headers['x-ollama-url'] || 'http://localhost:11434';
+  // RAM-leak fix: block disabled models so Ollama never loads their multi-GB blobs
+  if(String(req.body?.model||'').includes('.disabled-')) return res.status(400).json({ error: 'Model disabled: ' + req.body.model });
   const url = new URL('/api/chat', ollamaUrl);
   const body = JSON.stringify(req.body);
 
