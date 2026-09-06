@@ -4403,7 +4403,7 @@ app.post('/api/ai/chat', async (req, res) => {
     const resp = await fetch(_ollamaUrl + '/api/chat', {
      method: 'POST',
      headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({model: reqModel || 'qwen2.5:0.5b', messages: [{role:'user', content: prompt}], stream: true})
+    body: JSON.stringify({model: (reqModel && !String(reqModel).includes('.disabled-')) ? reqModel : 'qwen2.5:0.5b', messages: [{role:'user', content: prompt}], stream: true})
     });
     let full = '';
     const reader = resp.body.getReader();

@@ -1078,7 +1078,7 @@ function stripHackBotDisclaimers(text) {
     .replace(/(?:Sure,?\s*I\s+can\s+(?:help|assist)\s+you\s+with\s+that\.?|Let\s+me\s+(?:craft|whip\s+up|create|prepare)\s+(?:that|a|the)[^.!?]*[.!?:]|I'?ll?\s+(?:whip\s+up|craft|create|prepare|write|build)\s+(?:you\s+)?(?:a|the|that)[^.!?]*[.!?:]|Here'?s?\s+(?:a|the|your)\s+[^.!?]*[.!?:])\s*\n?/gim, '')
     .replace(/(?:What\s+are\s+your\s+commands[,.]?\s*\w*[\w\s]*[.!?]|Just\s+provide\s+me\s+with\s+your\s+objectives[,.]?\s*[^.!?]*[.!?])\s*\n?/gim, '')
     // Strip "Ah," / "Oh," / "Alright," intros and ** bold ** filler intros (also match : as terminator)
-    .replace(/\s*\*{0,2}\s*(?:Ah|Oh|Alright|Okay|Great|Perfect|Excellent|Sure|Of course|Certainly|Absolutely|Al)[,.!?\s][^.!?\n]*[.!?:]\s*\n?/gim, '')
+    .replace(/\s*\*{0,2}\s*\b(?:Ah|Oh|Alright|Okay|Great|Perfect|Excellent|Sure|Of course|Certainly|Absolutely)[,.!?\s][^.!?\n]*[.!?:]\s*\n?/gim, '')
     .replace(/\s*\*{0,2}\s*(?:Let\s+me|I'll|I\s+will|Allow\s+me)\s+[^.!?\n]*(?:create|craft|build|write|whip|prepare|provide|make|generate)[^.!?]*[.!?:]\s*\n?/gim, '')
     // "Here's a script/code... for you" intro anywhere
     .replace(/[,.]?\s*Here'?s?\s+(?:a|the|your)\s+[^.!?]*(?:script|code|tool|program|solution|implementation|example|snippet)\s+[^.!?]*[.!?:]\s*/gim, '')
@@ -1641,6 +1641,10 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
   await accountPool.ensureAccountAuth(account);
   let headers = accountPool.getHeadersFor(account);
 
+  // Fetch this bot's configured greeting (1h-cached in getMiniappsBotInfo) — the
+  // poller needs it to avoid returning the greeting as the final chat reply.
+  let botGreeting = '';
+  try { botGreeting = (await getMiniappsBotInfo(toolId, ''))?.greeting || ''; } catch (_) {}
   const body = {
     toolId, revision, requestId: crypto.randomUUID(),
     elements: [{ type: 'text', text: message }],
@@ -1671,7 +1675,7 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
       method: 'POST', headers,
       body: JSON.stringify({ ...body, requestId: crypto.randomUUID() })
     });
-    return await pollMiniappsResponse(retryResp, onChunk, account);
+    return await pollMiniappsResponse(retryResp, onChunk, account, botGreeting);
   }
 
   // Auth expired — re-login this account or try next
@@ -1685,7 +1689,7 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
         method: 'POST', headers,
         body: JSON.stringify({ ...body, requestId: crypto.randomUUID() })
       });
-      return await pollMiniappsResponse(retryResp, onChunk, account);
+      return await pollMiniappsResponse(retryResp, onChunk, account, botGreeting);
     }
     console.log(`[miniapps-proxy] Re-login failed for ${account.email}, killing and trying next...`);
     await accountPool.killAndReplace(account);
@@ -1705,7 +1709,7 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
           method: 'POST', headers,
           body: JSON.stringify({ ...body, requestId: crypto.randomUUID() })
         });
-        return await pollMiniappsResponse(retryResp, onChunk, fresh);
+        return await pollMiniappsResponse(retryResp, onChunk, fresh, botGreeting);
       }
     }
     throw new Error(`Miniapps API error: 412 — ${errText412.substring(0, 100)}`);
@@ -1717,7 +1721,7 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
     throw new Error(`Miniapps API error: ${resp.status} — ${errText.substring(0, 100)}`);
   }
 
-  const result = await pollMiniappsResponse(resp, onChunk, account);
+  const result = await pollMiniappsResponse(resp, onChunk, account, botGreeting);
   if (result?.reply && !isRefusalSignal(result.reply.substring(0, 1200)) && result.reply.trim().length > 50) {
   accountPool.spentCredit(account);
   } else {
@@ -1727,7 +1731,7 @@ async function proxyMiniappsChat(toolId, message, conversationId, onChunk, revis
 }
 
 // POST /chat returns {chatMessageId, conversationId, requestId} — we then poll for the AI response
-async function pollMiniappsResponse(postResp, onChunk, chatAccount) {
+async function pollMiniappsResponse(postResp, onChunk, chatAccount, greeting = '') {
   let postData;
   try {
     postData = await postResp.json();
@@ -1752,6 +1756,20 @@ async function pollMiniappsResponse(postResp, onChunk, chatAccount) {
   const MAX_POLLS = 60;
   let POLL_INTERVAL = 1000; // 1 second initially, slows to 2s after greeting seen
   let seenGreeting = false;
+  // Per-call staleness state — previously stored on the function object and shared
+  // across concurrent conversations, corrupting the response-growth detection.
+  let _lastLen = 0;
+  let _lastAssistantCount = 0;
+  let _staleCount = 0;
+
+  // Greeting matcher — the bot's configured greeting is NOT the chat answer.
+  const normTxt = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const greetingNorm = normTxt(greeting);
+  const isGreetingText = (t) => {
+    if (!greetingNorm || greetingNorm.length < 20) return false;
+    const n = normTxt(t);
+    return n === greetingNorm || n.startsWith(greetingNorm.slice(0, 40));
+  };
 
   for (let i = 0; i < MAX_POLLS; i++) {
     await new Promise(r => setTimeout(r, POLL_INTERVAL));
@@ -1778,10 +1796,13 @@ async function pollMiniappsResponse(postResp, onChunk, chatAccount) {
             .replace(/\[.*?\]\s*/g, '') // remaining [bracket] spam
             .trim();
         }).filter(t => t.length > 0);
-        
-        // If there's only one short response (likely a greeting), keep polling
-        // Real answers are typically > 250 chars after ad stripping
-        const longestText = allTexts.reduce((a, b) => a.length > b.length ? a : b, '');
+
+        // The bot's configured greeting is NOT the answer — filter it out so the
+        // poller never returns "Welcome! ..." as the final reply (garble bug).
+        const answerTexts = greetingNorm ? allTexts.filter(t => !isGreetingText(t)) : allTexts;
+        const candidateTexts = answerTexts.length > 0 ? answerTexts : allTexts;
+        const longestText = candidateTexts.reduce((a, b) => a.length > b.length ? a : b, '');
+        const onlyGreeting = answerTexts.length === 0;
         
         if (longestText.length < 250 && i < MAX_POLLS - 1) {
           // First time seeing the greeting — slow down polls since the real answer takes longer
@@ -1793,29 +1814,28 @@ async function pollMiniappsResponse(postResp, onChunk, chatAccount) {
           // v13j: If response hasn't grown for 6 consecutive polls (12s), accept it as the final answer
           // (the bot may have finished with a short response, not just a greeting)
           // But first check if a second assistant message appeared (real answer follows greeting)
-          const lastLen = pollMiniappsResponse._lastLen || 0;
-          const lastAssistantCount = pollMiniappsResponse._lastAssistantCount || 0;
-          const staleCount = pollMiniappsResponse._staleCount || 0;
           
           // If a new assistant message appeared, reset staleness (bot may still be generating)
-          if (assistantMsgs.length > lastAssistantCount) {
-            pollMiniappsResponse._staleCount = 0;
-          } else if (longestText.length === lastLen) {
-            pollMiniappsResponse._staleCount = (staleCount || 0) + 1;
+          if (assistantMsgs.length > _lastAssistantCount) {
+            _staleCount = 0;
+          } else if (longestText.length === _lastLen) {
+            _staleCount = _staleCount + 1;
           } else {
-            pollMiniappsResponse._staleCount = 0;
+            _staleCount = 0;
           }
-          pollMiniappsResponse._lastLen = longestText.length;
-          pollMiniappsResponse._lastAssistantCount = assistantMsgs.length;
+          _lastLen = longestText.length;
+          _lastAssistantCount = assistantMsgs.length;
           
-          if (pollMiniappsResponse._staleCount >= 6) {
-            console.log(`[miniapps-proxy] Short response stable at ${longestText.length} chars for ${staleCount + 1} polls — accepting as final answer`);
+          // v14: NEVER accept a greeting-only response as the final answer —
+          // keep waiting for the real reply (MAX_POLLS → caller falls back to local AI).
+          if (_staleCount >= 6 && !onlyGreeting) {
+            console.log(`[miniapps-proxy] Short response stable at ${longestText.length} chars for ${_staleCount + 1} polls — accepting as final answer`);
             // v13.7: Check for credit exhaustion in short response
             if (/Insufficient credits/i.test(longestText)) {
               console.log('[miniapps-proxy] Credits exhausted (in short response), killing + replacing...');
               if (pollAcct) await accountPool.killAndReplace(pollAcct);
-              pollMiniappsResponse._staleCount = 0;
-              pollMiniappsResponse._lastLen = 0;
+              _staleCount = 0;
+              _lastLen = 0;
               throw new Error('Credits exhausted — replaced account, please retry');
             }
             // Accept this short response as the real answer
@@ -1824,21 +1844,27 @@ async function pollMiniappsResponse(postResp, onChunk, chatAccount) {
             if (/invalid csrf token/i.test(text) || /Authentication required/i.test(text)) {
               console.log('[miniapps-proxy] Session expired (in response), re-authing pool...');
               if (pollAcct) { pollAcct.jwt = null; pollAcct.csrfToken = null; pollAcct.lastAuth = 0; await accountPool._loginExisting(pollAcct); }
-              pollMiniappsResponse._staleCount = 0;
-              pollMiniappsResponse._lastLen = 0;
+              _staleCount = 0;
+              _lastLen = 0;
               throw new Error('Session expired — re-authenticated, please retry');
             }
             if (text) {
               if (onChunk) onChunk(text);
               // Reset stale tracking
-              pollMiniappsResponse._staleCount = 0;
-              pollMiniappsResponse._lastLen = 0;
+              _staleCount = 0;
+              _lastLen = 0;
               return { reply: text, conversationId: convId };
             }
           }
           
-          console.log(`[miniapps-proxy] Short response (${longestText.length} chars), waiting for full answer (poll ${i + 1}/${MAX_POLLS})...`);
+          console.log(`[miniapps-proxy] Short response (${longestText.length} chars${onlyGreeting ? ', greeting only' : ''}), waiting for full answer (poll ${i + 1}/${MAX_POLLS})...`);
           continue; // Keep polling
+        }
+        
+        // Greeting-only but long (>250 chars) — still not the answer; keep polling.
+        if (onlyGreeting && i < MAX_POLLS - 1) {
+          console.log(`[miniapps-proxy] Only greeting so far (${longestText.length} chars), waiting for real answer (poll ${i + 1}/${MAX_POLLS})...`);
+          continue;
         }
         
         // Use the longest response (most likely the actual answer)
@@ -2554,6 +2580,13 @@ NO INTRO DIRECTIVE: Never write introductory paragraphs about yourself, your cap
         // Stream the buffered response to the client now that we know it's clean
         res.write(`data: ${JSON.stringify({ type: 'token', content: reply })}\n\n`);
       }
+        // Persist conversation for miniapps-proxied replies — history was only
+        // saved on the local-provider fallback path, breaking multi-turn context.
+        if (reply) {
+          messages.push({ role: 'assistant', content: reply });
+          db.prepare('UPDATE conversations SET messages = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ? AND app_id = ?')
+            .run(JSON.stringify(messages.slice(-50)), conversation.session_id, app.id);
+        }
     } catch (proxyErr) {
       console.error(`[chat/stream] Miniapps proxy failed for ${app.slug}: ${proxyErr.message}`);
       useMiniappsProxy = false; // Fall back to local providers
@@ -2993,6 +3026,13 @@ NO INTRO: Never write introductory paragraphs about yourself or your capabilitie
           console.log(`[chat] Miniapps proxy returned error for ${app.slug}: ${reply.slice(0,80)} — falling back to local providers`);
           reply = '';
           useMiniappsProxy = false;
+        }
+        // Persist conversation for miniapps-proxied replies — history was only
+        // saved on the local-provider fallback path, breaking multi-turn context.
+        if (useMiniappsProxy && reply) {
+          messages.push({ role: 'assistant', content: reply });
+          db.prepare('UPDATE conversations SET messages = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ? AND app_id = ?')
+            .run(JSON.stringify(messages.slice(-50)), conversation.session_id, app.id);
         }
       } catch (proxyErr) {
         console.error(`[chat] Miniapps proxy failed for ${app.slug}: ${proxyErr.message}`);
