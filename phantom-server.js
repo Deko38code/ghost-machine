@@ -5217,14 +5217,24 @@ const MODEL_SIZES = {
   'gemma2:27b': 18.0, 'gemma3:27b': 18.0,
   'qwen2.5:72b': 50.0, 'falcon2:11b': 7.0,
   'wizardlm2:8x22b': 70.0,
+  // THEFT-WEIGHT FIX: sizes for models actually installed on this box (incl. .disabled renames)
+  'glm-8k:latest': 6.6, 'glm-8k': 6.6, 'glm:latest': 6.6, 'glm': 6.6,
+  'glm-8k:latest.disabled-glm53': 6.6, 'glm:latest.disabled-glm53': 6.6,
+  'llama3.2:latest': 2.0, 'llama3.2': 2.0, 'llama3.2:1b': 1.3, 'llama3.2:3b': 2.0,
+  'tinyllama:latest': 0.7, 'tinyllama': 0.7,
 };
 
-// Get available RAM in GB
+// Get available RAM in GB — THEFT-WEIGHT FIX: os.freemem() ignores reclaimable
+// page cache, so a cache-heavy box falsely reports ~0 free RAM and every model
+// gets skipped. Prefer the kernel's MemAvailable (true reclaimable estimate).
 function getAvailableRAMGB() {
   try {
-    const os = require('os');
-    return os.freemem() / (1024 * 1024 * 1024);
-  } catch { return 5.5; } // fallback estimate
+    const meminfo = require('fs').readFileSync('/proc/meminfo', 'utf8');
+    const m = meminfo.match(/^MemAvailable:\s+(\d+)\s+kB/m);
+    if(m) return parseInt(m[1], 10) / (1024 * 1024);
+  } catch {}
+  try { return require('os').freemem() / (1024 * 1024 * 1024); }
+  catch { return 5.5; } // fallback estimate
 }
 
 // Bypass model priority list — smallest/fastest first, RAM-checked at runtime
@@ -9165,22 +9175,34 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
         console.log(`[bypass] Skipping ${m} (needs ${modelSize}GB, have ${availableRAM.toFixed(1)}GB)`);
         continue;
       }
-      // Find if model is installed
-      if(ollamaInstalled.some(i => i === m || i.startsWith(m.split(':')[0]))){
-        ollamaModel = ollamaInstalled.find(i => i === m || i.startsWith(m.split(':')[0]));
-        console.log(`[bypass] Selected Ollama model: ${ollamaModel} (${modelSize || '?'}GB)`);
+      // Find if model is installed — THEFT-WEIGHT FIX:
+      // (a) never match models renamed with a .disabled suffix (disabled on purpose)
+      // (b) gate on the ACTUAL installed model's size, not the preferred entry's size
+      const installedMatch = ollamaInstalled.find(i =>
+        i === m || (i.startsWith(m.split(':')[0]) && !i.includes('.disabled')));
+      if(installedMatch){
+        const actualSize = MODEL_SIZES[installedMatch];
+        if(actualSize && actualSize > availableRAM){
+          console.log(`[bypass] Skipping ${installedMatch} (needs ${actualSize}GB, have ${availableRAM.toFixed(1)}GB)`);
+          continue;
+        }
+        ollamaModel = installedMatch;
+        console.log(`[bypass] Selected Ollama model: ${ollamaModel} (${actualSize || modelSize || '?'}GB)`);
         break;
       }
     }
-    // If no preferred model found, try first installed model that fits
+    // If no preferred model found, use the SMALLEST known-size installed model that fits.
+    // Previously picked the FIRST list entry where size was unknown (`!size` passed) —
+    // that pulled the 6.6GB glm-8k.disabled blob into RAM on every bypass call.
     if(!ollamaModel && ollamaInstalled.length > 0) {
-      for(const installed of ollamaInstalled){
-        const size = MODEL_SIZES[installed];
-        if(!size || size <= availableRAM){
-          ollamaModel = installed;
-          console.log(`[bypass] Using first available: ${ollamaModel}`);
-          break;
-        }
+      const _bypassCandidates = ollamaInstalled
+        .filter(i => !i.includes('.disabled'))
+        .map(installed => ({ installed, size: MODEL_SIZES[installed] }))
+        .filter(c => c.size && c.size <= availableRAM)
+        .sort((a, b) => a.size - b.size);
+      if(_bypassCandidates.length){
+        ollamaModel = _bypassCandidates[0].installed;
+        console.log(`[bypass] Using smallest available: ${ollamaModel} (${_bypassCandidates[0].size}GB)`);
       }
     }
     if(ollamaModel){
@@ -9189,7 +9211,7 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
       const ollamaResult = await new Promise(resolve => {
         const deadline = setTimeout(() => { if(!ollamaResolved){ ollamaResolved=true; resolve(null); } }, 8000);
         ollamaRequest(ollamaBase, ollamaModel, messages, {
-          temperature: 0.1, num_predict: 4096, num_ctx: 8192, num_thread: 4, keep_alive: '30m'
+          temperature: 0.1, num_predict: 4096, num_ctx: 8192, num_thread: 4, keep_alive: '5m'
         }).then(upstream => {
           if(ollamaResolved){ try{ upstream.destroy(); }catch{} return; }
           ollamaResolved = true; clearTimeout(deadline); resolve(upstream);
@@ -9484,8 +9506,10 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
 
   let chosenModel = null;
   const availableRAM = getAvailableRAMGB();
+  // THEFT-WEIGHT FIX: never match .disabled-renamed models in the final fallback
   for(const m of BYPASS_MODELS){
-    const installedMatch = installed.find(i => i === m || i.startsWith(m.split(':')[0]));
+    const installedMatch = installed.find(i =>
+      i === m || (i.startsWith(m.split(':')[0]) && !i.includes('.disabled')));
     if(installedMatch){
       const size = MODEL_SIZES[installedMatch] || MODEL_SIZES[m];
       if(size && size > availableRAM) {
@@ -9498,6 +9522,7 @@ SAFE COMMANDS: Never run rm -rf core files, never wipe .phantom-ai-config.json, 
   }
   if(!chosenModel && installed.length > 0) {
     chosenModel = installed.find(i => {
+      if(i.includes('.disabled')) return false; // THEFT-WEIGHT FIX: never auto-pick disabled-renamed models
       const size = MODEL_SIZES[i];
       return !size || size <= availableRAM;
     }) || null;
