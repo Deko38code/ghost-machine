@@ -841,15 +841,15 @@ function buildProviderMap(model, apiKeys, category) {
     // SambaNova (less restrictive) → OpenRouter free uncensored models → Groq → Cerebras (reasoning refuses) → DeepSeek/Mistral (most restrictive)
     return {
       'sambanova': { key: apiKeys.sambanova, base: 'https://api.sambanova.ai/v1', model: 'Meta-Llama-3.3-70B-Instruct' },
-'openrouter-glm': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'z-ai/glm-5.2:free' },
+'openrouter-glm': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'minimax/minimax-m3:free' },
 		'openrouter-gemma': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'google/gemma-4-31b-it:free' },
 		'openrouter-nemotron': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'nvidia/nemotron-3-super-120b-a12b:free' },
-		'openrouter-gptoss': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'openai/gpt-oss-20b:free' },
+		'openrouter-gptoss': { key: apiKeys.openrouter, base: 'https://openrouter.ai/api/v1', model: 'nvidia/nemotron-3-ultra-550b-a55b:free' },
       'groq': { key: apiKeys.groq, base: 'https://api.groq.com/openai/v1', model: 'openai/gpt-oss-120b' },
       'groq-8b': { key: apiKeys.groq, base: 'https://api.groq.com/openai/v1', model: 'qwen/qwen3.6-27b' },
       'cerebras': { key: apiKeys.cerebras, base: 'https://api.cerebras.ai/v1', model: 'gpt-oss-120b' },
       'deepseek': { key: apiKeys.deepseek, base: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash' },
-      'mistral': { key: apiKeys.mistral, base: 'https://api.mistral.ai/v1', model: 'mistral-large-latest' },
+      'mistral': { key: apiKeys.mistral, base: 'https://api.mistral.ai/v1', model: 'mistral-small-latest' },
     };
   }
   
@@ -858,10 +858,10 @@ function buildProviderMap(model, apiKeys, category) {
   const sambanovaModel = 'Meta-Llama-3.3-70B-Instruct';
   const groqModel = smartModel || 'openai/gpt-oss-120b';
   const deepseekModel = 'deepseek-v4-flash';
-  const mistralModel = 'mistral-large-latest';
+  const mistralModel = 'mistral-small-latest';
   const cerebrasModel = 'gpt-oss-120b';
-  const geminiModel = smartModel?.includes('gemini') ? smartModel : 'gemini-2.0-flash';
-  const openrouterModel = smartModel || model;
+  const geminiModel = smartModel?.includes('gemini') ? smartModel : 'gemini-flash-latest';
+  const openrouterModel = (smartModel && smartModel.includes(':free')) ? smartModel : 'nvidia/nemotron-3-super-120b-a12b:free';
 
   return {
     'sambanova': { key: apiKeys.sambanova, base: 'https://api.sambanova.ai/v1', model: sambanovaModel },
@@ -1165,6 +1165,7 @@ async function callAI(model, messages, temperature, maxTokens, category, appSlug
 
    for (const [name, provider] of Object.entries(modelMap)) {
     if (!provider.key) continue;
+    if (providerCooldownUntil[name] && Date.now() < providerCooldownUntil[name]) continue; // 429 cooldown
     try {
       const resp = await fetch(`${provider.base}/chat/completions`, {
         method: 'POST',
@@ -1213,6 +1214,7 @@ async function callAI(model, messages, temperature, maxTokens, category, appSlug
               if (content && content.trim()) return content;
             } else {
               console.warn(`[callAI] ${name} retry also failed: ${retryResp.status}, skipping`);
+              if (retryResp.status === 429) { providerCooldownUntil[name] = Date.now() + PROVIDER_429_COOLDOWN_MS; console.warn(`[callAI] ${name} cooling 60s after repeated 429`); }
               continue;
             }
           } catch(retryErr) {
@@ -1339,7 +1341,7 @@ async function callAIStream(model, messages, temperature, maxTokens, onChunk, ca
   // ── Try Google Gemini streaming first if key exists and model matches ──
   if (apiKeys.google && (effectiveModel?.includes('gemini') || !effectiveModel || effectiveModel === 'gpt-4o-mini')) {
     try {
-      const geminiModel = effectiveModel?.includes('gemini') ? effectiveModel : 'gemini-2.0-flash';
+      const geminiModel = effectiveModel?.includes('gemini') ? effectiveModel : 'gemini-flash-latest';
       const contents = validMessages.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }]
@@ -1382,6 +1384,7 @@ async function callAIStream(model, messages, temperature, maxTokens, onChunk, ca
   for (const [name, provider] of Object.entries(modelMap)) {
     if (!provider.key) continue;
     if (name === 'google') continue; // already handled above
+    if (providerCooldownUntil[name] && Date.now() < providerCooldownUntil[name]) continue; // 429 cooldown
     try {
       const resp = await fetch(`${provider.base}/chat/completions`, {
         method: 'POST',
@@ -1415,6 +1418,7 @@ async function callAIStream(model, messages, temperature, maxTokens, onChunk, ca
               // Fall through to the streaming handler below
             } else {
               console.warn(`[callAIStream] ${name} retry also failed: ${retryResp.status}, skipping`);
+              if (retryResp.status === 429) { providerCooldownUntil[name] = Date.now() + PROVIDER_429_COOLDOWN_MS; console.warn(`[callAIStream] ${name} cooling 60s after repeated 429`); }
               continue;
             }
           } catch(retryErr) {
@@ -4716,7 +4720,7 @@ const PROVIDER_REGISTRY = [
     name: 'google',
     envVar: 'GOOGLE_API_KEY',
     base: 'https://generativelanguage.googleapis.com/v1beta',
-    models: ['gemini-2.0-flash', 'gemini-2.5-flash'],
+    models: ['gemini-flash-latest', 'gemini-2.5-flash'],
     keyFormat: 'AIzaSy... (39 chars)',
     keyPrefix: 'AIzaSy',
     keyLength: 39,
@@ -4769,6 +4773,11 @@ function updateProviderHealth(name, status, ok) {
     consecutiveFailures: ok ? 0 : (providerHealth[name]?.consecutiveFailures || 0) + 1,
   };
 }
+
+// ── 429 rate-limit cooldown — after a failed 429 retry, skip the provider for
+// a minute so we stop burning quota and stalling every request on dead keys ──
+const providerCooldownUntil = {};
+const PROVIDER_429_COOLDOWN_MS = 60000;
 
 // GET /api/admin/keymap — full key registry with live status
 app.get('/api/admin/keymap', adminMiddleware, async (req, res) => {
@@ -5027,14 +5036,19 @@ app.post('/api/admin/keymap/rotate', adminMiddleware, async (req, res) => {
 
       // Step 6: Restart PM2 AFTER sending response (scheduled)
       entry.steps.push('Scheduling PM2 restart...');
-      setTimeout(() => {
-        try {
-          const { execSync } = require('child_process');
-          execSync('pm2 restart miniforge --update-env', { timeout: 10000 });
-        } catch(e) {
-          console.error('[key-rotation] PM2 restart failed:', e.message);
-        }
-      }, 1000);
+      if (!global.__lastMiniforgePm2Restart || Date.now() - global.__lastMiniforgePm2Restart > 120000) {
+        global.__lastMiniforgePm2Restart = Date.now();
+        setTimeout(() => {
+          try {
+            const { execSync } = require('child_process');
+            execSync('pm2 restart miniforge --update-env', { timeout: 10000 });
+          } catch(e) {
+            console.error('[key-rotation] PM2 restart failed:', e.message);
+          }
+        }, 1000);
+      } else {
+        entry.steps.push('PM2 restart skipped — one already ran in the last 2 minutes');
+      }
 
     // === OTHER PROVIDERS: no programmatic key creation ===
     } else {

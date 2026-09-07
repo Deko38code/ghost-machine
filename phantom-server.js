@@ -4024,14 +4024,14 @@ async function callProviderOnce(providerName, apiKey, msgArray, modelOverride){
     anthropic:    'claude-sonnet-4-6',
     groq:         'openai/gpt-oss-120b',
     together:     'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
-    mistral:      'mistral-large-latest',
+    mistral:      'mistral-small-latest',
     cohere:       'command-r-plus',
     perplexity:   'llama-3.1-sonar-large-128k-online',
     replicate:    'meta/llama-3-70b-instruct',
     huggingface:  'meta-llama/Llama-3.3-70B-Instruct',
     fireworks:    'accounts/fireworks/models/llama-v3p1-70b-instruct',
     deepseek:     'deepseek-chat',
-    openrouter:   'qwen/qwen3-235b-a22b:free',
+    openrouter:   'nvidia/nemotron-3-super-120b-a12b:free',
     gemini:       'gemini-2.5-flash',
     'gemini-flash':'gemini-2.0-flash-lite',
     siliconflow:  'deepseek-ai/DeepSeek-V3',
@@ -4611,6 +4611,16 @@ app.post('/api/ai/chat', async (req, res) => {
         fallbacksUsed.push(`${routedProvider}[refusal]`);
         trackProviderStat(routedProvider, 'refusal');
         _trackPattern(routedProvider, _qType, 'refusal');
+        continue; // try next provider
+      }
+      // ── Canned placeholder detection — miniforge all-providers-dead template ──
+      // Miniforge's bot proxy returns HTTP 200 with this exact template when every
+      // upstream key is dead (429/402/403). It is NOT a real answer — never return
+      // it to the CLI; keep falling through the chain (ollama etc. still work).
+      if(/experiencing high load right now/i.test(replyText) && i < chain.length - 1){
+        console.warn(`[FALLBACK] ${routedProvider} served canned placeholder — retrying with next provider`);
+        fallbacksUsed.push(`${routedProvider}[canned]`);
+        trackProviderStat(routedProvider, 'fail');
         continue; // try next provider
       }
 
