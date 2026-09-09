@@ -293,7 +293,7 @@ function logError(label, err){
 process.on('uncaughtException', e => {
   logError('uncaughtException', e);
   // Port conflict = duplicate — exit cleanly so PM2 can restart
-  if(e.code === 'EADDRINUSE'){ console.error('⛔ Port already in use — exiting duplicate'); process.exit(0); }
+  if(e.code === 'EADDRINUSE'){ console.error('⛔ Port already in use — exiting for restart with backoff'); process.exit(1); }
   // For all other errors: log and keep running — DO NOT exit (PM2 handles restarts)
   console.error('[crash-guard] Server survived uncaughtException — continuing');
 });
