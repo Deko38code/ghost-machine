@@ -16530,6 +16530,28 @@ app.post("/api/peer/sync", async (_req, res) => {
   }
 });
 // === END PEER SYNC ===
+// === KAGGLE TUNNEL CALLBACK ===
+// Kaggle notebooks POST their cloudflared tunnel URL here on startup
+// phantom-server is exposed via ngrok at https://emmy-...ngrok-free.dev
+const KAGGLE_TUNNEL_FILE = path.join(HOME_DIR, 'claude-code-proxy', 'tunnel_urls.json');
+app.post('/api/kaggle/tunnel', (req, res) => {
+  try {
+    const { node, tunnel_url } = req.body;
+    if (!node || !tunnel_url) return res.status(400).json({ ok: false, error: 'missing node or tunnel_url' });
+    let urls = {};
+    try { urls = JSON.parse(fs.readFileSync(KAGGLE_TUNNEL_FILE, 'utf8')); } catch {}
+    urls[node] = tunnel_url;
+    urls[node + '_updated'] = Date.now();
+    fs.writeFileSync(KAGGLE_TUNNEL_FILE, JSON.stringify(urls, null, 2));
+    console.log(`[kaggle] Tunnel from ${node}: ${tunnel_url}`);
+    res.json({ ok: true, node, tunnel_url });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+app.get('/api/kaggle/tunnels', (req, res) => {
+  try { res.json(JSON.parse(fs.readFileSync(KAGGLE_TUNNEL_FILE, 'utf8'))); }
+  catch { res.json({}); }
+});
+// === END KAGGLE TUNNEL CALLBACK ===
 
 // Start daily AI hacking news feed (pushes to all agents at 9 AM daily)
 scheduleDailyNewsPush();
