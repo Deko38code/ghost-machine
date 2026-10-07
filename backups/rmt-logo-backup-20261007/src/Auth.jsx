@@ -132,7 +132,7 @@ export function AuthModal({ onDone, onClose }) {
             }}>{label}</button>
           ))}
         </div>
-        <h2 className="sec-title">mode === "google" ? "Welcome — quick sign up" : mode === "email" ? "Email log in" : mode === "signup" ? "Create account" : mode === "forgot" ? "Password reset" : "Two-factor"</h2>
+        <h2 className="sec-title">{mode === "google" ? "Welcome — quick sign up" : mode === "email" ? "Email log in" : mode === "signup" ? "Create account" : mode === "forgot" ? "Password reset" : "Two-factor"}</h2>
         {(mode === "google" || mode === "signup") && !!gsiOn && (
           <div style={{ textAlign: "center", marginTop: 10 }}>
             {mode === "google" && (

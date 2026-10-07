@@ -8,8 +8,8 @@
 7 silly config load:file:/usr/local/etc/npmrc
 8 verbose title npm audit
 9 verbose argv "audit" "--json"
-10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T20_31_01_381Z-
-11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T20_31_01_381Z-debug-0.log
+10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T21_36_01_416Z-
+11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T21_36_01_416Z-debug-0.log
 12 silly logfile start cleaning logs, removing 1 files
 13 silly logfile done cleaning log files
 14 silly packumentCache heap:2348810240 maxSize:587202560 maxEntrySize:293601280
@@ -170,7 +170,7 @@
 15 silly audit   'crc-32': [ '1.2.2' ],
 15 silly audit   'crc32-stream': [ '7.0.1' ]
 15 silly audit }
-16 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 253ms
+16 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 242ms
 17 silly audit report {
 17 silly audit report   braces: [
 17 silly audit report     {
@@ -281,32 +281,32 @@
 21 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion cache-miss
 22 silly packumentCache corgi:https://registry.npmjs.org/proxy-addr cache-miss
 23 silly packumentCache corgi:https://registry.npmjs.org/qs cache-miss
-24 http fetch GET 200 https://registry.npmjs.org/compression 145ms (cache revalidated)
-25 silly packumentCache corgi:https://registry.npmjs.org/compression set size:33244 disposed:false
-26 http fetch GET 200 https://registry.npmjs.org/brace-expansion 219ms (cache revalidated)
-27 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion set size:45109 disposed:false
-28 http fetch GET 200 https://registry.npmjs.org/proxy-addr 222ms (cache revalidated)
+24 http fetch GET 200 https://registry.npmjs.org/brace-expansion 164ms (cache revalidated)
+25 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion set size:45109 disposed:false
+26 http fetch GET 200 https://registry.npmjs.org/braces 200ms (cache revalidated)
+27 silly packumentCache corgi:https://registry.npmjs.org/braces set size:35919 disposed:false
+28 http fetch GET 200 https://registry.npmjs.org/proxy-addr 225ms (cache revalidated)
 29 silly packumentCache corgi:https://registry.npmjs.org/proxy-addr set size:24608 disposed:false
-30 http fetch GET 200 https://registry.npmjs.org/image-size 232ms (cache revalidated)
-31 silly packumentCache corgi:https://registry.npmjs.org/image-size set size:77892 disposed:false
-32 http fetch GET 200 https://registry.npmjs.org/qs 241ms (cache revalidated)
-33 silly packumentCache corgi:https://registry.npmjs.org/qs set size:149425 disposed:false
-34 http fetch GET 200 https://registry.npmjs.org/braces 272ms (cache revalidated)
-35 silly packumentCache corgi:https://registry.npmjs.org/braces set size:35919 disposed:false
+30 http fetch GET 200 https://registry.npmjs.org/qs 243ms (cache revalidated)
+31 silly packumentCache corgi:https://registry.npmjs.org/qs set size:149425 disposed:false
+32 http fetch GET 200 https://registry.npmjs.org/image-size 256ms (cache revalidated)
+33 silly packumentCache corgi:https://registry.npmjs.org/image-size set size:77892 disposed:false
+34 http fetch GET 200 https://registry.npmjs.org/compression 262ms (cache revalidated)
+35 silly packumentCache corgi:https://registry.npmjs.org/compression set size:33244 disposed:false
 36 silly packumentCache corgi:https://registry.npmjs.org/chokidar cache-miss
-37 http fetch GET 200 https://registry.npmjs.org/chokidar 66ms (cache revalidated)
+37 http fetch GET 200 https://registry.npmjs.org/chokidar 85ms (cache revalidated)
 38 silly packumentCache corgi:https://registry.npmjs.org/chokidar set size:119454 disposed:false
 39 silly packumentCache corgi:https://registry.npmjs.org/minimatch cache-miss
-40 http fetch GET 200 https://registry.npmjs.org/minimatch 81ms (cache revalidated)
+40 http fetch GET 200 https://registry.npmjs.org/minimatch 42ms (cache revalidated)
 41 silly packumentCache corgi:https://registry.npmjs.org/minimatch set size:169442 disposed:false
 42 silly packumentCache corgi:https://registry.npmjs.org/express cache-miss
-43 http fetch GET 200 https://registry.npmjs.org/express 55ms (cache revalidated)
+43 http fetch GET 200 https://registry.npmjs.org/express 57ms (cache revalidated)
 44 silly packumentCache corgi:https://registry.npmjs.org/express set size:341170 disposed:false
 45 silly packumentCache corgi:https://registry.npmjs.org/body-parser cache-miss
-46 http fetch GET 200 https://registry.npmjs.org/body-parser 68ms (cache revalidated)
+46 http fetch GET 200 https://registry.npmjs.org/body-parser 63ms (cache revalidated)
 47 silly packumentCache corgi:https://registry.npmjs.org/body-parser set size:82509 disposed:false
 48 silly packumentCache corgi:https://registry.npmjs.org/nodemon cache-miss
-49 http fetch GET 200 https://registry.npmjs.org/nodemon 87ms (cache revalidated)
+49 http fetch GET 200 https://registry.npmjs.org/nodemon 67ms (cache revalidated)
 50 silly packumentCache corgi:https://registry.npmjs.org/nodemon set size:282567 disposed:false
 51 verbose cwd /home/ghost/haksterAi/server
 52 verbose os Linux 7.0.0-38-generic
