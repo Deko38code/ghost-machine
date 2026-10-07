@@ -1,0 +1,28 @@
+[$Version]
+update_info=ksmserver_update_loginMode_value.upd:ksmserver_update_loginMode_value_default_enum
+
+[LegacySession: saved at previous logout]
+clientMachine1=localhost
+clientMachine2=localhost
+command1=nemo
+command2=terminator
+count=2
+
+[Session: saved at previous logout]
+clientId1=101f01a718618a000179134281400000024820005
+clientId2=101f01a718618a000179134281500000024820007
+clientId3=101f01a718618a000179134281900000024820008
+count=3
+discardCommand2[$e]=rm,$HOME/.config/session/kgpg_101f01a718618a000179134281500000024820007_1791373412_256423
+program1=/usr/lib/x86_64-linux-gnu/libexec/DiscoverNotifier
+program2=/usr/bin/kgpg
+program3=/usr/bin/kalendarac
+restartCommand1=/usr/lib/x86_64-linux-gnu/libexec/DiscoverNotifier,-session,101f01a718618a000179134281400000024820005_1791373412_287899
+restartCommand2=/usr/bin/kgpg,-session,101f01a718618a000179134281500000024820007_1791373412_256423
+restartCommand3=/usr/bin/kalendarac,-session,101f01a718618a000179134281900000024820008_1791373412_300779
+restartStyleHint1=0
+restartStyleHint2=0
+restartStyleHint3=0
+userId1=ghost
+userId2=ghost
+userId3=ghost

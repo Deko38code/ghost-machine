@@ -1,0 +1,18 @@
+tunnel: 877447f1-d7b3-4157-9d72-dc1fba7df531
+credentials-file: /home/ghost/.cloudflared/877447f1-d7b3-4157-9d72-dc1fba7df531.json
+ingress:
+  - hostname: haksterai.com
+    service: http://localhost:3579
+  - hostname: www.haksterai.com
+    service: http://localhost:3579
+  - hostname: rentmytrailer.haksterai.com
+    service: https://localhost:8111
+    originRequest:
+      originServerName: localhost
+      noTLSVerify: true
+  - hostname: rmt.haksterai.com
+    service: https://localhost:8111
+    originRequest:
+      originServerName: localhost
+      noTLSVerify: true
+  - service: http_status:404

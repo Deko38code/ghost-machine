@@ -1,0 +1,27 @@
+[
+    {
+        "enabled": true,
+        "id": "c02b434dac271d881ca11fa0102ffcd3",
+        "metadata": {
+            "fullname": "xrandr-Samsung Display Corp.",
+            "name": "eDP-1"
+        },
+        "mode": {
+            "refresh": 59.99644088745117,
+            "size": {
+                "height": 1080,
+                "width": 1920
+            }
+        },
+        "overscan": 0,
+        "pos": {
+            "x": 0,
+            "y": 0
+        },
+        "priority": 1,
+        "rgbrange": 0,
+        "rotation": 1,
+        "scale": 1,
+        "vrrpolicy": 2
+    }
+]

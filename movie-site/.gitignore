@@ -1,6 +1,0 @@
-node_modules/
-logs/
-*.log
-.runtime/
-data/flix-ai-cache.json
-*.recovered

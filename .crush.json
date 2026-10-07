@@ -1,0 +1,74 @@
+{
+  "models": {
+    "large": {
+      "model": "glm-5.2:cloud",
+      "provider": "ollama",
+      "max_tokens": 16000,
+      "reasoning_effort": "medium"
+    },
+    "small": {
+      "model": "glm-5.2:cloud",
+      "provider": "ollama",
+      "max_tokens": 8000,
+      "reasoning_effort": "low"
+    }
+  },
+  "providers": {
+    "ollama": {
+      "models": [
+        {
+          "id": "glm-5.2:cloud",
+          "name": "glm-5.2:cloud",
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "cost_per_1m_in_cached": 0,
+          "cost_per_1m_out_cached": 0,
+          "context_window": 131072,
+          "default_max_tokens": 16384,
+          "can_reason": true,
+          "supports_attachments": false
+        }
+      ],
+      "default_large_model_id": "glm-5.2:cloud"
+    }
+  },
+  "options": {
+    "disable_provider_auto_update": true,
+    "skills_paths": [
+      "/home/ghost/haksterAi/.hakster/skills"
+    ]
+  },
+  "context_paths": [
+    "CRUSH.md",
+    "AGENTS.md"
+  ],
+  "global_context_paths": [
+    "/home/ghost/haksterAi/CRUSH.md"
+  ],
+  "mcp_servers": {
+    "playwright": {
+      "command": "playwright-mcp",
+      "args": [
+        "--browser",
+        "chromium",
+        "--executable-path",
+        "/home/ghost/.cache/ms-playwright/chromium-1228/chrome-linux64/chrome",
+        "--no-sandbox"
+      ],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/ghost/.cache/ms-playwright"
+      },
+      "tier": 2,
+      "initTimeoutMs": 60000
+    },
+    "filesystem": {
+      "command": "mcp-server-filesystem",
+      "args": [
+        "/home/ghost",
+        "/tmp"
+      ],
+      "env": {},
+      "tier": 1
+    }
+  }
+}

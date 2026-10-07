@@ -1,0 +1,25 @@
+{
+  "name": "hak-cli",
+  "version": "0.1.0",
+  "description": "A minimal terminal coding agent: chat with an LLM that can read/write files and run shell commands.",
+  "type": "module",
+  "bin": {
+    "hak": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "ora": "^9.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

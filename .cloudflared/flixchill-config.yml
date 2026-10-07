@@ -1,0 +1,8 @@
+tunnel: a05db82a-2822-41b4-b552-c645b6608b38
+credentials-file: /home/ghost/.cloudflared/a05db82a-2822-41b4-b552-c645b6608b38.json
+ingress:
+  - hostname: flixchill.link
+    service: http://localhost:8081
+  - hostname: www.flixchill.link
+    service: http://localhost:8081
+  - service: http_status:404

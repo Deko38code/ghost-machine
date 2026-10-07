@@ -1,0 +1,6 @@
+[Desktop Entry]
+Icon=text-html
+Name=new
+Type=Link
+URL[$e]=https://huggingface.co/settings/tokens/new?ownUserPermissions=inference.serverless.write&tokenType=fineGrained
+X-KDE-LastOpenedWith=firefox

@@ -1,0 +1,8 @@
+.npm/
+.npm/
+data/mirror*
+data/*.log
+server/uploads/
+*.db
+*.db-shm
+*.db-wal

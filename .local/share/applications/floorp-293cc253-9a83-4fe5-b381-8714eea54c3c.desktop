@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cloudflare
+Comment=Cloudflare
+Exec=flatpak run one.ablaze.floorp --name floorp-293cc253-9a83-4fe5-b381-8714eea54c3c --profile /home/ghost/.floorp/tw7t02xb.default-default --start-ssb "{293cc253-9a83-4fe5-b381-8714eea54c3c}"
+Icon=/home/ghost/.local/share/icons/hicolor/512x512/apps/floorp-293cc253-9a83-4fe5-b381-8714eea54c3c.png
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=floorp-293cc253-9a83-4fe5-b381-8714eea54c3c
+X-MultipleArgs=false
+X-Floorp-StartUrl=https://dash.cloudflare.com/
+X-Floorp-Id={293cc253-9a83-4fe5-b381-8714eea54c3c}

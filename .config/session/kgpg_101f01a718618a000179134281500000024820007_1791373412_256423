@@ -1,0 +1,18 @@
+[Number]
+NumberOfWindows=2
+
+[WindowProperties1]
+1920x1080 screen: XPosition=0
+1920x1080 screen: YPosition=0
+ClassName=KeysManager
+None-1=None-1
+ObjectName=MainWindow#1
+State=AAAA/wAAAAD9AAAAAAAAAyUAAACqAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+
+[WindowProperties2]
+1920x1080 screen: XPosition=0
+1920x1080 screen: YPosition=0
+ClassName=KgpgEditor
+None-1=None-1
+ObjectName=editor
+State=AAAA/wAAAAD9AAAAAAAAAyUAAACqAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
