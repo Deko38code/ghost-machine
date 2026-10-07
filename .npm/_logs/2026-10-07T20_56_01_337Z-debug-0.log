@@ -8,8 +8,8 @@
 7 silly config load:file:/usr/local/etc/npmrc
 8 verbose title npm audit
 9 verbose argv "audit" "--json"
-10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T20_26_01_344Z-
-11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T20_26_01_344Z-debug-0.log
+10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T20_56_01_337Z-
+11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T20_56_01_337Z-debug-0.log
 12 silly logfile start cleaning logs, removing 1 files
 13 silly logfile done cleaning log files
 14 silly packumentCache heap:2348810240 maxSize:587202560 maxEntrySize:293601280
@@ -170,7 +170,7 @@
 15 silly audit   'crc-32': [ '1.2.2' ],
 15 silly audit   'crc32-stream': [ '7.0.1' ]
 15 silly audit }
-16 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 239ms
+16 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 221ms
 17 silly audit report {
 17 silly audit report   braces: [
 17 silly audit report     {
@@ -281,29 +281,29 @@
 21 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion cache-miss
 22 silly packumentCache corgi:https://registry.npmjs.org/proxy-addr cache-miss
 23 silly packumentCache corgi:https://registry.npmjs.org/qs cache-miss
-24 http cache https://registry.npmjs.org/compression 33ms (cache hit)
-25 silly packumentCache corgi:https://registry.npmjs.org/compression set size:33244 disposed:false
-26 http cache https://registry.npmjs.org/brace-expansion 34ms (cache hit)
-27 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion set size:45109 disposed:false
-28 http cache https://registry.npmjs.org/braces 39ms (cache hit)
-29 silly packumentCache corgi:https://registry.npmjs.org/braces set size:35919 disposed:false
-30 http cache https://registry.npmjs.org/image-size 39ms (cache hit)
-31 silly packumentCache corgi:https://registry.npmjs.org/image-size set size:77892 disposed:false
-32 http cache https://registry.npmjs.org/proxy-addr 39ms (cache hit)
-33 silly packumentCache corgi:https://registry.npmjs.org/proxy-addr set size:24608 disposed:false
-34 http cache https://registry.npmjs.org/qs 39ms (cache hit)
-35 silly packumentCache corgi:https://registry.npmjs.org/qs set size:149425 disposed:false
+24 http cache https://registry.npmjs.org/braces 35ms (cache hit)
+25 silly packumentCache corgi:https://registry.npmjs.org/braces set size:35919 disposed:false
+26 http cache https://registry.npmjs.org/proxy-addr 33ms (cache hit)
+27 silly packumentCache corgi:https://registry.npmjs.org/proxy-addr set size:24608 disposed:false
+28 http cache https://registry.npmjs.org/compression 37ms (cache hit)
+29 silly packumentCache corgi:https://registry.npmjs.org/compression set size:33244 disposed:false
+30 http cache https://registry.npmjs.org/qs 34ms (cache hit)
+31 silly packumentCache corgi:https://registry.npmjs.org/qs set size:149425 disposed:false
+32 http cache https://registry.npmjs.org/brace-expansion 40ms (cache hit)
+33 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion set size:45109 disposed:false
+34 http cache https://registry.npmjs.org/image-size 43ms (cache hit)
+35 silly packumentCache corgi:https://registry.npmjs.org/image-size set size:77892 disposed:false
 36 silly packumentCache corgi:https://registry.npmjs.org/chokidar cache-miss
-37 http cache https://registry.npmjs.org/chokidar 3ms (cache hit)
+37 http cache https://registry.npmjs.org/chokidar 4ms (cache hit)
 38 silly packumentCache corgi:https://registry.npmjs.org/chokidar set size:119454 disposed:false
 39 silly packumentCache corgi:https://registry.npmjs.org/minimatch cache-miss
 40 http cache https://registry.npmjs.org/minimatch 3ms (cache hit)
 41 silly packumentCache corgi:https://registry.npmjs.org/minimatch set size:169442 disposed:false
 42 silly packumentCache corgi:https://registry.npmjs.org/express cache-miss
-43 http cache https://registry.npmjs.org/express 6ms (cache hit)
+43 http cache https://registry.npmjs.org/express 5ms (cache hit)
 44 silly packumentCache corgi:https://registry.npmjs.org/express set size:341170 disposed:false
 45 silly packumentCache corgi:https://registry.npmjs.org/body-parser cache-miss
-46 http cache https://registry.npmjs.org/body-parser 5ms (cache hit)
+46 http cache https://registry.npmjs.org/body-parser 6ms (cache hit)
 47 silly packumentCache corgi:https://registry.npmjs.org/body-parser set size:82509 disposed:false
 48 silly packumentCache corgi:https://registry.npmjs.org/nodemon cache-miss
 49 http cache https://registry.npmjs.org/nodemon 4ms (cache hit)
