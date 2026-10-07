@@ -177,3 +177,5 @@ Window manager warning: Buggy client sent a _NET_ACTIVE_WINDOW message with a ti
 Window manager warning: Buggy client sent a _NET_ACTIVE_WINDOW message with a timestamp of 0 for 0x4600014
 
 (csd-media-keys:141503): csd-media-keys-WARNING **: 12:12:20.873: Unable to get default sink
+Window manager warning: Buggy client sent a _NET_ACTIVE_WINDOW message with a timestamp of 0 for 0x4e00003
+Window manager warning: WM_TRANSIENT_FOR window 0x5400317 for 0x540044f window override-redirect is an override-redirect window and this is not correct according to the standard, so we'll fallback to the first non-override-redirect window 0x5400011.

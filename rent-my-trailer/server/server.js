@@ -202,7 +202,7 @@ app.get("/api/trailers", (req, res) => {
   if (max) { where.push("t.daily IS NOT NULL AND t.daily <= ?"); args.push(numOr(max, 0)); }
   const order = sort === "price-asc" ? "t.daily ASC NULLS LAST" : sort === "price-desc" ? "t.daily DESC" : "t.id DESC";
   const per = 24;
-  const rows = db.prepare(`SELECT t.* FROM trailers t WHERE ${where.join(" AND ")} ORDER BY ${order} LIMIT ? OFFSET ?`)
+  const rows = db.prepare(`SELECT t.*, (SELECT ROUND(AVG(stars),1) FROM ratings r WHERE r.trailer_id=t.id) AS rating_avg, (SELECT COUNT(*) FROM ratings r WHERE r.trailer_id=t.id) AS rating_count FROM trailers t WHERE ${where.join(" AND ")} ORDER BY ${order} LIMIT ? OFFSET ?`)
     .all(...args, per, (numOr(page, 1) - 1) * per).map((t) => { delete t.pics_json; return t; });
   const total = db.prepare(`SELECT COUNT(*) c FROM trailers t WHERE ${where.join(" AND ")}`).get(...args).c;
   res.json({ total, page: numOr(page, 1), per, rows });
@@ -214,7 +214,7 @@ app.get("/api/trailers/meta", (_req, res) => {
   res.json({ cats, states: st, stats });
 });
 app.get("/api/trailers/:id", (req, res) => {
-  const t = db.prepare("SELECT * FROM trailers WHERE id=?").get(Number(req.params.id));
+  const t = db.prepare("SELECT t.*, (SELECT ROUND(AVG(stars),1) FROM ratings r WHERE r.trailer_id=t.id) AS rating_avg, (SELECT COUNT(*) FROM ratings r WHERE r.trailer_id=t.id) AS rating_count FROM trailers t WHERE t.id=?").get(Number(req.params.id));
   if (!t || (t.status !== "live" && req.user?.role !== "admin")) return res.status(404).json({ error: "not found" });
   let pics = [];
   try { pics = t.pics_json ? JSON.parse(t.pics_json) : []; } catch {}
@@ -682,6 +682,78 @@ app.post("/api/messages/:threadId/clear", auth(true), (req, res) => {
   res.json({ ok: true, clearance: req.body?.approve ? "approved" : "none" });
 });
 
+/* ─── platform DM (team ↔ any user's inbox) + star ratings ──── */
+const PLATFORM_TITLE = "🚚 Rent My Trailer — Team";
+function platformTrailerId() {
+  let t = db.prepare("SELECT id FROM trailers WHERE src='platform' LIMIT 1").get();
+  if (!t) {
+    try { db.prepare("INSERT OR IGNORE INTO trailers (id, src, title, status, owner_id) VALUES (900000001, 'platform', ?, 'paused', 1)").run(PLATFORM_TITLE); } catch {}
+    t = db.prepare("SELECT id FROM trailers WHERE src='platform' LIMIT 1");
+  }
+  return t ? t.id : 1;
+}
+function ensurePlatformThread(userId) {
+  const pid = platformTrailerId();
+  const has = db.prepare("SELECT id FROM threads WHERE trailer_id=? AND renter_id=?").get(pid, userId);
+  if (!has) db.prepare("INSERT INTO threads (trailer_id, renter_id, clearance) VALUES (?,?,'approved')").run(pid, userId);
+  return db.prepare("SELECT id FROM threads WHERE trailer_id=? AND renter_id=?").get(pid, userId).id;
+}
+app.get("/api/admin/dm/users", auth(true), (req, res) => {
+  if (!["admin","owner"].includes(req.user.role)) return res.status(403).json({ error: "admin only" });
+  const rows = db.prepare("SELECT id, email, display_name, tier, role FROM users ORDER BY id DESC LIMIT 5000").all();
+  res.json({ rows, me: req.user.id });
+});
+app.post("/api/admin/dm", auth(true), (req, res) => {
+  if (!["admin","owner"].includes(req.user.role)) return res.status(403).json({ error: "admin only" });
+  const text = String(req.body?.text || "").trim().slice(0, 3000);
+  if (!text) return res.status(400).json({ error: "text required" });
+  const broadcast = !!req.body?.broadcast;
+  let targets = broadcast
+    ? db.prepare("SELECT id FROM users WHERE id != ?").all(req.user.id)
+    : (Array.isArray(req.body?.user_ids) ? req.body.user_ids.map(Number).filter(Number.isFinite) : []);
+  targets = [...new Set(targets.map((t) => t.id || t))];
+  const sent = [];
+  for (const uid of targets) {
+    try {
+      const thId = ensurePlatformThread(uid);
+      db.prepare("INSERT INTO messages (thread_id, user_id, text) VALUES (?,?,?)").run(thId, req.user.id, text);
+      db.prepare("UPDATE threads SET updated_on=datetime('now') WHERE id=?").run(thId);
+      broadcast(thId);
+      sent.push(thId);
+    } catch {}
+  }
+  secAlertScore("dm", `${req.user.email} → ${sent.length} inbox(es) (${broadcast ? "broadcast" : "direct"})`);
+  res.json({ ok: true, sent: sent.length, thread_ids: sent.slice(-10) });
+});
+/* star ratings */
+app.get("/api/trailers/:id/ratings", (req, res) => {
+  const r = db.prepare("SELECT ROUND(AVG(stars),1) a, COUNT(*) c FROM ratings WHERE trailer_id=?").get(Number(req.params.id)) || {};
+  res.json({ avg: r.a || null, count: r.c || 0 });
+});
+app.post("/api/trailers/:id/ratings", auth(true), (req, res) => {
+  const stars = Math.max(1, Math.min(5, Math.round(Number(req.body?.stars) || 0)));
+  if (!stars) return res.status(400).json({ error: "stars 1-5 required" });
+  const tid = Number(req.params.id);
+  if (!db.prepare("SELECT id FROM trailers WHERE id=?").get(tid)) return res.status(404).json({ error: "no trailer" });
+  db.prepare("INSERT INTO ratings (trailer_id, user_id, stars, note) VALUES (?,?,?,?) ON CONFLICT(trailer_id, user_id) DO UPDATE SET stars=excluded.stars, note=excluded.note")
+    .run(tid, req.user.id, stars, String(req.body?.note || "").slice(0, 500));
+  const r = db.prepare("SELECT ROUND(AVG(stars),1) a, COUNT(*) c FROM ratings WHERE trailer_id=?").get(tid);
+  res.json({ ok: true, avg: r.a || null, count: r.c || 0 });
+});
+/* ─── top rankers: profile completion leaderboard (public) ── */
+app.get("/api/profile/top", (_req, res) => {
+  const rows = db.prepare("SELECT id, display_name, email, picture, avatar_file, bio, phone, phone_verified FROM users").all();
+  const scored = rows.map((u) => {
+    let got = 0;
+    if (u.email) got++;
+    if (u.picture || u.avatar_file) got++;
+    if (u.bio && u.bio.length >= 40) got += 2; else if (u.bio) got++;
+    if (u.phone) got++;
+    if (u.phone_verified) got++;
+    return { id: u.id, display_name: u.display_name, email: u.email, picture: u.picture, bio: u.bio, score: Math.round((got / 6) * 100) };
+  }).filter((u) => u.score > 0).sort((a, b) => b.score - a.score || a.id - b.id).slice(0, 10);
+  res.json({ rows: scored });
+});
 /* ─── statics ─────────────────────────────────────────── */
 /* index.html must never be cached (asset hashes change per build); hashed assets are immutable */
 app.use(express.static(DIST, { index: false, setHeaders: (res, fp) => {

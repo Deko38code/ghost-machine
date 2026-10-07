@@ -123,7 +123,17 @@ export function AuthModal({ onDone, onClose }) {
   return (
     <div className="auth-overlay" onClick={onClose}>
       <div className="auth-card" onClick={(e) => e.stopPropagation()}>
-        <h2 className="sec-title">{mode === "email" ? "Email log in" : mode === "signup" ? "Create account" : mode === "forgot" ? "Password reset" : mode === "2fa" ? "Two-factor" : "Log in"}</h2>
+        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+          {[["google", "Google"], ["email", "Email log in"], ["signup", "Sign up"]].map(([m, label]) => (
+            <button key={m} onClick={() => setMode(m)} style={{
+              flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", fontSize: 12.5, fontWeight: 700,
+              border: "1px solid " + (mode === m ? "#f5b325" : "#30363d"),
+              background: mode === m ? "linear-gradient(135deg,#f5b325,#ff9d00)" : "#0d1117",
+              color: mode === m ? "#16181b" : "#8b949e",
+            }}>{label}</button>
+          ))}
+        </div>
+        <h2 className="sec-title">mode === "google" ? "Welcome — quick sign up" : mode === "email" ? "Email log in" : mode === "signup" ? "Create account" : mode === "forgot" ? "Password reset" : "Two-factor"</h2>
         {(mode === "google" || mode === "signup") && !!gsiOn && (
           <div style={{ textAlign: "center", marginTop: 10 }}>
             <div ref={gsiDiv}></div>
@@ -131,7 +141,7 @@ export function AuthModal({ onDone, onClose }) {
         )}
         {mode === "google" && (
           <p className="ai-hint" style={{ marginTop: 10 }}>
-            <a href="#/" onClick={(e) => { e.preventDefault(); setMode("email"); }}>or log in with email</a> · <a href="#/" onClick={(e) => { e.preventDefault(); setMode("signup"); }}>create account</a>
+            <span style={{ color: "#8b949e", fontSize: 12 }}>Use the tabs above — Google one-tap is fastest.</span>
           </p>
         )}
         {mode === "signup" && <p className="ai-hint" style={{ marginTop: 8 }}>or sign up with email ↓</p>}
@@ -162,6 +172,14 @@ export function AuthModal({ onDone, onClose }) {
 
 /* Header account area: Google button fades out on sign-in; profile chip fades in */
 export function AccountChip() {
+  const onHome = () => { const h = String(location.hash || ""); return !h || h === "#/" || h.startsWith("#/home"); };
+  const [home, setHome] = useState(onHome());
+  useEffect(() => {
+    const on = () => setHome(onHome());
+    addEventListener("hashchange", on);
+    return () => removeEventListener("hashchange", on);
+  }, []);
+
   const [u, setU] = useState(() => { try { return user(); } catch { return null; } });
   const [open, setOpen] = useState(false);
   const [btnGone, setBtnGone] = useState(false);
@@ -212,6 +230,7 @@ export function AccountChip() {
       )}
     </span>
   );
+  if (!home) return null;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
       <span ref={gsiNav}></span>

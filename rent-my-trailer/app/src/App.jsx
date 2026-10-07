@@ -203,6 +203,43 @@ function PlanCard() {
   );
 }
 
+/* ─── profile completion % — used on chip + leaderboard (top rankers) ── */
+export function completionScore(u) {
+  if (!u) return 0;
+  let got = 0, total = 6;
+  if (u.email) got++;
+  if (u.picture || u.avatar_file) got++;
+  if (u.bio && String(u.bio).length >= 40) got += 2;
+  else if (u.bio) got++;
+  if (u.phone) got++;
+  if (u.phone_verified) got++;
+  return Math.round((got / total) * 100);
+}
+function TopRankers() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    fetch("/api/profile/top").then((r) => r.json()).then((d) => setRows(d.rows || [])).catch(() => {});
+  }, []);
+  if (!rows || !rows.length) return null;
+  return (
+    <div className="strip-like" style={{ display: "flex", gap: 10, overflowX: "auto", padding: "2px 0 10px" }}>
+      {rows.map((u, i) => (
+        <div key={u.id} style={{ flex: "0 0 auto", display: "flex", alignItems: "center", gap: 10, background: "var(--asphalt)", border: "1px solid var(--line)", borderRadius: 12, padding: "8px 14px", minWidth: 210 }}>
+          <span style={{ color: "var(--amber)", fontWeight: 900, fontSize: 16 }}>#{i + 1}</span>
+          {u.picture ? (
+            <img src={u.picture} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
+          ) : (
+            <img src={rmtBadge} alt="" style={{ width: 30, height: 30, borderRadius: "50%" }} />
+          )}
+          <span style={{ display: "flex", flexDirection: "column" }}>
+            <b style={{ color: "#f2f6fa", fontSize: 13 }}>{u.display_name || u.email?.split("@")[0]}</b>
+            <small style={{ color: "var(--muted)", fontSize: 11 }}>{u.bio ? (u.bio.slice(0, 30) + (u.bio.length > 30 ? "…" : "") + " · ") : ""}{u.score}% ranked</small>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [onbDone, setOnbDone] = useState(false);
@@ -219,6 +256,23 @@ export default function App() {
     return () => removeEventListener("rmt-auth", on);
   }, []);
   useEffect(() => { maybeFounding(); }, [authOpen]);
+  /* auto logout after 30 min idle */
+  useEffect(() => {
+    const LIMIT = 30 * 60 * 1000;
+    let timer;
+    const evt = ["mousemove", "keydown", "wheel", "touchstart", "scroll", "click"];
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => {
+      if (localStorage.getItem("rmt-token")) {
+        try { localStorage.clear(); } catch {}
+        location.hash = "#/home";
+        dispatchEvent(new CustomEvent("rmt-autologout"));
+        location.reload();
+      }
+    }, LIMIT); };
+    evt.forEach((e) => addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => { evt.forEach((e) => removeEventListener(e, reset)); clearTimeout(timer); };
+  }, []);
   const [route, setRoute] = useState(() => routes.parse(location.hash));
   useEffect(() => {
     const onHash = () => setRoute(routes.parse(location.hash));
@@ -262,7 +316,10 @@ export default function App() {
             <PlanCard />
           </div>
         ) : (
-          <Page route={route} />
+          <>
+            <Page route={route} />
+            {route.name === "home" && <div className="page"><TopRankers /></div>}
+          </>
         )}
       </main>
 

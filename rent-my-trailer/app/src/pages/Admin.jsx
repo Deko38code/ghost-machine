@@ -101,6 +101,7 @@ export default function Admin() {
           )}
         </div>
       ))}
+      <DmPanel />
       <UsersAdmin />
       <SmsAdminPanel />
     </div>
@@ -257,6 +258,56 @@ function SecurityScore() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/* owner DM — direct messages into any user's inbox + broadcast to all */
+function DmPanel() {
+  const [users, setUsers] = useState(null);
+  const [sel, setSel] = useState({});
+  const [text, setText] = useState("");
+  const [result, setResult] = useState("");
+  const [q, setQ] = useState("");
+  const load = () => api("GET", "/api/admin/dm/users").then((r) => setUsers(r)).catch((e) => setResult("✗ " + e.message));
+  useEffect(() => { load(); }, []);
+  const send = async (broadcast) => {
+    const ids = Object.keys(sel).filter((k) => sel[k]).map(Number);
+    if (!text.trim() || (!broadcast && !ids.length)) { setResult("pick a user (or broadcast) and write the message"); return; }
+    setResult("sending…");
+    try {
+      const body = broadcast ? { text, broadcast: true } : { text, user_ids: ids };
+      const r = await api("POST", "/api/admin/dm", body);
+      setResult(`✓ delivered to ${r.sent} inbox${r.sent === 1 ? "" : "es"}`);
+      setText(""); setSel({});
+    } catch (e) { setResult("✗ " + e.message); }
+  };
+  const rows = (users?.rows || []).filter((u) => !q || `${u.email} ${u.display_name}`.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div className="dphoto" style={{ marginTop: 24 }}>
+      <div className="dphoto-head"><h3>✉️ Direct messages (team ↔ users)</h3>
+        <span>{users ? `${(users.rows || []).length} users` : "…"}</span></div>
+      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>Messages land in the user's Messages inbox (thread: 🚚 Rent My Trailer — Team). They reply straight to you.</p>
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+        <input placeholder="Search users…" value={q} onChange={(e) => setQ(e.target.value)} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--asphalt)", color: "var(--fg, #eee)", flex: 1, minWidth: 180 }} />
+      </div>
+      <div style={{ maxHeight: 180, overflowY: "auto", border: "1px solid var(--line)", borderRadius: 8, marginTop: 8, background: "var(--asphalt)" }}>
+        {(rows || []).map((u) => (
+          <label key={u.id} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 12px", cursor: "pointer", fontSize: 12.5, color: "var(--fg, #eee)", borderBottom: "1px solid #1b1f26" }}>
+            <input type="checkbox" checked={!!sel[u.id]} onChange={(e) => setSel((s0) => ({ ...s0, [u.id]: e.target.checked }))} disabled={u.id === users.me} />
+            <b>{u.display_name}</b>
+            <span style={{ color: "var(--muted)" }}>{u.email}</span>
+            <small style={{ marginLeft: "auto", color: "var(--amber)" }}>{u.tier === "paid" ? "paid" : ""} {u.role}</small>
+          </label>
+        ))}
+      </div>
+      <textarea rows="3" value={text} onChange={(e) => setText(e.target.value)} placeholder="Message text…" style={{ width: "100%", marginTop: 10, background: "var(--asphalt)", border: "1px solid var(--line)", color: "var(--paper)", padding: 10, borderRadius: 10, fontFamily: "var(--mono)", fontSize: 13, boxSizing: "border-box" }} />
+      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+        <button className="ai-go" style={{ padding: "8px 14px", fontSize: 12 }} onClick={() => send(false)}>Send to selected</button>
+        <button className="ai-go" style={{ padding: "8px 14px", fontSize: 12, background: "var(--asphalt)", color: "var(--fg, #eee)", border: "1px solid var(--line)" }} onClick={() => send(true)}>📣 Broadcast to ALL users</button>
+        <button className="ai-go" style={{ padding: "8px 14px", fontSize: 12, background: "var(--asphalt)", color: "var(--fg, #eee)", border: "1px solid var(--line)" }} onClick={load}>Reload</button>
+      </div>
+      {result && <p style={{ fontSize: 12, color: "var(--amber)", marginTop: 6 }}>{result}</p>}
     </div>
   );
 }

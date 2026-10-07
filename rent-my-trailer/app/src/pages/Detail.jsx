@@ -30,6 +30,36 @@ const Gallery = ({ l }) => {
   );
 };
 
+const Stars = ({ l }) => {
+  const [r, setR] = useState(null);   // {avg, count}
+  const [mine, setMine] = useState(0);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!l) return;
+    api("GET", `/api/trailers/${l.id}/ratings`).then(setR).catch(() => {});
+    setMine(0);
+  }, [l && l.id]);
+  const send = async (n) => {
+    setMine(n); setBusy(true);
+    try { const j = await api("POST", `/api/trailers/${l.id}/ratings`, { stars: n }); setR({ avg: j.avg, count: j.count }); } catch {}
+    setBusy(false);
+  };
+  const authd = !!localStorage.getItem("rmt-token");
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }} aria-label="Star rating">
+      {[1, 2, 3, 4, 5].map((n) => {
+        const shown = Math.round((r && r.avg) || 0);
+        const on = mine ? n <= mine : n <= shown;
+        return (
+          <button key={n} disabled={!authd || busy} onClick={() => send(n)} title={authd ? "Rate " + n + " star" + (n > 1 ? "s" : "") : "Log in to rate"}
+            style={{ background: "none", border: 0, cursor: authd ? "pointer" : "default", fontSize: 22, padding: 0, lineHeight: 1, color: on ? "#f5b325" : "#39404a" }}>★</button>
+        );
+      })}
+      <small style={{ color: "var(--muted)", fontSize: 12.5 }}>{r && r.count ? `${r.avg} (${r.count} rating${r.count > 1 ? "s" : ""})` : "no ratings yet — be the first"}</small>
+    </div>
+  );
+};
+
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function Detail({ route }) {
@@ -88,6 +118,7 @@ export default function Detail({ route }) {
         <div className="detail-head">
           <h1>{l.title}</h1>
           <p className="card-loc">{l.year || ""} {l.make || ""} {l.model || ""} {l.year || l.make || l.model ? "· " : ""}{l.city}, {l.state} {l.zip || ""}</p>
+          <Stars l={l} />
           <div className="pricerow">
             <div><b>{money(l.daily)}</b><span>/day</span></div>
             {l.weekly && <div><b>{money(l.weekly)}</b><span>/week</span></div>}

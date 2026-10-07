@@ -129,6 +129,17 @@ CREATE INDEX IF NOT EXISTS idx_trailers_state ON trailers(state);
 CREATE INDEX IF NOT EXISTS idx_trailers_cat ON trailers(cat);
 CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id);
 
+CREATE TABLE IF NOT EXISTS ratings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  trailer_id INTEGER NOT NULL REFERENCES trailers(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  stars INTEGER NOT NULL CHECK(stars BETWEEN 1 AND 5),
+  note TEXT DEFAULT '',
+  created_on TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(trailer_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ratings_trailer ON ratings(trailer_id);
+
 CREATE TABLE IF NOT EXISTS booking_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   booking_id INTEGER NOT NULL REFERENCES bookings(id),
@@ -241,6 +252,9 @@ export function seedTrailers() {
     for (const d of rows) {
       try {
         const t = normTrailer(d);
+        // keep already-mirrored local images across reseeds (uploads/* never reverted)
+        const prev = db.prepare("SELECT img, pics_json FROM trailers WHERE id=? AND img LIKE '/uploads/%'").get(t.id);
+        if (prev) { t.img = prev.img; t.pics = []; }
         ins.run(
           t.id, ownerId, "snapshot", t.title || "", t.cat || null,
           t.daily, t.weekly, t.monthly,
@@ -249,7 +263,7 @@ export function seedTrailers() {
           t.hitch, t.dims, t.weight, t.deposit,
           t.delivery ? 1 : 0, t.year, t.make, t.model,
           t.desc,
-          t.pics.length ? JSON.stringify(t.pics.slice(0, 10)) : null
+          prev ? prev.pics_json : (t.pics.length ? JSON.stringify(t.pics.slice(0, 10)) : null)
         );
         n++;
       } catch (e) {

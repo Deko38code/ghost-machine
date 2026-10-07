@@ -51,7 +51,7 @@ export default function Messages({ route }) {
         <aside className="inbox">
           {threads?.map((t) => (
             <button key={t.id} className={"thread" + (t.id === activeId ? " on" : "")} onClick={() => setActiveId(t.id)}>
-              <b>{t.role === "owner" ? "Renter" : t.title}</b>
+              <b>{t.title && t.title.indexOf("Team") >= 0 ? "🚚 Rent My Trailer — Team" : t.role === "owner" ? "Renter" : t.title}</b>
               <span>{t.last ? t.last.slice(0, 60) : "no messages yet"}</span>
               {t.clearance !== "approved" && <em className="gatechip">{t.clearance}</em>}
             </button>

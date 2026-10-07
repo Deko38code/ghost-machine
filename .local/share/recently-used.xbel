@@ -47,4 +47,20 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/rmt-badge-ISIo3dDw.webp" added="2026-10-07T20:16:35.370350Z" modified="2026-10-07T20:20:00.354505Z" visited="2026-10-07T20:16:35.370351Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/webp"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-10-07T20:20:00.354503Z" count="4"/>
+          <bookmark:application name="one.ablaze.floorp" exec="&apos;gio open %u&apos;" modified="2026-10-07T20:20:00.343302Z" count="4"/>
+          <bookmark:application name="nemo" exec="&apos;xviewer %U&apos;" modified="2026-10-07T20:18:41.815391Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-10-07T20:18:42.635535Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>

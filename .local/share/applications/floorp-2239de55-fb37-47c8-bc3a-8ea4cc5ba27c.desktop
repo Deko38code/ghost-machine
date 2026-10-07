@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Whop
+Comment=Whop
+Exec=flatpak run one.ablaze.floorp --name floorp-2239de55-fb37-47c8-bc3a-8ea4cc5ba27c --profile /home/ghost/.floorp/tw7t02xb.default-default --start-ssb "{2239de55-fb37-47c8-bc3a-8ea4cc5ba27c}"
+Icon=/home/ghost/.local/share/icons/hicolor/512x512/apps/floorp-2239de55-fb37-47c8-bc3a-8ea4cc5ba27c.png
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=floorp-2239de55-fb37-47c8-bc3a-8ea4cc5ba27c
+X-MultipleArgs=false
+X-Floorp-StartUrl=https://whop.com/
+X-Floorp-Id={2239de55-fb37-47c8-bc3a-8ea4cc5ba27c}
