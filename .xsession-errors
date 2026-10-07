@@ -239,3 +239,4 @@ T@http://rmt.haksterai.com/assets/index-BEcitG4s.js:1:2771
 
 (cinnamon:141662): mutter-WARNING **: 13:34:30.088: STACK_OP_RAISE_ABOVE: window 0x46000d5 not in stack
 Window manager warning: Ping serial 62523560 was reused for window 0x54004ab, previous use was for window 0x5400011.
+mint-common (WARN): Could not update appstream for flathub: Error deploying appstream: Error moving file /var/lib/flatpak/appstream/flathub/x86_64/.3a48e32bd10b620215271a3e711cbd642e9d1ec60ccde29bba81fb76a0e9580e-nEx3Bv: Directory not empty
