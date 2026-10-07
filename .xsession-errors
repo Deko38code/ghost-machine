@@ -179,3 +179,63 @@ Window manager warning: Buggy client sent a _NET_ACTIVE_WINDOW message with a ti
 (csd-media-keys:141503): csd-media-keys-WARNING **: 12:12:20.873: Unable to get default sink
 Window manager warning: Buggy client sent a _NET_ACTIVE_WINDOW message with a timestamp of 0 for 0x4e00003
 Window manager warning: WM_TRANSIENT_FOR window 0x5400317 for 0x540044f window override-redirect is an override-redirect window and this is not correct according to the standard, so we'll fallback to the first non-override-redirect window 0x5400011.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a00831, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a00521, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a004c9, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a004ab, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a00485, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a00440, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a00544, previous use was for window 0x4a00016.
+Window manager warning: Ping serial 62385261 was reused for window 0x4a004fa, previous use was for window 0x4a00016.
+[2] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+Gtk-Message: 13:33:29.228: Failed to load module "xapp-gtk3-module"
+defaults/preferences/firefox.js:1543: prefs parse error: unknown keyword
+defaults/preferences/firefox.js:1544: prefs parse error: unknown keyword
+defaults/preferences/firefox.js:1550: prefs parse error: unknown keyword
+JavaScript warning: moz-src:///toolkit/components/search/SearchService.sys.mjs, line 3024: unreachable code after return statement
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 3016: Error: Failed to load module : ./tab-sleep-exclusion/index.ts
+JavaScript error: chrome://browser/content/tabbrowser/tab-bar-visibility.js, line 35: TypeError: can't access property "toggleAttribute", gNavToolbox is null
+JavaScript error: chrome://browser/content/tabbrowser/tab-bar-visibility.js, line 35: TypeError: can't access property "toggleAttribute", gNavToolbox is null
+JavaScript error: chrome://browser/content/browser-init.js, line 624: TypeError: can't access property "addEventListener", gNavToolbox is null
+JavaScript error: chrome://browser/content/browser-init.js, line 624: TypeError: can't access property "addEventListener", gNavToolbox is null
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 2706: TypeError: can't access property "insertBefore", parent is null
+JavaScript error: chrome://noraneko/content/core.js line 655 > importedModule, line 2706: TypeError: can't access property "insertBefore", parent is null
+Window manager warning: Ping serial 62514216 was reused for window 0x4600086, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x46000aa, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x46000b6, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x460009e, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x4600092, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x4600016, previous use was for window 0x46000c6.
+Window manager warning: Ping serial 62514216 was reused for window 0x46000d5, previous use was for window 0x46000c6.
+JavaScript error: chrome://noraneko/content/assets/js/index18.js line 655 > srcScript, line 2832: NS_ERROR_ILLEGAL_VALUE: Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIObserverService.removeObserver]
+JavaScript error: chrome://noraneko/content/assets/js/index18.js line 909 > srcScript, line 2832: NS_ERROR_ILLEGAL_VALUE: Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIObserverService.removeObserver]
+JavaScript error: chrome://noraneko/content/assets/js/index18.js line 909 > srcScript, line 2832: NS_ERROR_ILLEGAL_VALUE: Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIObserverService.removeObserver]
+JavaScript error: chrome://noraneko/content/assets/js/index18.js line 655 > srcScript, line 2832: NS_ERROR_ILLEGAL_VALUE: Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIObserverService.removeObserver]
+JavaScript error: chrome://noraneko/content/assets/js/index18.js line 909 > srcScript, line 2832: NS_ERROR_ILLEGAL_VALUE: Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIObserverService.removeObserver]
+
+(cinnamon:141662): mutter-WARNING **: 13:34:24.293: STACK_OP_RAISE_ABOVE: window 0x46000d5 not in stack
+JavaScript warning: http://rmt.haksterai.com/assets/index-BEcitG4s.js, line 28: Script terminated by timeout at:
+@http://rmt.haksterai.com/assets/index-BEcitG4s.js:28:13778
+ws@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:54034
+useState@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:62083
+d</e.useState@http://rmt.haksterai.com/assets/index-BEcitG4s.js:1:12394
+Nt@http://rmt.haksterai.com/assets/index-BEcitG4s.js:28:13696
+ns@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:49210
+Jc@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:71904
+gl@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:82817
+Qd@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:128011
+Yd@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:127094
+Jd@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:126931
+Id@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:123316
+Mf@http://rmt.haksterai.com/assets/index-BEcitG4s.js:8:135943
+T@http://rmt.haksterai.com/assets/index-BEcitG4s.js:1:2771
+
+
+(cinnamon:141662): mutter-WARNING **: 13:34:30.088: STACK_OP_RAISE_ABOVE: window 0x46000d5 not in stack
+Window manager warning: Ping serial 62523560 was reused for window 0x54004ab, previous use was for window 0x5400011.

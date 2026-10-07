@@ -8,8 +8,8 @@
 7 silly config load:file:/usr/local/etc/npmrc
 8 verbose title npm run build
 9 verbose argv "run" "build"
-10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T19_48_10_197Z-
-11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T19_48_10_197Z-debug-0.log
+10 verbose logfile logs-max:10 dir:/home/ghost/.npm/_logs/2026-10-07T20_41_13_805Z-
+11 verbose logfile /home/ghost/.npm/_logs/2026-10-07T20_41_13_805Z-debug-0.log
 12 silly logfile start cleaning logs, removing 1 files
 13 silly logfile done cleaning log files
 14 notice run app@0.0.0 build

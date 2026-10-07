@@ -251,7 +251,7 @@ export default function App() {
     } catch {}
   };
   useEffect(() => {
-    const on = (e) => setAuthOpen(true);
+    const on = () => setAuthOpen(true);
     addEventListener("rmt-auth", on);
     return () => removeEventListener("rmt-auth", on);
   }, []);
