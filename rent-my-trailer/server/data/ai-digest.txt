@@ -1,0 +1,17 @@
+Inventory: 7623 live trailers across 2621 cities (US marketplace).
+- Car Hauler trailer: 1865 units, typical $120.0/day (from $30.0 up to $398.0), typical weekly $600.0
+- Dump trailer: 1656 units, typical $150.0/day (from $28.57 up to $999.0), typical weekly $680.0
+- Utility trailer: 1481 units, typical $60.0/day (from $10.0 up to $250.0), typical weekly $325.0
+- Enclosed trailer: 1305 units, typical $110.0/day (from $20.0 up to $2750.0), typical weekly $550.0
+- Flatbed trailer: 990 units, typical $135.0/day (from $20.0 up to $500.0), typical weekly $650.0
+- Horse trailer: 131 units, typical $125.0/day (from $50.0 up to $275.0), typical weekly $600.0
+- Specialty trailer: 61 units, typical $150.0/day (from $25.0 up to $1000.0), typical weekly $700.0
+- Motorcycle trailer: 52 units, typical $60.0/day (from $29.0 up to $125.0), typical weekly $300.0
+- Boat trailer: 39 units, typical $100.0/day (from $19.0 up to $750.0), typical weekly $500.0
+- Tow Dolly Rentals trailer: 23 units, typical $50.0/day (from $30.0 up to $100.0), typical weekly $275.0
+- Horse Trailer With Living Quarters trailer: 3 units, typical $175.0/day (from $160.0 up to $250.0), typical weekly $900.0
+- Other trailer: 2 units, typical $120.0/day (from $120.0 up to $120.0), typical weekly $720.0
+- Refundable deposits: typically $150.0 (from $1.0 to $5000.0)
+- Hitches: Bumper Pull x7136, Gooseneck x383, Pintle x35, Fifth Wheel x19
+- Busiest areas: San Antonio (58), Houston (51), Mesa (47), Fort Worth (44), Las Vegas (35), Orlando (32), Tucson (30), Queen Creek (29), Tampa (28), Phoenix (28), Bakersfield (27), Denver (27)
+Note: 15 listings show $0/day (incomplete data) — treat those prices as unknown.

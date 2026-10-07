@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RENT MY TRAILER — haul anything</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2314161a'/%3E%3Cpath d='M10 40h36l-4-16H14z' fill='%23ffd749'/%3E%3Crect x='38' y='22' width='16' height='18' rx='2' fill='%23ffd749'/%3E%3Ccircle cx='20' cy='46' r='5' fill='%23ffffff'/%3E%3Ccircle cx='46' cy='46' r='5' fill='%23ffffff'/%3E%3Crect x='6' y='50' width='52' height='4' fill='%23ff6b35'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Saira:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --asphalt:#14161a; --asphalt2:#1c1f25; --panel:#20242c; --line:#31363f;
+  --hazard:#ffd749; --hazard-dk:#c8a400; --safety:#ff6b35; --steel:#9fb2c8;
+  --ink:#e8e6df; --dim:#8a93a3; --ok:#59d499; --warn:#ff5c72;
+  --stencil:'Big Shoulders Display',sans-serif; --body:'Saira',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--asphalt);color:var(--ink);font-family:var(--body);min-height:100vh;
+  background-image:repeating-linear-gradient(45deg,transparent 0 34px,#ffffff06 34px 36px);}
+::selection{background:var(--hazard);color:#111}
+a{color:var(--hazard);text-decoration:none}
+header{position:sticky;top:0;z-index:5;background:var(--asphalt2);
+  border-bottom:3px solid var(--hazard);display:flex;align-items:center;gap:18px;padding:12px 22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;flex-shrink:0}
+.brandtext{font-family:var(--stencil);font-weight:800;font-size:1.75rem;letter-spacing:1px;color:var(--hazard);text-transform:uppercase;line-height:1}
+.brandtext small{color:var(--steel);font-family:var(--mono);font-size:.62rem;display:block;letter-spacing:3px;font-weight:400}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav a{font-family:var(--mono);font-size:.82rem;padding:7px 14px;border:1px solid var(--line);color:var(--steel);
+  text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;transition:all .15s}
+nav a:hover,nav a.on{border-color:var(--hazard);color:var(--hazard);background:#ffd7490d}
+main{max-width:1240px;margin:0 auto;padding:26px 20px 80px}
+.filterbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:11px 14px;
+  font-family:var(--body);border-radius:3px;font-size:.95rem;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--hazard-dk);border-color:var(--hazard)}
+.search{flex:1;min-width:220px;font-family:var(--mono)}
+select{font-family:var(--mono)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;animation:rise .4s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:5px;overflow:hidden;cursor:pointer;
+  transition:transform .15s,border-color .15s;position:relative;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-4px);border-color:var(--hazard-dk)}
+.card img{width:100%;height:160px;object-fit:cover;background:#0d0f12;display:block}
+.card .ph{height:160px;display:flex;align-items:center;justify-content:center;font-family:var(--stencil);
+  font-size:3rem;color:#2c313a;background:repeating-linear-gradient(45deg,#0d0f12 0 12px,#12151b 12px 24px)}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{font-family:var(--body);font-weight:600;font-size:1.02rem;line-height:1.25;color:var(--ink)}
+.card .cat{font-family:var(--mono);font-size:.66rem;color:var(--steel);letter-spacing:1.5px;text-transform:uppercase}
+.card .meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;gap:8px}
+.price{font-family:var(--stencil);font-weight:800;color:var(--hazard);font-size:1.5rem}
+.price span{font-family:var(--mono);font-size:.62rem;color:var(--dim);font-weight:400}
+.city{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+.badge{position:absolute;top:10px;left:10px;background:var(--safety);color:#161616;font-family:var(--mono);
+  font-size:.6rem;padding:3px 8px;letter-spacing:2px;border-radius:2px;font-weight:700}
+.pill{display:inline-block;background:#59d49922;color:var(--ok);font-family:var(--mono);font-size:.66rem;
+  padding:3px 9px;border-radius:10px;letter-spacing:1px}
+h1,h2{font-family:var(--stencil);text-transform:uppercase;letter-spacing:1px;color:var(--hazard)}
+h1{font-size:2.4rem;margin-bottom:6px}.h1sub{color:var(--dim);margin-bottom:22px;font-family:var(--mono);font-size:.85rem}
+h2{font-size:1.5rem;margin:26px 0 12px;border-bottom:2px solid var(--hazard-dk);padding-bottom:6px;display:inline-block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:18px}
+.spec{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.spec div{border:1px solid var(--line);border-radius:3px;padding:9px 12px;background:#181b21}
+.spec b{display:block;font-family:var(--mono);font-size:.62rem;color:var(--steel);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
+.spec span{font-size:.92rem}
+.quote{font-family:var(--mono)}
+.quote tr td{padding:6px 10px;border-bottom:1px dashed var(--line);font-size:.88rem}
+.quote tr td:last-child{text-align:right;font-weight:700}
+.total{color:var(--hazard);font-size:1.1rem}
+.btn{display:inline-block;background:var(--hazard);color:#131313;font-family:var(--mono);font-weight:700;
+  font-size:.85rem;letter-spacing:2px;text-transform:uppercase;border:none;padding:13px 26px;border-radius:3px;
+  cursor:pointer;transition:all .15s;text-align:center}
+.btn:hover{background:#ffe47e;box-shadow:0 0 24px #ffd74955;transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--hazard);border:1px solid var(--hazard-dk)}
+.btn.ghost:hover{background:#ffd74914;box-shadow:none}
+.btn.small{padding:8px 14px;font-size:.72rem}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.mapwrap{width:100%;height:300px;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.mapwrap iframe{width:100%;height:100%;border:0;filter:grayscale(.35) contrast(1.05)}
+.field{margin-bottom:12px}
+.field label{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:2px;color:var(--steel);
+  text-transform:uppercase;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chat{max-width:860px}
+.chatbox{height:420px;overflow-y:auto;background:#10131888;border:1px solid var(--line);border-radius:5px;
+  padding:14px;display:flex;flex-direction:column;gap:9px}
+.bubble{max-width:76%;padding:9px 13px;border-radius:10px;font-size:.92rem;line-height:1.4}
+.bubble.me{align-self:flex-end;background:var(--hazard);color:#151515;border-bottom-right-radius:2px}
+.bubble.them{align-self:flex-start;background:#2a2f39;border-bottom-left-radius:2px}
+.bubble .who{font-family:var(--mono);font-size:.62rem;opacity:.75;letter-spacing:1px;display:block;margin-bottom:2px}
+.chatrow{display:flex;gap:10px;margin-top:12px}
+.chatrow input{flex:1}
+.locked{border:2px dashed var(--hazard-dk);border-radius:5px;padding:34px;text-align:center;background:#ffd74908}
+.paywall{font-family:var(--mono);color:var(--dim);font-size:.85rem;margin-top:8px}
+.roomlist{margin-bottom:14px}
+.roomlist a{display:block;padding:10px 14px;border:1px solid var(--line);border-radius:4px;margin-bottom:8px;
+  color:var(--ink);font-size:.92rem;transition:border-color .15s}
+.roomlist a:hover{border-color:var(--hazard-dk)}
+.roomlist .n{font-family:var(--mono);font-size:.65rem;color:var(--dim);margin-left:8px}
+.couponrow{display:flex;gap:8px;align-items:center}
+.err{color:var(--warn);font-family:var(--mono);font-size:.8rem;margin-top:6px;display:none}
+.okmsg{color:var(--ok);font-family:var(--mono);font-size:.85rem;margin-top:8px}
+table.deposits{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.85rem}
+table.deposits td,table.deposits th{border-bottom:1px solid var(--line);padding:9px 12px;text-align:left}
+table.deposits th{color:var(--steel);font-size:.62rem;letter-spacing:2px;text-transform:uppercase}
+.st-paid{color:var(--ok)} .st-pending{color:var(--hazard)}
+.hero{margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.count{font-family:var(--stencil);font-size:3.4rem;font-weight:800;color:var(--hazard);line-height:1;text-align:right}
+.count small{font-size:.8rem;color:var(--dim);font-family:var(--mono);display:block;letter-spacing:2px}
+footer{border-top:1px solid var(--line);text-align:center;padding:20px;color:var(--dim);font-family:var(--mono);font-size:.7rem;letter-spacing:2px}
+.handoff-item{display:flex;gap:14px;align-items:flex-start;border-bottom:1px dashed var(--line);padding:10px 0}
+.handoff-item img{width:110px;height:82px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+.handoff-item .tag{font-family:var(--mono);font-size:.62rem;letter-spacing:2px;padding:2px 8px;border-radius:2px;color:#111;font-weight:700}
+.t-pickup{background:var(--hazard)} .t-dropoff{background:var(--safety)}
+.shots{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.shots .shot{width:130px;height:96px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+@media(max-width:640px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="10" fill="#1c1f25" stroke="#ffd749" stroke-width="2"/>
+      <path d="M8 38h34l-4-15H12z" fill="#ffd749"/>
+      <rect x="36" y="20" width="18" height="18" rx="2" fill="#ffd749"/>
+      <rect x="40" y="24" width="10" height="4" fill="#14161a"/>
+      <circle cx="19" cy="44" r="5.5" fill="#e8e6df"/>
+      <circle cx="19" cy="44" r="2.5" fill="#14161a"/>
+      <circle cx="45" cy="44" r="5.5" fill="#e8e6df"/>
+      <circle cx="45" cy="44" r="2.5" fill="#14161a"/>
+      <rect x="6" y="50" width="52" height="4" fill="#ff6b35"/>
+    </svg>
+    <div class="brandtext">Rent My Trailer<small>rent · book · haul</small></div>
+  </div>
+  <nav>
+    <a href="#/" data-nav>Browse</a>
+    <a href="#/post" data-nav>List Yours</a>
+    <a href="#/messages" data-nav>Community</a>
+    <a href="#/bookings" data-nav>My Bookings</a>
+  </nav>
+</header>
+<main id="app"></main>
+<footer style="display:flex;flex-direction:column;gap:12px;align-items:center"><span style="display:inline-flex;align-items:center;gap:7px"><img src="/hakster-badge.png" alt="HaksterAI" width="16" height="16" style="border-radius:4px;vertical-align:-3px"><span>Built by</span><a href="https://haksterai.com" target="_blank" rel="noreferrer" style="color:var(--hazard);font-weight:700">HaksterAI</a><span>· Powered by</span><a href="https://haksterai.com" target="_blank" rel="noreferrer" style="color:var(--ink)">haksterai.com</a></span><span style="letter-spacing:1px">© 2026 Rent My Trailer · HAUL MORE · PAY LESS · GO FURTHER</span></footer>
+<script>
+const $=s=>document.querySelector(s), app=$('#app');
+let state={search:'',category:'',page:1,cats:[]};
+const me=()=>localStorage.getItem('rmt_email')||'';
+
+async function api(p,opt){const r=await fetch(p,Object.assign({headers:{'Content-Type':'application/json'}},opt||{}));if(!r.ok)throw Object.assign(new Error((await r.json()).error||r.status),{code:r.status});return r.json();}
+
+function navActive(){const h=location.hash.split('?')[0];document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===h));}
+addEventListener('hashchange',route);addEventListener('DOMContentLoaded',route);
+
+function route(){
+  navActive();
+  const h=location.hash.split('?')[0]||'#';
+  if(h==='#/'||h==='#'){return viewCatalog()}
+  if(h==='#/post'){return viewPost()}
+  if(h==='#/messages'){return viewMessages()}
+  if(h==='#/bookings'){return viewBookings()}
+  let m=h.match(/^#\/t\/(\d+)\/msg$/);if(m){return viewMessages('trailer-'+m[1])}
+  m=h.match(/^#\/t\/(\d+)$/);if(m){return viewDetail(m[1])}
+  m=h.match(/^#\/booking\/(\w+)/);if(m){return viewBookingStatus(m[1])}
+  return viewCatalog();
+}
+
+async function viewCatalog(){
+  app.innerHTML=`<div class="hero"><div><h1>Browse trailers</h1><div class="h1sub">real prices from live fleet data</div></div>
+    <div class="count"><span id="cnt">…</span><small>LISTINGS</small></div></div>
+    <div class="filterbar"><input class="search" id="q" placeholder="search title, city, location…" value="${state.search}">
+    <select id="cat"></select></div><div class="grid" id="grid"><div class="h1sub">loading…</div></div>`;
+  $('#q').oninput=e=>{state.search=e.target.value;state.page=1;loadGrid()};
+  $('#cat').onchange=e=>{state.category=e.target.value;state.page=1;loadGrid()};
+  if(!state.cats.length)state.cats=await api('/api/categories');
+  $('#cat').innerHTML='<option value="">All categories</option>'+state.cats.map(c=>`<option${c===state.category?' selected':''}>${c}</option>`).join('');
+  await loadGrid();
+}
+function card(t){
+  return `<div class="card" onclick="location.hash='#/t/${t.id}'">
+    ${t.community?'<div class="badge">COMMUNITY</div>':''}
+    ${t.imageUrl?`<img src="${t.imageUrl}" loading="lazy" onerror="this.remove()">`:'<div class="ph">⟡</div>'}
+    <div class="body"><div class="cat">${t.categoryTitle||''}</div><h3>${t.title||''}</h3>
+    ${t.city?`<div class="city">◎ ${t.city}</div>`:''}
+    <div class="meta"><div class="price">$${t.dailyPrice}<span>/day</span></div>
+    <button class="btn ghost small" onclick="event.stopPropagation();location.hash='#/t/${t.id}/msg'">Chat</button></div></div></div>`;
+}
+async function loadGrid(){
+  const p=new URLSearchParams({search:state.search,category:state.category,page:state.page});
+  const d=await api('/api/trailers?'+p);
+  $('#cnt').textContent=d.total;
+  $('#grid').innerHTML=d.items.map(card).join('')||'<div class="h1sub">no matches</div>';
+}
+
+async function viewDetail(id){
+  const t=await api('/api/trailers/'+id);
+  const img=(t.attachments&&t.attachments[0]&&(t.attachments[0].url||t.attachments[0].imageUrl))||null;
+  const spec=(k,v)=>v&&v!=='None'&&v!==false?`<div><b>${k}</b><span>${v==='True'||v===true?'yes':v}</span></div>`:'';
+  app.innerHTML=`<div><a href="#/" class="h1sub">← back to browse</a></div>
+   <div class="hero"><div><h1>${t.title||''}</h1><div class="h1sub">${t.categoryTitle||''}${t.city?' · '+t.city:''}</div></div>
+     <span class="pill">$${t.dailyPrice}/day</span></div>
+   ${t.community?`<div class="pill">posted by ${t.postedByName||'a community owner'}</div><div style="height:14px"></div>`:''}
+   <div class="two">
+     <div>
+     ${img?`<img src="${img}" style="width:100%;border-radius:5px;border:1px solid var(--line)" onerror="this.remove()">`:''}
+     <h2>Specs</h2><div class="panel spec">
+       ${spec('hitch',t.hitchTitle)}${spec('ball size',t.ballSizeTitle)}${spec('city',t.city)}
+       ${spec('delivery',t.isDeliveryAvailable)}${spec('min rental',t.minimumRentalPeriod)}${spec('max rental',t.maximumRentalPeriod)}
+       ${spec('3-day discount',t.discountPercent3Day&&t.discountPercent3Day!=='None'?t.discountPercent3Day+'%':'')}
+       ${spec('refundable deposit','$'+(t.refundableCashDeposit||0))}
+     </div>
+     <h2>Location & directions</h2>
+     <div class="mapwrap"><iframe src="https://maps.google.com/maps?q=${t.locLat},${t.locLng}&z=12&output=embed"></iframe></div>
+     <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+       <a class="btn ghost small" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${t.locLat},${t.locLng}">Get directions to pickup</a>
+       <button class="btn ghost small" onclick="location.hash='#/t/${id}/msg'">Message about this trailer</button>
+     </div></div>
+     <div><h2>Book it</h2><div class="panel">
+       <div class="two">
+         <div class="field"><label>Rental days</label><input id="days" type="number" min="1" value="3"></div>
+         ${t.isDeliveryAvailable==='True'?`<div class="field"><label>Delivery?</label><select id="del"><option value="0">Self pickup</option><option value="1">Deliver to me</option></select></div>`:''}
+         <div class="field"><label>Pickup date</label><input id="pdate" type="date"></div>
+         <div class="field"><label>Dropoff date</label><input id="ddate" type="date"></div>
+       </div>
+       <div class="field"><label>Coupon code</label><div class="couponrow"><input id="cpn" placeholder="e.g. HAUL10" style="flex:1">
+         <button class="btn ghost small" id="cpnBtn">Check</button></div><div class="okmsg" id="cpnMsg" style="display:none"></div></div>
+       <div id="quote" class="h1sub">calculating…</div>
+       <div class="two" style="margin-top:14px">
+         <div class="field"><label>Your name</label><input id="bname"></div>
+         <div class="field"><label>Email</label><input id="bemail" value="${me()}"></div>
+         <div class="field"><label>Phone</label><input id="bphone"></div>
+       </div>
+       <button class="btn" id="bookBtn" style="width:100%">Book + pay deposit</button>
+       <div class="err" id="berr"></div></div></div></div>`;
+  let cpn=null;
+  const refresh=async()=>{
+    const days=parseInt($('#days').value||'1',10)||1;
+    const q=await api(`/api/trailers/${id}/quote?days=${days}`);
+    let total=q.subtotal;
+    if(cpn){const v=await api('/api/coupons/validate',{code:cpn,subtotal:q.subtotal});total=Math.max(0,q.subtotal-v.off);
+      $('#cpnMsg').style.display='block';$('#cpnMsg').textContent='✓ '+cpn+' — $'+v.off+' off applied';}
+    $('#quote').innerHTML=`<table class="quote" style="width:100%">
+      <tr><td>$${q.daily} × ${days} day(s) — ${q.mode}</td><td>$${q.base}</td></tr>
+      ${q.discount?`<tr><td>3-day discount (${t.discountPercent3Day}%)</td><td style="color:var(--ok)">−$${q.discount}</td></tr>`:''}
+      ${cpn?`<tr><td>Coupon ${cpn}</td><td style="color:var(--ok)">−$${(q.subtotal-total).toFixed(2)}</td></tr>`:''}
+      <tr><td>Rental total</td><td class="total">$${total}</td></tr>
+      <tr><td>Refundable cash deposit</td><td class="total">$${q.refundableCashDeposit}</td></tr></table>
+      <div class="h1sub" style="margin-top:8px">deposit refunded at dropoff once the owner verifies the handoff photos</div>`;
+  };
+  $('#cpnBtn').onclick=async()=>{cpn=$('#cpn').value.trim().toUpperCase();await refresh()};
+  $('#days').onchange=refresh;
+  $('#bookBtn').onclick=async()=>{
+    try{
+      const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({
+        trailerId:id,days:parseInt($('#days').value||'3',10),
+        email:$('#bemail').value,name:$('#bname').value,phone:$('#bphone').value,coupon:cpn||undefined,
+        pickup:{date:$('#pdate')?$('#pdate').value:''},dropoff:{date:$('#ddate')?$('#ddate').value:''},
+        delivery:!!($('#del')&&$('#del').value==='1')})});
+      localStorage.setItem('rmt_email',$('#bemail').value);
+      location.hash='#/booking/'+r.id;
+    }catch(e){const eb=$('#berr');eb.style.display='block';eb.textContent=e.message}};
+  await refresh();
+}
+
+async function viewBookingStatus(id){
+  app.innerHTML='<div style="max-width:900px"><div class="panel" id="bs">loading…</div></div>';
+  const show=async()=>{
+    const b=await api('/api/bookings/'+id);
+    const paidS=String(b.status).startsWith('paid');
+    const ho=b.handoffs||[];
+    app.innerHTML=`<div class="hero"><div><h1>Booking ${b.id}</h1><div class="h1sub">${b.trailerTitle}</div></div>
+      <span class="pill" style="${paidS?'':'background:#ffd74922;color:var(--hazard)'}">${paidS?'✓ '+b.status:b.status}</span></div>
+    <div class="two"><div><h2>Order</h2><div class="panel">
+      <table class="quote" style="width:100%">
+      <tr><td>Name / contact</td><td>${b.name}<br><span style="color:var(--dim)">${b.email}${b.phone?' · '+b.phone:''}</span></td></tr>
+      <tr><td>Rental days</td><td>${b.quote.days} (${b.quote.mode})</td></tr>
+      <tr><td>Booking total</td><td class="total">$${b.quote.total}</td></tr>
+      ${b.quote.coupon?`<tr><td>Coupon ${b.quote.coupon.code}</td><td style="color:var(--ok)">−$${b.quote.coupon.off}</td></tr>`:''}
+      <tr><td>Refundable deposit</td><td class="total">$${b.quote.refundableCashDeposit}</td></tr>
+      ${b.delivery?`<tr><td>Delivery requested</td><td>yes</td></tr>`:''}
+      ${b.pickup&&b.pickup.date?`<tr><td>Pickup date</td><td>${b.pickup.date}</td></tr>`:''}
+      ${b.dropoff&&b.dropoff.date?`<tr><td>Dropoff date</td><td>${b.dropoff.date}</td></tr>`:''}
+      </table>
+      ${!paidS?`<button class="btn" style="margin-top:16px" onclick="payDeposit('${b.id}')">Pay deposit (Stripe)</button>`:'<div class="okmsg">✓ Deposit handled — community chat unlocked for '+b.email+'</div>'}
+      <a class="btn ghost" style="margin-top:12px" href="#/messages">Open community</a></div></div>
+    <div><h2>Handoff proof — deposit hold</h2><div class="panel">
+      <div class="h1sub" style="margin-bottom:10px">owners + renters snap condition photos at pickup and dropoff; the deposit releases once both stages are on file.</div>
+      ${ho.map(h=>`<div class="handoff-item"><div><span class="tag t-${h.stage}">${h.stage.toUpperCase()}</span>
+        <div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-top:4px">${h.by} · ${new Date(h.at).toLocaleString()}</div></div>
+        <div class="shots">${h.photos.map(p=>`<img class="shot" src="/handoffs/${p}">`).join('')}</div></div>`).join('')||'<div class="h1sub">no photos yet</div>'}
+      <div class="field" style="margin-top:16px"><label>Add photos</label>
+        <div class="couponrow"><select id="hoStage" style="max-width:150px"><option value="pickup">Pickup</option><option value="dropoff">Dropoff</option></select>
+        <input id="hoBy" placeholder="owner / renter" style="flex:1"></div></div>
+      <div class="field"><label>Camera / photos</label><input id="hoFiles" type="file" accept="image/*" capture="environment" multiple></div>
+      <div class="shots" id="hoPreview"></div>
+      <div class="field"><label>Notes</label><input id="hoNotes" placeholder="condition notes…"></div>
+      <button class="btn small" id="hoBtn">Upload handoff photos</button><div class="err" id="hoErr"></div><div class="okmsg" id="hoOk" style="display:none"></div>
+    </div></div></div>`;
+    let files=[];
+    $('#hoFiles').onchange=e=>{files=Array.from(e.target.files||[]);
+      $('#hoPreview').innerHTML=files.map(f=>`<img class="shot" src="${URL.createObjectURL(f)}">`).join('')};
+    $('#hoBtn').onclick=async()=>{
+      try{
+        if(!files.length)throw new Error('attach at least one photo');
+        const photos=await Promise.all(files.map(f=>new Promise((res,rej)=>{
+          const r=new FileReader();r.onload=()=>res({data:r.result});r.onerror=rej;r.readAsDataURL(f);})));
+        const r=await api(`/api/bookings/${id}/handoff`,{method:'POST',body:JSON.stringify({
+          stage:$('#hoStage').value,by:$('#hoBy').value,notes:$('#hoNotes').value,photos})});
+        $('#hoOk').style.display='block';$('#hoOk').textContent='✓ uploaded '+r.entry.photos.length+' photo(s)';
+        await show();
+      }catch(e){const eb=$('#hoErr');eb.style.display='block';eb.textContent=e.message}};
+  };
+  show().catch(e=>{app.innerHTML=`<div class="panel"><div class="err" style="display:block">${e.message} — <a href="#/">back to browse</a></div></div>`});
+}
+
+async function payDeposit(id){
+  try{const r=await api(`/api/bookings/${id}/deposit-checkout`,{method:'POST'});
+    if(r.url)location.href=r.url;else alert(r.error||'unavailable');
+  }catch(e){alert(e.message);}
+}
+
+async function viewMessages(initialRoom){
+  const email=me();
+  let st=await api('/api/messages?email='+encodeURIComponent(email));
+  const paid=st.paid;
+  app.innerHTML=`<div class="hero"><div><h1>Community messaging</h1><div class="h1sub">chat with owners + haulers · paid members only</div></div></div>
+    <div class="panel chat">
+    ${!paid?`<div class="locked"><h2>🔒 Members-only</h2>
+      <div class="paywall">Messaging unlocks after your first booking deposit.<br><br>
+      <input id="gateEmail" placeholder="enter your booking email" value="${email}" style="min-width:260px">
+      <button class="btn small" onclick="gateCheck()">Check access</button>
+      <div style="margin-top:10px"><a href="#/" class="h1sub" style="margin:0">or browse trailers and book first →</a></div></div></div>
+      ${email?`<div class="err" style="display:block;margin-top:10px">no paid booking found for ${email}</div>`:''}`:
+      `<div class="two" style="grid-template-columns:240px 1fr">
+      <div><div class="field"><label>Your handle</label><input id="handle" value="${localStorage.getItem('rmt_handle')||email.split('@')[0]}"></div>
+      <div class="roomlist" id="rooms"></div></div>
+      <div><div style="font-family:var(--mono);font-size:.66rem;color:var(--steel);letter-spacing:2px;margin-bottom:8px" id="roomTitle">/${(initialRoom||'community').toUpperCase()}</div>
+      <div class="chatbox" id="cbox" data-chat="${initialRoom||'community'}"></div>
+      <div class="chatrow"><input id="cmsg" placeholder="type a message…"><button class="btn small" id="csend">Send</button></div></div></div>`}
+    </div>`;
+  if(!paid)return;
+  localStorage.setItem('rmt_handle',$('#handle').value);
+  $('#handle').onchange=e=>localStorage.setItem('rmt_handle',e.target.value);
+  const bubble=m=>`<div class="bubble ${m.from===(localStorage.getItem('rmt_handle')||'')?'me':'them'}"><span class="who">${m.from}</span>${m.text}</div>`;
+  const fixedRooms=[{chatId:'community',n:'🛢 /community — everyone'},{chatId:'haulers',n:'⚙ /haulers — pros & tips'}];
+  const rooms=fixedRooms.concat((st.rooms||[]).filter(r=>!fixedRooms.some(f=>f.chatId===r.chatId)));
+  $('#rooms').innerHTML=rooms.map(r=>`<a href="#/messages" onclick="switchRoom(event,'${r.chatId}')">${r.n}<span class="n">${r.count||''}</span></a>`).join('');
+  let ws,roomTimer;
+  const openWs=chatId=>{try{ws&&ws.close()}catch{};ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws/'+chatId);ws.onmessage=onWs;};
+  const onWs=ev=>{const j=JSON.parse(ev.data);if(j.message&&$('#cbox').dataset.chat===j.message.chatId){
+    $('#cbox').insertAdjacentHTML('beforeend',bubble(j.message));$('#cbox').scrollTop=99999}};
+  window.switchRoom=(ev,chatId)=>{
+    if(ev)ev.preventDefault();
+    $('#cbox').dataset.chat=chatId;$('#roomTitle').textContent='/'+chatId.toUpperCase();$('#cbox').innerHTML='';
+    api('/api/messages/'+chatId).then(ms=>{ms.forEach(m=>$('#cbox').insertAdjacentHTML('beforeend',bubble(m)));$('#cbox').scrollTop=99999});
+    clearTimeout(roomTimer);
+    roomTimer=setTimeout(()=>openWs(chatId),50);
+  };
+  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws/community');ws.onmessage=onWs;
+  api('/api/messages/'+$('#cbox').dataset.chat).then(ms=>{ms.forEach(m=>$('#cbox').insertAdjacentHTML('beforeend',bubble(m)));$('#cbox').scrollTop=99999});
+  const send=async()=>{const v=$('#cmsg').value.trim();if(!v)return;
+    try{await api('/api/messages/'+$('#cbox').dataset.chat,{method:'POST',body:JSON.stringify({from:localStorage.getItem('rmt_handle')||'guest',email,text:v})});
+      $('#cmsg').value='';
+    }catch(e){alert(e.message)}};
+  $('#csend').onclick=send;$('#cmsg').onkeydown=e=>{if(e.key==='Enter')send()};
+}
+
+async function viewPost(){
+  if(!state.cats.length)state.cats=await api('/api/categories');
+  app.innerHTML=`<h1>List your trailer</h1><div class="h1sub">post a personal trailer for daily rent — live in the browse grid instantly, with handoff photo verification for your deposit</div>
+    <div class="panel" style="max-width:900px">
+    <div class="two">
+      <div class="field"><label>Title</label><input id="p_title" placeholder="e.g. 2021 Cargo Trailer 24'"></div>
+      <div class="field"><label>Category</label><select id="p_cat">${state.cats.concat(['Personal Trailer Rentals']).filter((c,i,a)=>a.indexOf(c)===i).map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Daily price $</label><input id="p_daily" type="number" min="1" value="75"></div>
+      <div class="field"><label>Weekly price $</label><input id="p_weekly" type="number" min="0" placeholder="0 if n/a"></div>
+      <div class="field"><label>Monthly price $</label><input id="p_monthly" type="number" min="0" placeholder="0 if n/a"></div>
+      <div class="field"><label>Refundable cash deposit $</label><input id="p_dep" type="number" min="0" value="150"></div>
+      <div class="field"><label>3-day discount %</label><input id="p_d3" type="number" min="0" max="100" value="0"></div>
+      <div class="field"><label>City</label><input id="p_city" placeholder="e.g. Murrieta"></div>
+      <div class="field"><label>Photo URL</label><input id="p_img" placeholder="https://…jpg"></div>
+      <div class="field"><label>Delivery available?</label><select id="p_del"><option value="False">no</option><option value="True">yes</option></select></div>
+      <div class="field"><label>Hitch</label><select id="p_hitch"><option>Bumper Pull</option><option>Gooseneck</option><option>Fifth Wheel</option><option>Pintle</option></select></div>
+      <div class="field"><label>Ball size</label><select id="p_ball"><option>2 inch</option><option>2-5/16 inch</option><option>3 inch</option></select></div>
+    </div>
+    <div class="field"><label>Description</label><textarea id="p_desc" rows="3" placeholder="what can this trailer haul?"></textarea></div>
+    <div class="two">
+      <div class="field"><label>Your name</label><input id="p_name"></div>
+      <div class="field"><label>Your email</label><input id="p_email" value="${me()}"></div>
+    </div>
+    <button class="btn" id="p_submit" style="width:100%">Post trailer</button><div class="err" id="p_err"></div><div class="okmsg" id="p_ok" style="display:none"></div></div>`;
+  $('#p_submit').onclick=async()=>{
+    try{const r=await api('/api/listings',{method:'POST',body:JSON.stringify({
+      title:$('#p_title').value,categoryTitle:$('#p_cat').value,
+      dailyPrice:$('#p_daily').value,weeklyPrice:$('#p_weekly').value,monthlyPrice:$('#p_monthly').value,
+      refundableCashDeposit:$('#p_dep').value,discountPercent3Day:$('#p_d3').value,
+      city:$('#p_city').value,description:$('#p_desc').value,imageUrl:$('#p_img').value,
+      isDeliveryAvailable:$('#p_del').value,hitchTitle:$('#p_hitch').value,ballSizeTitle:$('#p_ball').value,
+      name:$('#p_name').value,email:$('#p_email').value})});
+      localStorage.setItem('rmt_email',$('#p_email').value);
+      $('#p_ok').style.display='block';$('#p_ok').innerHTML='✓ posted as #'+r.id+' — <a href="#/">see it in Browse (COMMUNITY badge)</a>';
+    }catch(e){const eb=$('#p_err');eb.style.display='block';eb.textContent=e.message}};
+}
+
+async function viewBookings(){
+  const email=me();
+  app.innerHTML=`<h1>My bookings</h1><div class="h1sub">look up any booking by email · deposits & handoff status</div>
+    <div class="panel" style="max-width:900px">
+    <div class="couponrow"><input id="bkEmail" placeholder="your email" value="${email}" style="flex:1;min-width:240px">
+    <button class="btn small" id="bkGo">Find</button></div><div id="bkList"></div></div>`;
+  const find=async()=>{
+    const list=await api('/api/bookings?email='+encodeURIComponent($('#bkEmail').value.trim()));
+    localStorage.setItem('rmt_email',$('#bkEmail').value.trim());
+    $('#bkList').innerHTML=list.length?`<table class="deposits" style="margin-top:14px"><tr><th>Booking</th><th>Trailer</th><th>Deposit</th><th>Status</th><th></th></tr>
+      ${list.map(b=>`<tr><td>${b.id}</td><td>${b.trailerTitle}</td><td>$${b.quote?b.quote.refundableCashDeposit:'-'}</td>
+      <td class="${String(b.status).startsWith('paid')?'st-paid':'st-pending'}">${b.status}</td>
+      <td><a href="#/booking/${b.id}">open →</a></td></tr>`).join('')}</table>`:'<div class="h1sub" style="margin-top:14px">no bookings for that email</div>';
+  };
+  $('#bkGo').onclick=find;$('#bkEmail').onkeydown=e=>{if(e.key==='Enter')find()};
+  if(email)await find();
+}
+
+async function gateCheck(){localStorage.setItem('rmt_email',$('#gateEmail').value);await viewMessages();}
+</script>
+</body>
+</html>

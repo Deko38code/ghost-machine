@@ -1,4 +1,10 @@
 .aider*
+node_modules/
+node_modules_old/
+*.db
+*.db-shm
+*.db-wal
+rent-my-trailer/server/.env
 .env
 .firecrawl/
 
@@ -10,6 +16,10 @@
 !haksterAi/**
 !movie-site/
 !movie-site/**
+!rent-my-trailer/
+!rent-my-trailer/**
+!cine-vault-live/
+!cine-vault-live/**
 !src/
 !src/**
 !public/
