@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { api, setToken, setUser, user } from "./api.js";
-import rmtBadge from "../assets/rmt-badge.webp";
 
 let gsiPromise = null;
 function loadGsi() {
@@ -136,7 +135,15 @@ export function AuthModal({ onDone, onClose }) {
         <h2 className="sec-title">mode === "google" ? "Welcome — quick sign up" : mode === "email" ? "Email log in" : mode === "signup" ? "Create account" : mode === "forgot" ? "Password reset" : "Two-factor"</h2>
         {(mode === "google" || mode === "signup") && !!gsiOn && (
           <div style={{ textAlign: "center", marginTop: 10 }}>
+            {mode === "google" && (
+              <button className="gsi-fallback" onClick={() => { try { window.google.accounts.id.prompt(); } catch { setMode("email"); } }}
+                style={{ display: "inline-flex", width: "100%", justifyContent: "center", alignItems: "center", gap: 8, padding: "12px 0", borderRadius: 10, border: "1px solid #30363d", background: "#fff", color: "#1f1f1f", fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}>
+                <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.7 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-2.8-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6C44 38.6 46.5 32.5 46.5 24.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C1 16.5 0 20.2 0 24s1 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.2 0 11.5-2 15.3-5.6l-7.7-6c-2.1 1.4-4.8 2.3-7.6 2.3-6.3 0-11.6-4-13.5-9.7l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+                Continue with Google
+              </button>
+            )}
             <div ref={gsiDiv}></div>
+            <div style={{ color: "#8b949e", fontSize: 11, marginTop: 8 }}>If Google one-tap does not appear, use the Email tab.</div>
           </div>
         )}
         {mode === "google" && (
@@ -212,7 +219,8 @@ export function AccountChip() {
 
   if (u && Object.keys(u || {}).length) return (
     <span className="acct acct-in" onClick={() => setOpen(!open)} title="Account">
-      {u.picture ? <img className="acct-ava" src={u.picture} alt="" referrerPolicy="no-referrer" loading="lazy" /> : <img className="acct-ava" src={rmtBadge} alt="" style={{ width: 26, height: 26, borderRadius: "50%", display: "block", objectFit: "cover" }} />}
+      {u.picture ? <img className="acct-ava" src={u.picture} alt="" referrerPolicy="no-referrer" loading="lazy" /> : <span className="acct-ava" style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--char2,#222)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", fontSize: 11, fontWeight: 800 }}>{(u.display_name || u.email || "?")[0].toUpperCase()}</span>}'
+
         <b>{u.display_name || u.email || "Account"}</b>
         <small>{u.tier === "paid" ? "✦ paid" : "free"} · {(() => { const role = u.role || "user"; if (role === "admin") return "admin"; if (u.owns_trailers) return "owner"; return "renter"; })()} · {u.email || ""}</small>
       {open && (

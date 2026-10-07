@@ -229,7 +229,7 @@ function TopRankers() {
           {u.picture ? (
             <img src={u.picture} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
           ) : (
-            <img src={rmtBadge} alt="" style={{ width: 30, height: 30, borderRadius: "50%" }} />
+            <span style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--asphalt)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", fontSize: 12, fontWeight: 800 }}>{(u.display_name || u.email || "?")[0].toUpperCase()}</span>
           )}
           <span style={{ display: "flex", flexDirection: "column" }}>
             <b style={{ color: "#f2f6fa", fontSize: 13 }}>{u.display_name || u.email?.split("@")[0]}</b>
