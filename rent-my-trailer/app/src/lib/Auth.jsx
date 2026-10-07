@@ -105,6 +105,7 @@ export function AuthModal({ onDone, onClose }) {
         try { refCode = localStorage.getItem("rmt-ref"); } catch {}
         const r = await api("POST", "/api/auth/signup", { email, password, display_name: name, ref: refCode });
         try { localStorage.removeItem("rmt-ref"); } catch {}
+        try { localStorage.setItem("rmt-founding-prompt", "1"); } catch {}
         setUser(r.user); setToken(r.token); return finishSignIn();
       }
       if (mode === "forgot") {
@@ -166,9 +167,9 @@ export function AccountChip() {
   const [btnGone, setBtnGone] = useState(false);
   const gsiNav = useRef(null);
 
+  const [gsiShown, setGsiShown] = useState(false);
   const signedIn = (uObj) => {
     if (gsiNav.current) {
-      const el = gsiNav.current;
       el.style.transition = "opacity .4s ease";
       el.style.opacity = "0";
       setTimeout(() => setBtnGone(true), 400);
@@ -193,6 +194,7 @@ export function AccountChip() {
         },
       });
       window.google.accounts.id.renderButton(gsiNav.current, { theme: "outline", size: "medium", text: "signin_with", shape: "pill", logo_alignment: "left" });
+      if (!dead) setGsiShown(true);
     })();
     return () => { dead = true; };
   }, [u]);
@@ -200,10 +202,8 @@ export function AccountChip() {
   if (u && Object.keys(u || {}).length) return (
     <span className="acct acct-in" onClick={() => setOpen(!open)} title="Account">
       {u.picture ? <img className="acct-ava" src={u.picture} alt="" referrerPolicy="no-referrer" loading="lazy" /> : <img className="acct-ava" src={rmtBadge} alt="" style={{ width: 26, height: 26, borderRadius: "50%", display: "block", objectFit: "cover" }} />}
-      <span className="acct-txt">
         <b>{u.display_name || u.email || "Account"}</b>
-        <small>{u.tier === "paid" ? "✦ paid" : "free"} · {u.role || "user"}</small>
-      </span>
+        <small>{u.tier === "paid" ? "✦ paid" : "free"} · {(() => { const role = u.role || "user"; if (role === "admin") return "admin"; if (u.owns_trailers) return "owner"; return "renter"; })()} · {u.email || ""}</small>
       {open && (
         <span className="acct-pop">
           <button onClick={() => { setOpen(false); location.hash = "#/settings"; }}>Settings</button>
@@ -215,7 +215,7 @@ export function AccountChip() {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
       <span ref={gsiNav}></span>
-      {btnGone && (
+      {!gsiShown && (
         <button className="gsi-fallback" onClick={() => dispatchEvent(new CustomEvent("rmt-auth"))}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px", borderRadius: 999, border: "1px solid #30363d", background: "#0d1117", color: "#f2f6fa", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
           <svg width="15" height="15" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.7 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-2.8-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6C44 38.6 46.5 32.5 46.5 24.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C1 16.5 0 20.2 0 24s1 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.2 0 11.5-2 15.3-5.6l-7.7-6c-2.1 1.4-4.8 2.3-7.6 2.3-6.3 0-11.6-4-13.5-9.7l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>

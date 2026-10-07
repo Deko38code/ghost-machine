@@ -89,6 +89,39 @@ function Onboarding({ u, onDone }) {
     </div>
   );
 }
+/* ─── founding-member prompt: first 1000 — card required, month one free ── */
+function FoundingPrompt({ onClose }) {
+  const [cnt, setCnt] = useState(null);
+  useEffect(() => {
+    fetch("/api/member-count").then((r) => r.json()).then(setCnt).catch(() => {});
+    const t = setInterval(() => fetch("/api/member-count").then((r) => r.json()).then(setCnt).catch(() => {}), 30000);
+    return () => clearInterval(t);
+  }, []);
+  if (cnt && cnt.remaining <= 0) { onClose(); return null; }
+  const claim = () => { try { localStorage.removeItem("rmt-founding-prompt"); } catch {}; location.hash = "#/membership"; onClose(); };
+  const row = { display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13.5, color: "#d5dbe2", textAlign: "left", lineHeight: 1.45 };
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 21000, background: "rgba(5,7,10,.93)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
+      <div style={{ maxWidth: 520, width: "100%", background: "#0d1117", border: "2px solid #f5b325", borderRadius: 18, padding: "26px 26px 20px", boxShadow: "0 14px 50px rgba(0,0,0,.6)" }}>
+        <div style={{ color: "var(--amber,#f5b325)", fontWeight: 800, letterSpacing: ".16em", fontSize: 12 }}>
+          🔓 FOUNDING MEMBER — {cnt ? `${cnt.claimed}/1000 CLAIMED (LIVE)` : "/1000 CLAIMED — LIVE COUNTER"}
+        </div>
+        <h2 style={{ color: "#f2f6fa", fontSize: 26, fontWeight: 900, margin: "10px 0 14px" }}>Your bonus: first month free</h2>
+        <div style={{ display: "grid", gap: 10, margin: "0 auto 16px", maxWidth: 460 }}>
+          <div style={row}><span>💳</span><span><b style={{ color: "#f2f6fa" }}>Credit card required to sign</b> — cards are verified to claim the founding rate. Nothing is charged for month one.</span></div>
+          <div style={row}><span>💸</span><span><b style={{ color: "#f2f6fa" }}>You must pay rental fees before pickup</b> — and a booking deposit is required before pickup (returned in full after a clean handover).</span></div>
+          <div style={row}><span>⚖️</span><span><b style={{ color: "#f2f6fa" }}>10% platform fee</b> on rental fees — owners keep 90%. The fee is never taken out of your deposit.</span></div>
+          <div style={row}><span>🛡️</span><span>Trailer insurance available via <b style={{ color: "#f2f6fa" }}>Jerry</b> (3rd-party, optional).</span></div>
+        </div>
+        <button onClick={claim} style={{ width: "100%", padding: "13px 0", borderRadius: 24, border: 0, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
+          ADD CARD → CLAIM MY FREE MONTH
+        </button>
+        <button onClick={onClose} style={{ marginTop: 10, background: "none", border: 0, color: "#8b949e", fontSize: 12, cursor: "pointer" }}>maybe later</button>
+      </div>
+    </div>
+  );
+}
+
 
 function MaintBanner() {
   const [st, setSt] = useState(null);
@@ -142,14 +175,11 @@ function PlanCard() {
           <div style={{ color: "#8b949e", fontSize: 12, marginTop: 4 }}>Base ${p.monthly} + {(p.tax_rate * 100).toFixed(2)}% tax — baked in, live-watched</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
             <div style={{ border: "1px solid #2a2e35", borderRadius: 10, padding: "8px 10px" }}>
-              <div style={{ color: "#8b949e", fontSize: 11, letterSpacing: ".1em" }}>RENTERS PAY</div>
-              <div style={{ color: "#f2f6fa", fontWeight: 800 }}>${p.monthly_incl_tax}/mo</div>
               <div style={{ color: "#8b949e", fontSize: 11 }}>+ refundable deposits per rental</div>
             </div>
             <div style={{ border: "1px solid #2a2e35", borderRadius: 10, padding: "8px 10px" }}>
               <div style={{ color: "#8b949e", fontSize: 11, letterSpacing: ".1em" }}>OWNERS EARN</div>
               <div style={{ color: "#f2f6fa", fontWeight: 800 }}>{(100 - (p.owner_fee_pct ?? 10)).toFixed(0)}% of every rental</div>
-              <div style={{ color: "#8b949e", fontSize: 11 }}>platform fee {p.owner_fee_pct ?? 10}% — you keep the rest</div>
             </div>
           </div>
         </>
@@ -176,11 +206,19 @@ function PlanCard() {
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [onbDone, setOnbDone] = useState(false);
+  const [foundingOpen, setFoundingOpen] = useState(() => { try { return localStorage.getItem("rmt-founding-prompt") === "1"; } catch { return false; } });
+  const maybeFounding = () => {
+    try {
+      const open = localStorage.getItem("rmt-founding-prompt") === "1";
+      if (open) { localStorage.removeItem("rmt-founding-prompt"); setFoundingOpen(true); }
+    } catch {}
+  };
   useEffect(() => {
     const on = (e) => setAuthOpen(true);
     addEventListener("rmt-auth", on);
     return () => removeEventListener("rmt-auth", on);
   }, []);
+  useEffect(() => { maybeFounding(); }, [authOpen]);
   const [route, setRoute] = useState(() => routes.parse(location.hash));
   useEffect(() => {
     const onHash = () => setRoute(routes.parse(location.hash));
@@ -282,6 +320,7 @@ export default function App() {
         const need = !onbDone && u0 && u0.tier && !u0.bio && !localStorage.getItem("rmt-onboarded");
         return need ? <Onboarding u={u0} onDone={() => { setOnbDone(true); localStorage.setItem("rmt-onboarded", "1"); }} /> : null;
       })()}
+      {foundingOpen && <FoundingPrompt onClose={() => setFoundingOpen(false)} />}
     </div>
   );
 }

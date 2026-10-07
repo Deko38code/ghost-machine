@@ -44,7 +44,7 @@ function auth(required = true) {
     }
     try {
       const p = jwt.verify(tok, JWT_SECRET);
-      req.user = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE id=?").get(p.uid);
+      req.user = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(p.uid);
       if (!req.user) return res.status(401).json({ error: "user gone" });
       next();
     } catch { return res.status(401).json({ error: "bad token" }); }
@@ -60,7 +60,7 @@ app.post("/api/auth/signup", async (req, res) => {
   const hash = bcrypt.hashSync(password, 10);
   try {
     const r = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?,?,?)").run(email.toLowerCase(), hash, display_name || email.split("@")[0]);
-    const u = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE id=?").get(r.lastInsertRowid);
+    const u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r.lastInsertRowid);
     res.json({ token: sign(u), user: u });
   } catch (e) {
     if (String(e).includes("UNIQUE")) return res.status(409).json({ error: "email already registered" });
@@ -84,10 +84,10 @@ app.post("/api/auth/google", async (req, res) => {
   if (c.exp * 1000 < Date.now() - 60_000) return res.status(401).json({ error: "credential expired" });
   const email = String(c.email || "").toLowerCase();
   if (!email || /-?\d+@anonymous\.google$/.test(email)) return res.status(401).json({ error: "no verified email" });
-  let u = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE email=?").get(email);
+  let u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE email=?").get(email);
   if (!u) {
     const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?, 'google', ?)").run(email, c.name || email.split("@")[0]);
-    u = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE id=?").get(r2.lastInsertRowid);
+    u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r2.lastInsertRowid);
   }
   res.json({ token: sign(u), user: u });
 });
@@ -143,10 +143,10 @@ app.get("/api/auth/google/callback", async (req, res) => {
     const email = String(claims.email || "").toLowerCase();
     const name = claims.name || email.split("@")[0];
     if (claims.email_verified === false) return res.status(403).send("Google email not verified");
-    let u = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE email=?").get(email);
+    let u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE email=?").get(email);
     if (!u) {
       const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?, 'google', ?)").run(email, name);
-      u = db.prepare("SELECT id, email, display_name, tier, role FROM users WHERE id=?").get(r2.lastInsertRowid);
+      u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r2.lastInsertRowid);
     }
     const token = sign(u);
     const esc = JSON.stringify(u).replace(/</g, "\\u003c");
@@ -160,10 +160,15 @@ app.get("/api/auth/google/callback", async (req, res) => {
     res.status(500).send("google sign-in failed: " + String(e).slice(0, 200));
   }
 });
+const loginFails = [];
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
   const u = db.prepare("SELECT * FROM users WHERE email=?").get((email || "").toLowerCase());
-  if (!u || !bcrypt.compareSync(password || "", u.pass_hash)) return res.status(401).json({ error: "bad credentials" });
+  if (!u || !bcrypt.compareSync(password || "", u.pass_hash)) {
+    loginFails.push({ at: Date.now(), email: (email || "").toLowerCase().slice(0, 80), ip: (req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "").toString().slice(0, 64) });
+    if (loginFails.length > 500) loginFails.splice(0, loginFails.length - 500);
+    return res.status(401).json({ error: "bad credentials" });
+  }
   const pub = { id: u.id, email: u.email, display_name: u.display_name, tier: u.tier, role: u.role };
   res.json({ token: sign(pub), user: pub });
 });
@@ -893,6 +898,39 @@ async function secDigest() {
   secDigestBusy = false;
 }
 setInterval(() => { secDigest().catch(() => {}); }, 10 * 60 * 1000);
+/* admin security score — deterministic 0-100 from live signals */
+app.get("/api/admin/security-score", auth(true), (req, res) => {
+  if (!["admin","owner"].includes(req.user.role)) return res.status(403).json({ error: "admin only" });
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  const fails24 = loginFails.filter((f) => now - f.at < day);
+  const secWeight24 = secEvents.reduce((a, x) => a + x.weight, 0);
+  const backups = fs.existsSync("/home/ghost/backups");
+  const envPerms = (() => { try { return (fs.statSync(path.join(__dirname, ".env")).mode & 0o077) === 0; } catch { return false; } })();
+  const checks = [
+    { name: "JWT signing secret", ok: !!process.env.RMT_JWT_SECRET, pts: 10 },
+    { name: "TLS (https) active", ok: HAVE_TLS, pts: 10 },
+    { name: "SMTP (receipts + alerts)", ok: !!process.env.SMTP_HOST, pts: 10 },
+    { name: "SMS gateway (textbee)", ok: !!process.env.RMT_TEXTBEE_API_KEY, pts: 10 },
+    { name: "Stripe (cards + ID verify)", ok: !!process.env.STRIPE_SECRET_KEY, pts: 10 },
+    { name: "Failed logins last 24h < 20", ok: fails24.length < 20, pts: 15, note: `${fails24.length} failed logins in 24h` },
+    { name: "Security events last 24h low", ok: secEvents.length === 0 || secWeight24 < 4, pts: 15, note: `${secEvents.length} event(s), weight ${secWeight24}` },
+    { name: "Backups present", ok: backups, pts: 15 },
+    { name: ".env locked to owner", ok: envPerms, pts: 5 },
+  ];
+  const pts = checks.reduce((a, c) => a + c.pts, 0);
+  const got = checks.filter((c) => c.ok).reduce((a, c) => a + c.pts, 0);
+  const score = Math.max(0, Math.min(100, Math.round((got / pts) * 100)));
+  const grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
+  res.json({
+    score, grade, weight_total: pts,
+    failed_logins_24h: fails24.map((f) => ({ at: new Date(f.at).toISOString().slice(0, 19), email: f.email, ip: f.ip })),
+    security_events_24h: secEvents,
+    checks,
+    at: new Date().toISOString(),
+  });
+});
+
 /* ─── FINAL WIRING v2: incoming requests, Stripe Identity, admin SMS (textbee) ── */
 app.get("/api/bookings/incoming", auth(true), (req, res) => {
   const rows = db.prepare("SELECT b.*, t.title FROM bookings b JOIN trailers t ON t.id=b.trailer_id WHERE t.owner_id=? AND b.payment_state='pending' AND b.created_on > datetime('now','-30 days') ORDER BY b.id DESC LIMIT 100").all(req.user.id);
