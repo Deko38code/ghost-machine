@@ -1,34 +1,8 @@
-.aider*
-node_modules/
-node_modules_old/
-*.db
-*.db-shm
-*.db-wal
-rent-my-trailer/server/.env
-.env
-.firecrawl/
+mint-backup/
 
-# Ignore everything by default
-*
-
-# Whitelist project directories
-!haksterAi/
-!haksterAi/**
-!movie-site/
-!movie-site/**
-!rent-my-trailer/
-!rent-my-trailer/**
-!cine-vault-live/
-!cine-vault-live/**
-!src/
-!src/**
-!public/
-!public/**
-!phantom-ide.html
-!README.md
-
-# Re-allow git operations (needed even when ignoring everything)
-!.gitignoreminiforge/data/miniapps_pool.json
-miniforge/accounts.json
-__pycache__/
-*.pyc
+# repos with their own remotes (snapshot there directly)
+!/cine-vault-live
+!cine-vault-live/.git
+!/haksterAi
+!haksterAi/.git
+miniforge/tmp-tasks/
