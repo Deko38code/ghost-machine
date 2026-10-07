@@ -235,6 +235,7 @@ body.intro-open .ai-fab { display: none; }
 .ai-extracted pre { font-size: 10.5px; color: var(--paper); white-space: pre-wrap; max-height: 170px; overflow-y: auto; }
 .bubbles { flex: 1; min-height: 0; }
 .auth-overlay { position: fixed; inset: 0; background: rgba(10,11,13,0.72); z-index: 21000; display: grid; place-items: center; }
+body.intro-open .topbar { z-index: 21500; }
 
 .auth-card { background: var(--char2); border: 2px solid var(--amber); padding: 26px 28px; width: min(420px, 92vw); }
 .acct { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; border: 1px solid var(--line); padding: 6px 12px; cursor: pointer; position: relative; background: var(--char2); }
@@ -245,7 +246,12 @@ body.intro-open .ai-fab { display: none; }
 .acct-pop button:hover { background: var(--char2); color: var(--orange); }
 .loginbtn { border: 1px solid var(--amber) !important; color: var(--amber) !important; }
 .receiptbody { margin-top: 10px; background: var(--asphalt); border: 1px dashed var(--line); padding: 10px; font-size: 11px; white-space: pre-wrap; color: #cfd4d9; max-height: 220px; overflow-y: auto; }
-@media (max-width: 900px) { .acct { display: none; } }
+@media (max-width: 900px) {
+  /* compact account chip on mobile — avatar/button stays clickable top-right */
+  .acct { padding: 6px 8px; gap: 2px; }
+  .acct b, .acct small { display: none; }
+  .acct-ava { width: 30px !important; height: 30px !important; }
+}
 
 /* ── gallery ──────────────────────────── */
 .thumbs { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px; }
