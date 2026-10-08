@@ -6,3 +6,20 @@ mint-backup/
 !/haksterAi
 !haksterAi/.git
 miniforge/tmp-tasks/
+
+# credentials + runtime state — never in the public repo
+.pm2/
+.omp/
+.cache/
+.var/
+.hakster/
+.deeplake/
+.cloudflared/
+.ssh/
+.bash_history
+.Xauthority
+.config/chromium-headless/
+.config/mozilla/
+*key4.db
+*logins.db
+*cert9.db
