@@ -69,6 +69,9 @@ export default function Detail({ route }) {
   const [start, setStart] = useState(today());
   const [days, setDays] = useState(3);
   const [coupon, setCoupon] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [needId, setNeedId] = useState(false);
+  const [couponErr, setCouponErr] = useState("");
   const [applied, setApplied] = useState(null);
   const [err, setErr] = useState("");
 
@@ -82,7 +85,10 @@ export default function Detail({ route }) {
   useEffect(() => {
     if (!l || !coupon) return;
     const t = setTimeout(() => {
-      api("POST", "/api/coupons/validate", { code: coupon }).then((r) => setApplied(r.valid ? r : null)).catch(() => setApplied(null));
+      api("POST", "/api/coupons/validate", { code: coupon, id_number: idNumber }).then((r) => {
+        if (r.valid) { setApplied(r); setNeedId(!!r.require_id); setCouponErr(""); }
+        else { setApplied(null); setNeedId(!!r.need_id); setCouponErr(r.error || (r.need_id ? "ID # required for this coupon" : "invalid coupon")); }
+      }).catch(() => { setApplied(null); setNeedId(false); });
     }, 250);
     return () => clearTimeout(t);
   }, [coupon, l]);
@@ -162,7 +168,11 @@ export default function Detail({ route }) {
             <label>Pickup date<input type="date" value={start} min={today()} onChange={(e) => setStart(e.target.value)} /></label>
             <label>Days<input type="number" min="1" max="60" value={days} onChange={(e) => setDays(Math.max(1, Number(e.target.value)))} /></label>
             <div className="couponbox">
-              <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="Coupon code" aria-label="Coupon code" />
+              <input value={coupon} onChange={(e) => { setCoupon(e.target.value); setCouponErr(""); }} placeholder="Coupon code" aria-label="Coupon code" />
+              {needId && (
+                <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="Enter your ID # (veteran/senior/first responder)" aria-label="Verification ID" style={{ borderColor: "#f5b325" }} />
+              )}
+              {couponErr && <p className="coupon-no">{couponErr}</p>}
               <button type="button" onClick={() => applied && applied.code === coupon.toUpperCase() ? null : setCoupon((c) => c.toUpperCase())}>Check</button>
             </div>
             {coupon && <p className={applied ? "coupon-ok" : "coupon-no"}>{applied ? `✅ ${applied.code} — ${applied.percent}% off` : `❌ “${coupon}” invalid or expired`}</p>}

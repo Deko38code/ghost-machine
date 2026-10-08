@@ -52,7 +52,7 @@ export default function Home() {
           <span style={{ fontSize: 34 }}>💵</span>
           <div style={{ flex: 1, minWidth: 220 }}>
             <b style={{ color: "var(--amber)", fontSize: 16, letterSpacing: ".04em" }}>POST YOUR TRAILER — EARN FAST CASH</b>
-            <p style={{ color: "var(--muted)", fontSize: 13, margin: "4px 0 0" }}>Idle trailer = idle money. Owners average <b style={{ color: "#f2f6fa" }}>$120/day</b>, keep <b style={{ color: "#f2f6fa" }}>90%</b>, get GPS-verified handovers and deposits held safe. One-tap Google signup.</p>
+            <p style={{ color: "var(--muted)", fontSize: 13, margin: "4px 0 0" }}>Idle trailer = idle money. Owners average <b style={{ color: "#f2f6fa" }}>$120/day</b>, keep <b style={{ color: "#f2f6fa" }}>92%</b> <span style={{ color: "#f5b325" }}>(first 1,000 signups)</span>, get GPS-verified handovers and deposits held safe. One-tap Google signup.</p>
           </div>
           <span style={{ padding: "10px 22px", borderRadius: 24, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 900, fontSize: 13, letterSpacing: ".06em" }}>LIST IT NOW →</span>
         </div>

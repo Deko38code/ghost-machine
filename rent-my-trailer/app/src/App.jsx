@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { routes } from "./router.jsx";
 import { user } from "./lib/api.js";
 import rmtBadge from "./assets/rmt-badge.webp";
+import haksterLogo from "./assets/haksterai-logo.png";
 import AiWidget from "./components/AiWidget.jsx";
 import { AuthModal } from "./lib/Auth.jsx";
 import { AccountChip } from "./lib/Auth.jsx";
@@ -110,7 +111,7 @@ function FoundingPrompt({ onClose }) {
         <div style={{ display: "grid", gap: 10, margin: "0 auto 16px", maxWidth: 460 }}>
           <div style={row}><span>💳</span><span><b style={{ color: "#f2f6fa" }}>Credit card required to sign</b> — cards are verified to claim the founding rate. Nothing is charged for month one.</span></div>
           <div style={row}><span>💸</span><span><b style={{ color: "#f2f6fa" }}>You must pay rental fees before pickup</b> — and a booking deposit is required before pickup (returned in full after a clean handover).</span></div>
-          <div style={row}><span>⚖️</span><span><b style={{ color: "#f2f6fa" }}>10% platform fee</b> on rental fees — owners keep 90%. The fee is never taken out of your deposit.</span></div>
+          <div style={row}><span>⚖️</span><span><b style={{ color: "#f2f6fa" }}>8% platform fee</b> for your first 1,000 signups — you keep 92% (regular signups pay 10%). CA sales tax is added at checkout for California. The fee is never taken out of your deposit.</span></div>
           <div style={row}><span>🛡️</span><span>Trailer insurance available via <b style={{ color: "#f2f6fa" }}>Jerry</b> (3rd-party, optional).</span></div>
         </div>
         <button onClick={claim} style={{ width: "100%", padding: "13px 0", borderRadius: 24, border: 0, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
@@ -179,7 +180,10 @@ function PlanCard() {
             </div>
             <div style={{ border: "1px solid #2a2e35", borderRadius: 10, padding: "8px 10px" }}>
               <div style={{ color: "#8b949e", fontSize: 11, letterSpacing: ".1em" }}>OWNERS EARN</div>
-              <div style={{ color: "#f2f6fa", fontWeight: 800 }}>{(100 - (p.owner_fee_pct ?? 10)).toFixed(0)}% of every rental</div>
+              <div style={{ color: "#f2f6fa", fontWeight: 800 }}>{(100 - (p.founder?.fee_pct ?? p.owner_fee_pct ?? 10)).toFixed(0)}% of every rental</div>
+              {p.founder && p.founder.remaining > 0 && (
+                <div style={{ color: "#f5b325", fontSize: 11, marginTop: 3 }}>first {p.founder.cap.toLocaleString()} signups · {p.founder.remaining} left</div>
+              )}
             </div>
           </div>
         </>
@@ -240,6 +244,35 @@ function TopRankers() {
     </div>
   );
 }
+/* Quick Pay — one tap to settle platform fees through the haksterai-id Stripe pool */
+function PayFeesBtn() {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const me = user();
+  if (!me) return null;
+  const go = async () => {
+    setBusy(true); setMsg("");
+    try {
+      const r = await fetch("/api/auth/upgrade/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("rmt-token") || ""}` },
+        body: JSON.stringify({ sid: "membership" }),
+      });
+      const j = await r.json();
+      if (j.url) location.href = j.url;
+      else setMsg(j.error || "checkout unavailable");
+    } catch (e) { setMsg(e.message); }
+    setBusy(false);
+  };
+  return (
+    <button onClick={go} disabled={busy} title="Pay your platform fee / premium"
+      style={{ padding: "6px 12px", borderRadius: 6, border: 0, cursor: busy ? "wait" : "pointer",
+        background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap" }}>
+      {busy ? "OPENING CHECKOUT…" : "💳 Pay Fees"}
+    </button>
+  );
+}
+
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [onbDone, setOnbDone] = useState(false);
@@ -305,14 +338,25 @@ export default function App() {
           <a className={active("post")} href="#/post">List Your Trailer</a>
           <a className={active("bookings")} href="#/bookings">Bookings</a>
         </nav>
+        <PayFeesBtn />
         <AccountChip />
+        <a href="https://phantomide.com" target="_blank" rel="noreferrer" title="Phantom platform" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--muted)", fontSize: 12, letterSpacing: ".05em", textDecoration: "none", whiteSpace: "nowrap" }}>
+          <span style={{ color: "var(--muted)", fontSize: 12 }}>Powered by</span>
+          <span style={{ color: "var(--paper)", fontWeight: 700 }}>👻</span>
+          <span style={{ color: "var(--amber)", fontWeight: 700 }}>PhantomIDE</span>
+        </a>
+        <a href="https://haksterai.com" target="_blank" rel="noreferrer" title="HaksterAI platform" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--muted)", fontSize: 12, letterSpacing: ".05em", textDecoration: "none", whiteSpace: "nowrap" }}>
+          <span style={{ color: "var(--muted)", fontSize: 12 }}>Powered by</span>
+          <img src={haksterLogo} alt="HaksterAI logo" style={{ width: 16, height: 16, borderRadius: 4, display: "block" }} />
+          <span style={{ color: "var(--amber)", fontWeight: 700 }}>HaksterAI</span>
+        </a>
           {user()?.role === "admin" && <a className={active("admin")} href="#/admin">🛡️ Admin</a>}
       </header>
 
       <main>
         {showPlans ? (
           <div className="page">
-            <p className="sec-sub">Premium unlocks sharing, priority booking and fleet deals. Tax-in pricing — owners keep 90%.</p>
+            <p className="sec-sub">Premium unlocks sharing, priority booking and fleet deals. First 1,000 signups keep 92% of every rental · CA tax added at checkout for California.</p>
             <PlanCard />
           </div>
         ) : (
@@ -351,12 +395,14 @@ export default function App() {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "0 22px 16px", fontSize: 12, color: "var(--muted)", flexWrap: "wrap" }}>
-          <img src="/logo.png" alt="HaksterAI — Hack smarter. AI stronger." style={{ width: 92, height: "auto", borderRadius: 10, display: "block", opacity: 0.9 }} />
+          <img src="/logo.png" alt="HaksterAI — Hack smarter. AI stronger." style={{ width: 52, height: "auto", borderRadius: 8, display: "block", opacity: 0.9 }} />
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <span>Built by</span>
             <a href="https://haksterai.com" target="_blank" rel="noreferrer" style={{ color: "var(--amber)", fontWeight: 700, letterSpacing: ".05em" }}>HaksterAI</a>
             <span>· Powered by</span>
             <a href="https://haksterai.com" target="_blank" rel="noreferrer" style={{ color: "var(--paper)" }}>haksterai.com</a>
+            <span>· Powered by</span>
+            <a href="https://phantomide.com" target="_blank" rel="noreferrer" style={{ color: "var(--amber)", fontWeight: 700, letterSpacing: ".05em" }}>👻 PhantomIDE</a>
           </div>
         </div>
         <div style={{ borderTop: "1px solid var(--line)", marginTop: 20, padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>

@@ -27,6 +27,16 @@ const PORT = process.env.PORT || 8110;
 const UPLOADS = process.env.RMT_UPLOADS || path.join(__dirname, "uploads");
 fs.mkdirSync(UPLOADS, { recursive: true });
 fs.mkdirSync(path.join(UPLOADS, "private"), { recursive: true });
+// ── tiny .env loader (dotenv-free): server/.env sets RMT_PAY_SECRET etc. ──
+try {
+  const fs2 = require("fs"), path2 = require("path");
+  const envp = path2.join(__dirname, ".env");
+  if (fs2.existsSync(envp)) for (const line of fs2.readFileSync(envp, "utf8").split("\n")) {
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
+  }
+} catch {}
+
 const app = express();
 const DIST = process.env.RMT_DIST || path.join(__dirname, "..", "app", "dist");
 const JWT_SECRET = process.env.RMT_JWT_SECRET;
@@ -52,15 +62,26 @@ function auth(required = true) {
 }
 const numOr = (v, d) => (v == null || v === "" || isNaN(Number(v)) ? d : Number(v));
 
+/* "renter" is for users, never the operator: the admin email always lands admin */
+const ADMIN_EMAIL = (process.env.RMT_ADMIN_EMAIL || "owners@rentmytrailer.local").toLowerCase();
+function ensureAdmin(u) {
+  if (u && String(u.email || "").toLowerCase() === ADMIN_EMAIL && u.role !== "admin") {
+    db.prepare("UPDATE users SET role='admin' WHERE id=?").run(u.id);
+    u.role = "admin";
+  }
+  return u;
+}
+
 /* ─── auth ────────────────────────────────────────────── */
 app.post("/api/auth/signup", async (req, res) => {
-  const { email, password, display_name } = req.body || {};
+  
+const { email, password, display_name } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: "email and password required" });
   if (password.length < 8) return res.status(400).json({ error: "password min 8 chars" });
   const hash = bcrypt.hashSync(password, 10);
   try {
-    const r = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?,?,?)").run(email.toLowerCase(), hash, display_name || email.split("@")[0]);
-    const u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r.lastInsertRowid);
+    const r = db.prepare("INSERT INTO users (email, pass_hash, display_name, signup_rank) VALUES (?,?,?,(SELECT COALESCE(MAX(signup_rank),0)+1 FROM users))").run(email.toLowerCase(), hash, display_name || email.split("@")[0]);
+    const u = ensureAdmin(db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r.lastInsertRowid));
     res.json({ token: sign(u), user: u });
   } catch (e) {
     if (String(e).includes("UNIQUE")) return res.status(409).json({ error: "email already registered" });
@@ -86,10 +107,10 @@ app.post("/api/auth/google", async (req, res) => {
   if (!email || /-?\d+@anonymous\.google$/.test(email)) return res.status(401).json({ error: "no verified email" });
   let u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE email=?").get(email);
   if (!u) {
-    const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?, 'google', ?)").run(email, c.name || email.split("@")[0]);
+    const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name, signup_rank) VALUES (?, 'google', ?, (SELECT COALESCE(MAX(signup_rank),0)+1 FROM users))").run(email, c.name || email.split("@")[0]);
     u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r2.lastInsertRowid);
   }
-  res.json({ token: sign(u), user: u });
+  res.json({ token: sign(ensureAdmin(u)), user: ensureAdmin(u) });
 });
 
 /* ─── google sign-in (OAuth 2.0 authorization code flow) ─── */
@@ -145,9 +166,10 @@ app.get("/api/auth/google/callback", async (req, res) => {
     if (claims.email_verified === false) return res.status(403).send("Google email not verified");
     let u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE email=?").get(email);
     if (!u) {
-      const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name) VALUES (?, 'google', ?)").run(email, name);
+      const r2 = db.prepare("INSERT INTO users (email, pass_hash, display_name, signup_rank) VALUES (?, 'google', ?, (SELECT COALESCE(MAX(signup_rank),0)+1 FROM users))").run(email, name);
       u = db.prepare("SELECT id, email, display_name, tier, role, EXISTS(SELECT 1 FROM trailers tt WHERE tt.owner_id=users.id) AS owns_trailers FROM users WHERE id=?").get(r2.lastInsertRowid);
     }
+    ensureAdmin(u);
     const token = sign(u);
     const esc = JSON.stringify(u).replace(/</g, "\\u003c");
     res.set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'");
@@ -169,6 +191,7 @@ app.post("/api/auth/login", async (req, res) => {
     if (loginFails.length > 500) loginFails.splice(0, loginFails.length - 500);
     return res.status(401).json({ error: "bad credentials" });
   }
+  ensureAdmin(u);
   const pub = { id: u.id, email: u.email, display_name: u.display_name, tier: u.tier, role: u.role };
   res.json({ token: sign(pub), user: pub });
 });
@@ -185,11 +208,96 @@ app.post("/api/admin/kick", auth(true), (req, res) => {
   secAlert(`kickadm:${uid}`, `[RMT] admin kicked #${uid} (${tgt.email})`, `<h2 style="margin:0 0 8px">Admin kick</h2><p style="color:#333">${tgt.email} kicked by ${req.user.email} — next request 401s on every device.</p>`);
   res.json({ ok: true, kicked: uid });
 });
-app.post("/api/auth/upgrade", auth(true), (req, res) => {
-  // real payment wiring: set STRIPE_SECRET_KEY to enable checkout; membership flips to paid on webhook/return
-  if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error: "STRIPE_SECRET_KEY not configured — no fake charges are made" });
-  // (checkout creation happens in start.js stripe hook when key present)
-  res.status(503).json({ error: "stripe checkout hook not active" });
+async function startRmtCheckout(req, res) {
+  // real payment wiring: billing runs through the haksterai-id Stripe POOL.
+  // Gateways: haksterai.com (:3579) and Phantom (:4000) — both hold live Stripe
+  // accounts. Health gate = /api/health must answer 200 ("works 200"); healthy
+  // gateways are then tried in RANDOM order (swap when needed).
+  const paySecret = process.env.RMT_PAY_SECRET || "";
+  if (!paySecret) return res.status(503).json({ error: "RMT_PAY_SECRET not configured — payment gateway unavailable" });
+  const POOL = [
+    { name: "haksterai", url: process.env.HAKSTER_PAY_URL || "http://localhost:3579/api/rmt/checkout" },
+    { name: "phantom", url: process.env.PHANTOM_PAY_URL || "http://10.0.0.210:4000/api/rmt/checkout" },
+  ];
+  const u = db.prepare("SELECT * FROM users WHERE id=?").get(req.user.id) || req.user;
+  const healthy = [];
+  await Promise.all(POOL.map(async (g) => {
+    try {
+      const h = new URL(g.url); h.pathname = "/api/health";
+      const r = await fetch(h, { signal: AbortSignal.timeout(4000) });
+      if (r.status === 200) healthy.push(g);
+    } catch {}
+  }));
+  if (!healthy.length) return res.status(503).json({ error: "no payment gateway healthy" });
+  const order = healthy.sort(() => Math.random() - 0.5);
+  const origin = process.env.RMT_PUBLIC_ORIGIN || "https://rmt.haksterai.com";
+  const body = JSON.stringify({
+    email: u.email, rmt_user_id: req.user.id,
+    success_url: origin + "/#/membership?ok=1",
+    cancel_url: origin + "/#/membership?canceled=1",
+  });
+  let lastErr = null;
+  for (const g of order) {
+    try {
+      const r = await fetch(g.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-rmt-secret": paySecret },
+        body,
+      });
+      const j = await r.json();
+      if (!r.ok || !j.url) throw new Error((j && j.error) || "checkout failed (" + r.status + ")");
+      return res.json({ ok: true, url: j.url, gateway: g.name });
+    } catch (err) {
+      lastErr = err;
+      // swap to the next gateway automatically
+    }
+  }
+  return res.status(502).json({ error: "all payment gateways failed", detail: lastErr && lastErr.message });}
+app.post("/api/auth/upgrade", auth(true), async (req, res) => {
+  // real payment wiring: billing runs through the haksterai-id Stripe POOL.
+  // Gateways: haksterai.com (:3579) and Phantom (:4000) — both hold live Stripe
+  // accounts. Health gate = /api/health must answer 200 ("works 200"); healthy
+  // gateways are then tried in RANDOM order (swap when needed).
+  const paySecret = process.env.RMT_PAY_SECRET || "";
+  if (!paySecret) return res.status(503).json({ error: "RMT_PAY_SECRET not configured — payment gateway unavailable" });
+  const POOL = [
+    { name: "haksterai", url: process.env.HAKSTER_PAY_URL || "http://localhost:3579/api/rmt/checkout" },
+    { name: "phantom", url: process.env.PHANTOM_PAY_URL || "http://10.0.0.210:4000/api/rmt/checkout" },
+  ];
+  const u = db.prepare("SELECT * FROM users WHERE id=?").get(req.user.id) || req.user;
+  const healthy = [];
+  await Promise.all(POOL.map(async (g) => {
+    try {
+      const h = new URL(g.url); h.pathname = "/api/health";
+      const r = await fetch(h, { signal: AbortSignal.timeout(4000) });
+      if (r.status === 200) healthy.push(g);
+    } catch {}
+  }));
+  if (!healthy.length) return res.status(503).json({ error: "no payment gateway healthy" });
+  const order = healthy.sort(() => Math.random() - 0.5);
+  const origin = process.env.RMT_PUBLIC_ORIGIN || "https://rmt.haksterai.com";
+  const body = JSON.stringify({
+    email: u.email, rmt_user_id: req.user.id,
+    success_url: origin + "/#/membership?ok=1",
+    cancel_url: origin + "/#/membership?canceled=1",
+  });
+  let lastErr = null;
+  for (const g of order) {
+    try {
+      const r = await fetch(g.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-rmt-secret": paySecret },
+        body,
+      });
+      const j = await r.json();
+      if (!r.ok || !j.url) throw new Error((j && j.error) || "checkout failed (" + r.status + ")");
+      return res.json({ ok: true, url: j.url, gateway: g.name });
+    } catch (err) {
+      lastErr = err;
+      // swap to the next gateway automatically
+    }
+  }
+  return res.status(502).json({ error: "all payment gateways failed", detail: lastErr && lastErr.message });
 });
 
 /* ─── trailers ────────────────────────────────────────── */
@@ -258,10 +366,23 @@ app.post("/api/mytrailers/:id/status", auth(true), (req, res) => {
 app.get("/api/coupons", (_req, res) => {
   res.json({ rows: db.prepare("SELECT code, percent, note FROM coupons WHERE active=1").all() });
 });
+function couponVerify(c, idNo) {
+  // ID-verified community coupons (veteran/senior/first responder) need a matching ID #
+  if (c.require_id) {
+    const want = String(c.id_number || "").trim().toUpperCase();
+    const got = String(idNo || "").trim().toUpperCase();
+    if (!got) return { ok: false, error: "this coupon needs your ID # (" + (c.kind || "verified") + ")" };
+    if (got !== want) return { ok: false, error: "ID # does not match" };
+    return { ok: true };
+  }
+  return { ok: true };
+}
 app.post("/api/coupons/validate", (req, res) => {
   const c = db.prepare("SELECT * FROM coupons WHERE code=? AND active=1").get((req.body?.code || "").toUpperCase());
   if (!c || (c.max_uses != null && c.uses >= c.max_uses)) return res.json({ valid: false, code: req.body?.code });
-  res.json({ valid: true, code: c.code, percent: c.percent, note: c.note });
+  const v = couponVerify(c, req.body?.id_number);
+  if (!v.ok) return res.json({ valid: false, error: v.error, need_id: true, kind: c.kind });
+  res.json({ valid: true, code: c.code, percent: c.percent, note: c.note, kind: c.kind, require_id: !!c.require_id, id_number: c.require_id ? c.id_number : undefined });
 });
 function priceQuote(l, days, couponRow) {
   const daily = l.daily ?? 0, weekly = l.weekly, monthly = l.monthly;
@@ -282,11 +403,16 @@ app.post("/api/bookings", auth(true), (req, res) => {
   const t = db.prepare("SELECT * FROM trailers WHERE id=? AND status='live'").get(Number(trailer_id));
   if (!t) return res.status(404).json({ error: "trailer not found" });
   if (t.owner_id === req.user.id) return res.status(400).json({ error: "you can't book your own listing" });
+  const owner_state = (t.st || t.state || "").toString().toUpperCase();
   if (!start_date || Number(days) < 1) return res.status(400).json({ error: "start_date and days required" });
   let couponRow = null;
   if (coupon) {
     couponRow = db.prepare("SELECT * FROM coupons WHERE code=? AND active=1").get(String(coupon).toUpperCase());
     if (!couponRow || (couponRow.max_uses != null && couponRow.uses >= couponRow.max_uses)) return res.status(400).json({ error: "invalid coupon" });
+    if (couponRow.require_id) {
+      const v = couponVerify(couponRow, (req.body || {}).id_number);
+      if (!v.ok) return res.status(400).json({ error: v.error, need_id: true });
+    }
   }
   // platform-fee subscription: user listings earn free during the founding trial month;
   // the FOLLOWING MONTH bills automatically via stripe customer card (card_on_file). until stripe lands, owner must have an active paid tier.
@@ -298,16 +424,23 @@ app.post("/api/bookings", auth(true), (req, res) => {
     }
   }
   const q = priceQuote(t, Number(days), couponRow);
+  // owner fee (8% for the first 1000 signups, else 10%) + CA sales tax on rental subtotal
+  const ownerRow = t.owner_id ? db.prepare("SELECT * FROM users WHERE id=?").get(t.owner_id) : null;
+  const feePct = ownerFeePct(ownerRow);
+  const taxState = owner_state;
+  const taxAmount = taxState === "CA" ? Math.round(q.total * FEE.caTaxPct) / 100 : 0;
+  const totalWithTax = Math.round((q.total + taxAmount) * 100) / 100;
+  const ownerPayout = Math.round(q.total * (1 - feePct / 100) * 100) / 100;
   const code = "RMT-" + crypto.randomBytes(4).toString("hex").toUpperCase();
-  const r = db.prepare(`INSERT INTO bookings (code, user_id, trailer_id, start_date, days, base, discount, total, deposit, coupon_code)
-    VALUES (?,?,?,?,?,?,?,?,?,?)`).run(code, req.user.id, t.id, start_date, Number(days), q.base, q.discount, q.total, numOr(t.deposit, 0), couponRow?.code || null);
+  const r = db.prepare(`INSERT INTO bookings (code, user_id, trailer_id, start_date, days, base, discount, total, deposit, coupon_code, tax_amount, tax_state, owner_payout)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(code, req.user.id, t.id, start_date, Number(days), q.base, q.discount, totalWithTax, numOr(t.deposit, 0), couponRow?.code || null, taxAmount, taxState, ownerPayout);
   if (couponRow) db.prepare("UPDATE coupons SET uses=uses+1 WHERE code=?").run(couponRow.code);
   // seed the thread between renter + owner (real messaging ties into booking)
   if (t.owner_id) {
     const ex = db.prepare("SELECT id FROM threads WHERE trailer_id=? AND renter_id=?").get(t.id, req.user.id);
     if (!ex) db.prepare("INSERT INTO threads (trailer_id, renter_id, clearance) VALUES (?,?, 'approved')").run(t.id, req.user.id);
   }
-  blog(r.lastInsertRowid, "created", `booking ${code} · ${Number(days)}d from ${start_date} · total ${q.total} · deposit ${numOr(t.deposit,0)}${couponRow ? " · coupon " + couponRow.code : ""}`, req.user.email);
+  blog(r.lastInsertRowid, "created", `booking ${code} · ${Number(days)}d from ${start_date} · total ${totalWithTax}${taxAmount ? " (incl. CA tax " + taxAmount.toFixed(2) + ")" : ""} · owner payout ${ownerPayout.toFixed(2)} (${feePct}%) · deposit ${numOr(t.deposit,0)}${couponRow ? " · coupon " + couponRow.code : ""}`, req.user.email);
   const row = db.prepare("SELECT * FROM bookings WHERE id=?").get(r.lastInsertRowid);
   res.json({ ok: true, booking: row, balance_due: q.total });
 });
@@ -754,6 +887,22 @@ app.get("/api/profile/top", (_req, res) => {
   }).filter((u) => u.score > 0).sort((a, b) => b.score - a.score || a.id - b.id).slice(0, 10);
   res.json({ rows: scored });
 });
+
+/* ─── strip relay from haksterai.com: activate RMT membership ("payments via haksterai id") ── */
+app.post("/api/stripe/relay", express.json(), (req, res) => {
+  const paySecret = process.env.RMT_PAY_SECRET || "";
+  if (!paySecret || req.headers["x-rmt-secret"] !== paySecret) return res.status(403).json({ error: "forbidden" });
+  const { rmt_user_id, rmt_email, stripe_customer, subscription_id } = req.body || {};
+  const uid = Number(rmt_user_id);
+  if (!uid) return res.status(400).json({ error: "rmt_user_id required" });
+  const until = new Date(Date.now() + 32 * 864e5).toISOString().slice(0, 10);
+  db.prepare("UPDATE users SET tier='paid', paid_until=?, card_on_file=1, stripe_customer=COALESCE(NULLIF(?,''), stripe_customer) WHERE id=?").run(until, stripe_customer || "", uid);
+  const row = db.prepare("SELECT id, email, tier, paid_until FROM users WHERE id=?").get(uid);
+  if (!row) return res.status(404).json({ error: "user not found" });
+  console.log(`[pay-relay] membership activated for #${uid} (${row.email}) until ${until}`);
+  return res.json({ ok: true, tier: "paid", paid_until: until, subscription: subscription_id || null });
+});
+
 /* ─── statics ─────────────────────────────────────────── */
 /* index.html must never be cached (asset hashes change per build); hashed assets are immutable */
 app.use(express.static(DIST, { index: false, setHeaders: (res, fp) => {
@@ -817,7 +966,6 @@ if (HTTP_PORT !== PORT) {
 } else if (!HAVE_TLS) {
   server.listen(PORT, () => console.log(`RMT server :${PORT} — trailers live: ${liveCount()}${seeded > 0 ? ` (seeded ${seeded})` : seeded === -1 ? " (seed file missing)" : ""}`));
 }
-const ADMIN_EMAIL = process.env.RMT_ADMIN_EMAIL || "owners@rentmytrailer.local";
 
 const UP2 = multer({ storage: multer.diskStorage({
   destination: (_req, _f, cb) => cb(null, path.join(UPLOADS, "private")),
@@ -828,7 +976,7 @@ const UP2 = multer({ storage: multer.diskStorage({
 /* ─── admin visits + messaging already above; final wiring below ── */
 function pubUser(row) {
   if (!row) return null;
-  return { id: row.id, email: row.email, display_name: row.display_name, bio: row.bio || "", tier: row.tier, role: row.role, picture: row.picture || "", avatar_file: row.avatar_file || "", phone: row.phone || "", phone_verified: !!row.phone_verified, promo_rank: row.promo_rank || null, paid_until: row.paid_until || null, ref_code: row.ref_code || "", created_on: row.created_on };
+  return { id: row.id, email: row.email, display_name: row.display_name, bio: row.bio || "", tier: row.tier, role: row.role, picture: row.picture || "", avatar_file: row.avatar_file || "", phone: row.phone || "", phone_verified: !!row.phone_verified, promo_rank: row.promo_rank || null, paid_until: row.paid_until || null, ref_code: row.ref_code || "", created_on: row.created_on, signup_rank: row.signup_rank || null, fee_pct: ownerFeePct(row) };
 }
 const __mailTransport = null; /* SMTP_HOST/SMTP_USER/SMTP_PASS configure a real SMTP relay; receipts route reports state honestly */
 async function sendMail(to, subject, html) {
@@ -893,7 +1041,7 @@ app.post("/api/profile", auth(true), UP2.single("avatar"), (req, res) => {
   res.json({ ok: true, user: pubUser(row) });
 });
 app.get("/api/profile/me", auth(true), (req, res) => {
-  const row = db.prepare("SELECT id, email, display_name, bio, tier, role, picture, avatar_file, phone, phone_verified, promo_rank, paid_until FROM users WHERE id=?").get(req.user.id);
+  const row = db.prepare("SELECT id, email, display_name, bio, tier, role, picture, avatar_file, phone, phone_verified, promo_rank, paid_until, signup_rank FROM users WHERE id=?").get(req.user.id);
   res.json({ user: { ...row, avatar_url: row.avatar_file ? "/api/profile/avatar" : (row.picture || ""), bio: row.bio || "" } });
 });
 app.get("/api/profile/avatar", auth(true), (req, res) => {
@@ -916,6 +1064,15 @@ const FEES = {
   ownerPct: Number(process.env.RMT_PLATFORM_FEE_OWNER_PCT ?? 10),     // cut of the owner's earnings
   renterPct: Number(process.env.RMT_PLATFORM_FEE_RENTER_PCT ?? 0),    // buyer's premium %
 };
+const FEE = {
+  founderPct: Number(process.env.RMT_FOUNDER_FEE_PCT ?? 8),      // first-N signups pay this
+  founderCap: Number(process.env.RMT_FOUNDER_FEE_CAP ?? 1000),   // signup-rank cutoff
+  caTaxPct: Number(process.env.RMT_CA_TAX_PCT ?? 10.25),         // CA state+district avg on booking subtotal
+};
+function ownerFeePct(ownerRow) {
+  const rank = Number(ownerRow?.signup_rank || 0);
+  return rank && rank <= FEE.founderCap ? FEE.founderPct : FEES.ownerPct;
+}
 const MONTHLY = Number(process.env.RMT_MONTHLY || 39);
 const TAX_RATE = Number(process.env.RMT_TAX_RATE || 0.0);
 const MONTHLY_INCL_TAX = Math.round(MONTHLY * (1 + TAX_RATE) * 100) / 100;
@@ -925,18 +1082,28 @@ function promoState(row) {
   return { promo_rank: row?.promo_rank || null, paid_until: paidUntil || null, promo_active: active };
 }
 app.get("/api/pricing", (_req, res) => {
-  const perks = ["Unlimited listings + boosted placement", "Direct chat with renters (no middleman)", "Priority booking requests + analytics", "10% platform fee — you keep 90% of every rental", "Founding member badge + support-first replies"];
-  res.json({ monthly: MONTHLY, monthly_incl_tax: MONTHLY_INCL_TAX, tax_rate: TAX_RATE, owner_fee_pct: FEES.ownerPct, perks });
+  const claimedRanks = db.prepare("SELECT COUNT(*) c FROM users WHERE signup_rank > 0 AND signup_rank <= ?").get(FEE.founderCap).c;
+  const perks = [
+    "Unlimited listings + boosted placement",
+    "Direct chat with renters (no middleman)",
+    "Priority booking requests + analytics",
+    `${FEE.founderPct}% platform fee for the first ${FEE.founderCap.toLocaleString()} signups — you keep ${100 - FEE.founderPct}% of every rental`,
+    "CA sales tax added at checkout for California renters",
+    "Founding member badge + support-first replies",
+  ];
+  res.json({
+    monthly: MONTHLY, monthly_incl_tax: MONTHLY_INCL_TAX, tax_rate: TAX_RATE,
+    owner_fee_pct: FEES.ownerPct,
+    founder: { fee_pct: FEE.founderPct, cap: FEE.founderCap, claimed: claimedRanks, remaining: Math.max(FEE.founderCap - claimedRanks, 0) },
+    ca_tax_pct: FEE.caTaxPct,
+    perks,
+  });
 });
 app.get("/api/member-count", (_req, res) => {
   const claimed = db.prepare("SELECT COUNT(*) c FROM users WHERE tier != 'free'").get().c;
   res.json({ claimed, remaining: Math.max(PROMO_CAP - claimed, 0) });
 });
-app.post("/api/auth/upgrade/start", auth(true), async (req, res) => {
-  const email = String(req.body?.email || req.user.email || "").slice(0, 160);
-  const sid = String(req.body?.sid || "membership");
-  return res.status(503).json({ error: "checkout unavailable — set STRIPE_SECRET_KEY to enable member checkout" });
-});
+app.post("/api/auth/upgrade/start", auth(true), startRmtCheckout);
 app.get("/api/admin/bootcheck", (_req, res) => {
   const out = [];
   const chk = (name, ok, note) => out.push({ name, ok, note });

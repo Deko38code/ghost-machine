@@ -23,6 +23,27 @@ try {
     }
   }
 } catch (ex) { console.error("MIG:", String(ex).slice(0, 140)); }
+// ── MIG: founder-fee signup ranking + booking tax/payout columns ──
+try {
+  const have = (t) => db.prepare(`SELECT name FROM pragma_table_info('${t}')`).all().map((r) => r.name);
+  if (!have("users").includes("signup_rank")) db.exec("ALTER TABLE users ADD COLUMN signup_rank INTEGER DEFAULT 0");
+  for (const [col, type, def] of [["tax_amount", "REAL", "0"], ["tax_state", "TEXT", "''"], ["owner_payout", "REAL", "0"]]) {
+    if (!have("bookings").includes(col)) db.exec(`ALTER TABLE bookings ADD COLUMN ${col} ${type} DEFAULT ${def}`);
+  }
+  // backfill: id order == signup order (AUTOINCREMENT)
+  db.exec("UPDATE users SET signup_rank = id WHERE signup_rank IS NULL OR signup_rank = 0");
+} catch (ex) { console.error("MIG2:", String(ex).slice(0, 140)); }
+// ── MIG: coupon categories (veteran/senior/etc) with ID# verification ──
+try {
+  const haveC = db.prepare("SELECT name FROM pragma_table_info('coupons')").all().map((r) => r.name);
+  for (const [col, def] of [["kind", "'regular'"], ["require_id", "0"], ["id_number", "''"]]) {
+    if (!haveC.includes(col)) db.exec(`ALTER TABLE coupons ADD COLUMN ${col} TEXT DEFAULT ${def}`);
+  }
+  const seed = db.prepare("INSERT OR IGNORE INTO coupons (code, percent, note, active, kind, require_id, id_number) VALUES (?,?,?,?,?,?,?)");
+  seed.run("VETERAN10", 10, "Veterans — 10% off rentals (ID# verified)", 1, "veteran", 1, "VET-ID");
+  seed.run("SENIOR10", 10, "Seniors 65+ — 10% off rentals (ID# verified)", 1, "senior", 1, "SENIOR-ID");
+  seed.run("FIRE10", 10, "First responders — 10% off (ID# verified)", 1, "first_responder", 1, "FIRE-ID");
+} catch (ex) { console.error("MIG3:", String(ex).slice(0, 140)); }
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
 

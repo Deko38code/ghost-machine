@@ -60,7 +60,7 @@ export default function Intro() {
       </div>
 
       {/* yellow logo + slide text — centered in the space below the strip */}
-      <div style={{ position: "relative", zIndex: 1, flex: "1 1 auto", width: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 0, paddingTop: 42 }}>
+      <div style={{ position: "relative", zIndex: 1, flex: "1 1 auto", width: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 0, paddingTop: 130 }}>
         <img
           src={rmtLogo}
           alt="Rent My Trailer logo"

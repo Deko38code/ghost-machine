@@ -2,6 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api.js";
 
 /* Real messaging: REST threads/messages + live refresh over /ws */
+
+/* per-user identity: deterministic hue from user_id (stable across threads) */
+const PALETTE = ["#f5b325", "#ff8a3d", "#59d499", "#5ba7f7", "#c678dd", "#f7b85b", "#7fd1c0", "#e0a458"];
+function userColor(id) { const n = Math.abs(Number(id) || 0); return PALETTE[n % PALETTE.length]; }
+function initials(name) {
+  const parts = String(name || "?").trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || "?") + (parts[1]?.[0] || "")).toUpperCase();
+}
+function Avatar({ id, name, size = 28 }) {
+  return (
+    <span className="bav" style={{ width: size, height: size, fontSize: size * 0.4, background: userColor(id) }}>
+      {initials(name)}
+    </span>
+  );
+}
+
 export default function Messages({ route }) {
   const [threads, setThreads] = useState(null);
   const [activeId, setActiveId] = useState(route.param ? Number(route.param) : null);
@@ -62,14 +78,20 @@ export default function Messages({ route }) {
           {!thread ? <div className="empty" style={{ paddingTop: "18vh" }}>Pick a conversation</div> : (
             <>
               <header className="threadhead">
-                <h3>{thread.title}</h3>
-                <span>#{thread.id} · clearance: {thread.clearance} · you are the {thread.role}</span>
+                <Avatar id={thread.id * 7 + 3} name={thread.title} size={38} />
+                <div>
+                  <h3>{thread.title}</h3>
+                  <span className="threadhead-meta">#{thread.id} · clearance: <b style={{ color: thread.clearance === "approved" ? "var(--ok)" : "var(--amber)" }}>{thread.clearance}</b> · you are the {thread.role}</span>
+                </div>
               </header>
               <div className="bubbles" ref={scroller}>
                 {msgs.map((m) => (
                   <div key={m.id} className={"bubble " + (m.user_id === user?.()?.id ? "mine" : "theirs")}>
-                    <p>{m.text}</p>
-                    <small>{m.display_name} · {m.sent_on}</small>
+                    <Avatar id={m.user_id} name={m.display_name} />
+                    <div className="bwrap">
+                      <p>{m.text}</p>
+                      <small>{m.display_name} · {m.sent_on}</small>
+                    </div>
                   </div>
                 ))}
               </div>
