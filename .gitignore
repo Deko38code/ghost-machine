@@ -23,3 +23,6 @@ miniforge/tmp-tasks/
 *key4.db
 *logins.db
 *cert9.db
+
+# ollama keypair — private device credential
+.ollama/
