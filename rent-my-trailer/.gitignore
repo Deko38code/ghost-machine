@@ -6,3 +6,9 @@ server/uploads/
 *.db
 *.db-shm
 *.db-wal
+
+# never commit secrets or local databases
+server/.env*
+server/*.db
+server/*.db-*
+*.bak-*
