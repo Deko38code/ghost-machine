@@ -8,6 +8,14 @@ mint-backup/
 miniforge/tmp-tasks/
 
 # credentials + runtime state — never in the public repo
+
+# .env holds live API keys — scripts/rtrvr-agent.ts reads one from the repo root.
+# Without this, following .env.example would put a real key into an auto-snapshot.
+# The .env.example templates stay tracked so they can be shared.
+.env
+.env.*
+!.env.example
+
 .pm2/
 .omp/
 .cache/
@@ -23,6 +31,33 @@ miniforge/tmp-tasks/
 *key4.db
 *logins.db
 *cert9.db
+.local/share/keyrings/
+.local/share/kwalletd/
 
 # ollama keypair — private device credential
 .ollama/
+.jwt-secret-created
+
+# owner secrets — never commit
+.secrets.env
+
+# owner-config backups (contain pre-cleanup secrets)
+.local/share/config-backups/
+.bashrc.bak-*
+.profile.bak-*
+.vercel
+.env*
+
+# X session error logs — crash dumps print live API keys from process env
+.xsession-errors
+.xsession-errors.*
+
+# crush CLI config — holds live provider API keys and OAuth tokens
+.config/crush/
+.local/share/crush/
+
+# GPG private keys — never in a public repo
+.gnupg/private-keys-v1.d/
+
+# scraper output — scraped bundles can embed third-party API keys
+rent-my-trailer/data/nt-scrape/
