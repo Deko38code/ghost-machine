@@ -61,3 +61,160 @@ miniforge/tmp-tasks/
 
 # scraper output — scraped bundles can embed third-party API keys
 rent-my-trailer/data/nt-scrape/
+
+# backup archives must never be committed back into the repo that backs them up.
+# These are copies of the tree, not source: committing them is what grew .git to
+# 11 GB and made `git gc --auto` stall the disk for 18 minutes on 2026-11-15.
+snapshots/
+snapshots-rsync/
+backups/
+Parrot-vault/
+*.tar.gz
+*.tar.zst
+
+# npm cache — 1.5 GB of package tarballs and logs, not source
+.npm/
+
+# personal media / downloads — user files, not repo content
+Downloads/
+Desktop/
+Videos/
+
+# ── local runtime state, agent CLIs and credentials ──
+# These are machine state, not source: nothing here should ever be public.
+.config/
+.local/
+.gnome/
+.pki/
+.stripe/
+.hermes/
+.kiro/
+.pi/
+.qwen/
+.serena/
+.semantic_search/
+.openbuff/
+.openclaw/
+.opencode/
+.hivemind/
+.hakterm/
+.omp-preview-backups/
+.playwright-mcp/
+.thunderbird/
+.themes/
+.icons/
+.npm-global/
+.claude/
+.claude.json
+.agents/
+.agent-backups/
+.codex/
+.bun/
+.gnupg/
+.phantom-admin-key
+.scraperapi_keys
+.npmrc
+.npmrc.bak
+.haksterai_uid.json
+.hakterm-brain.json
+.phantom-*.json
+.phantom-journal.md
+.phantom-cli-history
+.openbuff.json
+.face
+.fonts.conf
+.node_repl_history
+.xtimidity
+*.bak-*
+*.backup-*
+AGENTS.md.bak-*
+AGENTS.md.backup-*
+AGENTS.md.before-*
+AGENTS.md.bak.*
+
+# screenshots and captures written to the repo root
+/*.png
+/*.webp
+/*.svg
+
+# owner dotfiles (untracked from the public repo — keep them off the list)
+.bashrc
+.bash_aliases
+.profile
+.dmrc
+.gtkrc-2.0
+.dbus/
+.linuxmint/
+
+# one-off scratch at repo root
+.builders-*
+.pane-cycle-*
+check-script-*.js
+check-topreels-scripts.py
+add-template-check.py
+compare-rotation-routes.py
+require-rotation-backup.py
+rotation-hardening.py
+patch-*.py
+finish-phantom-project-separation-*.py
+final-topreels-snapshot.cjs
+topreels-final-verify.cjs
+topreels-inline-check.js
+topreels-remote-current.html
+topreels-index-work.html
+Junkalot-workspace-index.html
+SponsoredAdCards*
+Footer.master.tsx
+Footer.workspace.tsx
+page.master.tsx
+page.workspace.tsx
+next.config-junkalot-*.ts
+tsconfig-junkalot-*.json
+local-smarts.js
+MacAttackOutput.txt
+topreels-*.cjs
+pm2-snappy.json
+phantom-knowledge.md
+evilvir.us/
+Pictures/
+☀
+
+# dependency installs and byte-code — rebuilt from package.json / .py, never source
+node_modules/
+__pycache__/
+*.pyc
+
+# stray shell-redirect artifacts written to the repo root (preserved, not deleted)
+1791997121
+3800
+=20500
+n
+
+# independent working copies — these need their own repos, not the parent
+miniforge/
+topreels/
+topreels-test/
+apps/
+workspace/
+work/
+work-phantomide-unlock/
+dsterm/
+tmp/
+freebuff/
+freebuff-src/
+MacAttack/
+stalkerhek/
+scrapes/
+pm2-log-archive/
+phantom-backups/
+phantom_snapshots/
+cinevault-agent-backups/
+junkalot-ad-inspect/
+junkalot-patch-*/
+junkalot-preview-stage-*/
+topreels-ai-admaker-work-*/
+
+# these now have their own repos — see git -C <dir> log
+claude_agents/
+phantom/
+phantom_TBD/

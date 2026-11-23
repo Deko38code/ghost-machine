@@ -12,3 +12,13 @@ server/.env*
 server/*.db
 server/*.db-*
 *.bak-*
+
+# local identity: TLS keypair + security-center ingest token
+server/tls/
+server/.phantom-sec-ingest.json
+
+# heavy/generated local artifacts (rebuildable, not source)
+node_modules/
+verify-shots/
+server/eng.traineddata
+ads/out/

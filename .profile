@@ -25,3 +25,5 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
+[ -f "$HOME/.secrets.env" ] && . "$HOME/.secrets.env"
+export FREEBUFF_MODE=true

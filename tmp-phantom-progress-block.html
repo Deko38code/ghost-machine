@@ -1,0 +1,165 @@
+<!-- PHANTOM LIVE SERVER PROGRESS (added 2026-11-17, owner) -->
+<!-- Green live-server progress panel. Junkalot is served by this PhantomIDE box, so the
+     panel listens to the same /ws/status feed the Junkalot toast service broadcasts
+     ({type:"progress", percent, message}). Hidden until the first progress event, then
+     docks bottom-right; at 100% it says "Update complete ✓" and leaves on its own. -->
+<div id="phantom-progress-dock" hidden>
+  <div id="phantom-progress">
+    <div class="phantom-heading">
+      <span>🛡 PHANTOM IDE · LIVE SERVER</span>
+      <span id="phantom-percent">0%</span>
+    </div>
+
+    <div class="phantom-track"
+         role="progressbar"
+         aria-label="Server update progress"
+         aria-valuemin="0"
+         aria-valuemax="100"
+         aria-valuenow="0">
+      <div id="phantom-fill"></div>
+    </div>
+
+    <div class="phantom-footer">
+      <span id="phantom-status">Waiting for update...</span>
+      <span class="phantom-live">● LIVE</span>
+    </div>
+  </div>
+</div>
+
+<style>
+#phantom-progress-dock {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  width: min(360px, calc(100vw - 36px));
+  z-index: 99999;
+}
+#phantom-progress {
+  background: #050b09;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  border-radius: 7px;
+  padding: 12px;
+  font-family: monospace;
+  box-shadow: 0 0 12px #00ff8833;
+  width: 100%;
+  box-sizing: border-box;
+}
+.phantom-heading,
+.phantom-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.phantom-heading {
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+#phantom-percent {
+  font-size: 17px;
+}
+.phantom-track {
+  height: 9px;
+  background: #123326;
+  border-radius: 20px;
+  overflow: hidden;
+}
+#phantom-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(
+    90deg, #00b85c, #00ff88
+  );
+  box-shadow: 0 0 12px #00ff88;
+  transition: width .4s ease;
+}
+.phantom-footer {
+  margin-top: 9px;
+  font-size: 10px;
+  color: #a4c9b4;
+}
+.phantom-live {
+  color: #00ff88;
+}
+@media (prefers-reduced-motion: reduce) {
+  #phantom-fill { transition: none; }
+}
+</style>
+
+<script>
+(() => {
+  const dock = document.getElementById("phantom-progress-dock");
+  const fill = document.getElementById("phantom-fill");
+  const label = document.getElementById("phantom-percent");
+  const status = document.getElementById("phantom-status");
+  const track = document.querySelector(".phantom-track");
+  if (!dock || !fill || !label || !status || !track) return;
+
+  let hideTimer = null;
+
+  function setProgress(value, message) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return;
+
+    const pct = Math.max(0, Math.min(100, number));
+
+    dock.hidden = false;
+    fill.style.width = pct + "%";
+    label.textContent = Math.round(pct) + "%";
+    track.setAttribute("aria-valuenow", pct);
+
+    status.textContent = message ||
+      (pct === 100 ? "Update complete ✓" : "Updating...");
+
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    if (pct === 100) {
+      hideTimer = setTimeout(() => { dock.hidden = true; }, 8000);
+    }
+  }
+
+  window.PhantomProgress = setProgress;
+
+  // Endpoint is the Junkalot toast service; override with window.PHANTOM_WS_ENDPOINT
+  // on any page that needs a different feed.
+  const endpoint = window.PHANTOM_WS_ENDPOINT || "wss://junkalot.co/ws/status";
+
+  let retry = 1000;
+
+  function connect() {
+    let socket;
+    try {
+      socket = new WebSocket(endpoint);
+    } catch (error) {
+      return;
+    }
+
+    socket.onopen = () => {
+      retry = 1000;
+      if (dock.hidden) status.textContent = "Connected · Awaiting update";
+    };
+
+    socket.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.type === "progress") {
+          setProgress(data.percent, data.message);
+        }
+      } catch (error) {
+        console.warn("Invalid progress message", error);
+      }
+    };
+
+    socket.onclose = () => {
+      // Stay quiet while nothing is on screen; only a visible panel reports it.
+      if (!dock.hidden) status.textContent = "Reconnecting...";
+      setTimeout(connect, retry);
+      retry = Math.min(retry * 2, 30000);
+    };
+  }
+
+  connect();
+})();
+</script>
+<!-- /PHANTOM LIVE SERVER PROGRESS -->

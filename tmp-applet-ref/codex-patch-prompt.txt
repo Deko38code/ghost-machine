@@ -1,0 +1,36 @@
+You are implementing a scoped patch in /home/ghost/haksterAi ONLY. Never read or write /home/ghost694/junkalot or any other project, never touch tunnels, never restart pm2, never run a build, never delete a file. Before editing each file, copy it to `<same path>.bak-applet-parity-20261121Z` (cp -p) and verify the backup exists.
+
+Goal: make the HaksterAI server applet behave exactly like Junkalot.co's update toast for its lifecycle — the card opens ONLY when there is something to report (an update queued/ready, a build applying, a failed build, or the site is genuinely offline), and otherwise the page keeps only the small edge tab. Plus the security fixes listed below. No redesign, no new endpoints, no other behaviour changes.
+
+=== 1. src/layouts/Layout.astro (inline applet, ~lines 281-1120) ===
+a. Markup: change `<aside id="phantom-server-applet" data-mode="card"` to `data-mode="tab"`. A normal page load must show only the edge tab; the card opens itself only when there is something to report. Keep everything else in the markup.
+b. In check(): the up-to-date branches (currently ~lines 762-793, the `else` branch that calls paintState('live') and scheduleDock()) must NOT open the card and must NOT arm a 10 s dock merely because a poll ran. When the site is idle and up to date: update state/chip/tab text only; leave mode alone (tab stays tab; a card the user opened stays until expand()'s own timer). Preserve the existing behaviour where a card that was open for a finished update closes after CLOSE_AFTER_UPDATE_MS (5000 ms) — i.e. keep `justFinished` handling, but only when the card is actually in 'card' mode.
+c. expand() (~lines 555-559): only call scheduleDock() when there is no active work — no live.job in RUNNING/QUEUED/VERIFYING and state not 'failed'/'offline' and no server.applying. When work is active, opening the card must not arm a close.
+d. renderLive(): when job.state === 'FAILED', open the card once (setMode('card'), clear dock/hide timers) so a failure is visible, and do not arm a close while the state is 'failed'. Keep the existing one-open-per-build behaviour for completed builds.
+e. scheduleDock's callback: add a guard so it never docks while root.dataset.state === 'failed'. Keep the existing live.job RUNNING/QUEUED/VERIFYING guard.
+f. Completion wording: replace the "Update complete —" prefix with "Update applied — " and only use it when the poll sees server.applying false AND server.stale false AND Number(server.pending) === 0 AND data.build matches the build the card was showing. Never say verified/complete without that. Otherwise say the server is still reporting the update as outstanding.
+g. Remove the dead countdown scaffolding: AUTO_SECS, the countdown/countdownTimer variables, armCountdown(), and clearCountdown() — the countdown value is never rendered, so keeping it implies an auto-apply that does not exist. Update every call site so the script still runs (no ReferenceError). Do not add a fake ring.
+h. OFFLINE_AFTER: change 2 to 3 (≈6 s at the 2 s poll), matching Junkalot's three-miss rule.
+i. Leave every other timing/constant/behaviour as it is: 2 s poll, card → chip after 10 s, chip → tab after 20 s, done-card closes in 5 s, per-site data only (HaksterAI's own /api/version and /api/applet/* endpoints only).
+
+=== 2. server/src/index.js — public GET /api/version (~line 2212) ===
+- Remove `files: st.pendingFiles.slice(0, 8)` from the response (pending file names are internal source paths; keep `pending` count only).
+- In the catch branch, return `{ error: 'build id unavailable' }` with no `detail: e.message`, and console.error the real error server-side.
+- Do not change any other route.
+
+=== 3. dev/applet/stream.cjs ===
+- GET /api/applet/status error branch (~line 133-142): drop `detail: e.code || e.message` from the response; console.error the real error. Keep `{ error: 'telemetry unavailable', scope }`.
+- POST /api/applet/event: require owner scope — replace the `if (scope === 'public')` check with `if (scope !== 'owner')` and a 403 'owner scope required to record audit events' (the audit log is owner-only). Keep the per-IP rate limit and whitelisting.
+- Leave streaming/read behaviour otherwise unchanged.
+
+=== 4. dev/applet/telemetry.cjs ===
+- First grep the repo for consumers of `snapshot.server.node` / `.node` from the applet snapshot. If nothing outside telemetry.cjs reads it, remove `node: process.version` (~line 212) and the `node:` passthrough (~line 249). If something does read it, leave it and say so in your report.
+
+=== 5. dev/applet/applet.js ===
+- ~line 261-265: replace the `updatesEl.innerHTML = ups...map(...)` renderer with DOM construction (`document.createElement('li')`, `<span class="t">` for the time, a plain span with textContent for the text) so no telemetry string can ever be parsed as markup. Keep the same visible output.
+- ~line 364: remove the `pendingFiles` detail sub-line (the field is no longer public).
+
+=== Verification you must do ===
+- `node --check` every edited .js/.cjs file; report the exit status of each.
+- For Layout.astro, extract the inline script body to a temp file (e.g. sed -n between `<script is:inline data-cfasync="false">` and `</script>`) and run `node --check` on it; report the result. Do not modify the Astro file beyond the edits above.
+- Do NOT run astro build, do NOT restart pm2, do NOT deploy. Report exactly: files changed, what changed at each anchor, the checks you ran and their results, and anything you chose differently or could not do.

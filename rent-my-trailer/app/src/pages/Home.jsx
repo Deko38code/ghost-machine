@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { search, stats } from "../data/db.js";
 import { money } from "../router.jsx";
+import PartnerAds from "../components/PartnerAds.jsx";
 
 const Card = ({ l }) => (
   <a className="card" href={`#/detail/${l.id}`}>
@@ -73,6 +74,8 @@ export default function Home() {
         <div className="grid">{feat.map((l) => <Card key={l.id} l={l} />)}</div>
         <a className="cta-line" href="#/browse">See all listings →</a>
       </section>
+
+      <PartnerAds />
 
       <section className="how">
         <h2 className="sec-title">How it works</h2>

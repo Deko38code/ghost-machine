@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Orebolt Hardware</title>
+<link rel="stylesheet" href="/style.css"/><script src="/layout.js"></script><script src="/footer.js"></script>
+</head><body class="app">
+<div class="wrap">
+  <section class="hero">
+    <h1>Real machines.</h1>
+    <p>Antminer, Whatsminer, AvalonMiner, and NMAxe hardware. Live hashrates shown when pool integration is connected.</p>
+  </section>
+  <section class="pad"><div class="grid grid-3" id="machines"></div></section>
+</div>
+<script>
+(async()=>{
+  const machines=await fetch('/api/machines').then(r=>r.json());
+  const host=document.getElementById('machines');
+  host.innerHTML=machines.map(m=>`
+    <div class="card machine-poster">
+      <div><img src="${m.image}" alt="${m.name}"/></div>
+      <div>
+        <span class="badge ${m.availability==='available'?'green':'gold'}">${m.availability}</span>
+        <h3>${m.name}</h3>
+        <p class="p">${m.specs}</p>
+        <div class="meta">
+          <div><div class="kx">Hashrate</div><div class="val">${m.hash} ${m.hashUnit}</div></div>
+          <div><div class="kx">Power</div><div class="val">${m.power}W</div></div>
+          <div><div class="kx">J/TH</div><div class="val">${m.efficiency}</div></div>
+        </div>
+      </div>
+    </div>`).join('');
+})();
+</script>
+</body></html>

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# mint-config-sync — keep ~/mint-backup (config source of truth) in step with the live
+# Dell box (ghost-Inspiron-7348). Services always RUN here; config mirrors back to mint.
+# Direction: Dell -> MINT for machine-independent .env and names-only PM2 roster.
+# This helper does not copy cloudflared configs, tunnel IDs, certificates, or PM2 dumps.
+set -euo pipefail
+
+DEST="$HOME/mint-backup"
+
+# 1) rmt server env + db schema-adjacent files (secrets mirrored INTO mint-backup)
+mkdir -p "$DEST/home/rent-my-trailer/server"
+install -m 600 /home/ghost/rent-my-trailer/server/.env "$DEST/home/rent-my-trailer/server/.env"
+
+# 2) cloudflared — PER-BOX IDENTITY: tunnel IDs/creds stay on the box that minted them.
+#    NEVER copy .json creds / cert / tunnel configs to another machine or backup that
+#    could be restored there — two boxes racing one tunnel ID breaks DNS routing.
+#    Instead: drop a pointer so the archive documents Dell-only ownership.
+mkdir -p "$DEST/home/.cloudflared"
+printf 'tunnels run ONLY on ghost-Inspiron-7348 (Dell) — configs: /home/ghost/.cloudflared/*.yml\nIDs here are per-box; never mirrored. Backed: %s\n' "$(date -Iseconds)" \
+  > "$DEST/home/.cloudflared/TUNNELS-ARE-DELL-ONLY.txt"
+
+# 3) pm2 roster — names only (IDs/args stay per-box too: dump.pm2 embeds Dell tunnel IDs)
+pm2 save >/dev/null
+pm2 jlist 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);j.forEach(p=>console.log(p.name))})" \
+  > "$DEST/etc/pm2-roster.txt"
+
+echo "[sync] ok — .env mirrored; tunnels + roster IDs kept Dell-only (pointers written)"

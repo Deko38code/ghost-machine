@@ -1,0 +1,32 @@
+// Allow the local desktop user to control this box's Tor daemon from the
+// Cinnamon panel switch (tor-button@shatur) and to ask Tor for a new circuit.
+//
+// Installed as /etc/polkit-1/rules.d/50-tor-toggle.rules by the owner.
+// Scope is deliberately narrow:
+//   * only user ghost, only a local session, only an active session;
+//   * only start/stop/restart/reload of tor.service or tor@default.service;
+//   * only /home/ghost/bin/tor-newnym when it is run through pkexec.
+// Nothing else is granted — this is not a general passwordless sudo.
+
+polkit.addRule(function (action, subject) {
+    if (subject.user !== "ghost" || !subject.local || !subject.active) {
+        return;
+    }
+
+    if (action.id === "org.freedesktop.systemd1.manage-units") {
+        var unit = action.lookup("unit");
+        var verb = action.lookup("verb");
+        if ((unit === "tor@default.service" || unit === "tor.service") &&
+            (verb === "start" || verb === "stop" || verb === "restart" || verb === "reload")) {
+            return polkit.Result.YES;
+        }
+        return;
+    }
+
+    if (action.id === "org.freedesktop.policykit.exec") {
+        var program = action.lookup("program");
+        if (program === "/home/ghost/bin/tor-newnym") {
+            return polkit.Result.YES;
+        }
+    }
+});

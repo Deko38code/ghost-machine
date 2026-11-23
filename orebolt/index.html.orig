@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MineThrive Demo — Fast & Free BTC Mining</title>
+<style>
+  :root {
+    --bg-0:#071021; --bg-1:#0d1728; --bg-2:#101a30;
+    --gold:#f7a935; --gold-2:#ffd766; --gold-3:#c97f18;
+    --blue:#4fc3f7; --green:#2ee085; --red:#ef6075; --purple:#a97bf5;
+    --text:#dce4f2; --dim:#8a97b3;
+    --card: rgba(16,26,48,.66);
+    --line: rgba(100,140,200,.22);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:var(--bg-0); color:var(--text); font-family:Inter, ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased; }
+  body { min-height:100vh; overflow-x:hidden; background:linear-gradient(180deg,#071021 0%, #0a1526 45%, #071021 100%); }
+  body::before {
+    content:""; position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(1100px 700px at 75% -5%, rgba(247,169,53,.13), transparent 65%),
+      radial-gradient(900px 600px at 10% 95%, rgba(79,195,247,.07), transparent 60%);
+    pointer-events:none;
+  }
+  a { color:var(--blue); text-decoration:none; }
+  a:hover { color:var(--gold); }
+  .wrap { max-width:1320px; margin:0 auto; padding:0 24px 40px; }
+  /* Nav */
+  nav.top { display:flex; align-items:center; gap:18px; padding:18px 0 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .logo { font-weight:800; font-size:1.25rem; letter-spacing:.05em; display:flex; align-items:center; gap:8px;}
+  .logo .mark { width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--gold-2), var(--gold-3)); box-shadow:0 0 18px rgba(247,169,53,.5); }
+  .logo .brand { color:var(--gold); }
+  .logo .thriv { color:var(--green); }
+  .nav a { color:var(--dim); font-size:.82rem; text-transform:uppercase; letter-spacing:.09em; padding:5px 9px; border-radius:7px; font-weight:600; transition:.15s; }
+  .nav a:hover { color:var(--gold); background:rgba(247,169,53,.08); }
+  .spacer { flex:1; }
+  .live-pill { display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:rgba(46,224,133,.12); border:1px solid rgba(46,224,133,.35); color:var(--green); font-size:.72rem; letter-spacing:.1em; font-weight:600; text-transform:uppercase; }
+  .live-pill i { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:beat 1.7s infinite; }
+  @keyframes beat { 0,100%{opacity:1; transform:scale(1);} 50%{opacity:.4; transform:scale(.72);} }
+  .demo-pill { display:inline-flex; padding:5px 10px; border-radius:999px; background:rgba(239,96,117,.1); border:1px solid rgba(239,96,117,.35); color:var(--red); font-size:.65rem; letter-spacing:.12em; font-weight:700; text-transform:uppercase; }
+  /* Hero */
+  .hero { padding:52px 0 34px; text-align:center; }
+  .hero h1 { margin:0 0 12px; font-size:clamp(2rem,5.6vw,3.4rem); font-weight:800; letter-spacing:-.02em; line-height:1.05; color:#fff; }
+  .hero h1 .gold { color:var(--gold); }
+  .hero p { color:var(--dim); font-size:1.05rem; max-width:660px; margin:0 auto 28px; line-height:1.55; }
+  .cta { display:inline-flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn { padding:14px 28px; border-radius:12px; font-weight:700; font-size:.88rem; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:0; transition:.18s; display:inline-flex; align-items:center; gap:9px; }
+  .btn.gold { background:linear-gradient(115deg, var(--gold) 0%, var(--gold-2) 100%); color:#1a0b00; box-shadow:0 12px 34px -12px rgba(247,169,53,.7); }
+  .btn.gold:hover { transform:translateY(-2px); box-shadow:0 16px 38px -10px rgba(247,169,53,.85); }
+  .btn.ghost { background:rgba(255,255,255,.05); color:var(--text); border:1px solid var(--line); }
+  .btn.ghost:hover { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.16); }
+  /* Free mining banner strip */
+  .free-bonus { margin:34px 0 44px; }
+  .fb-card { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; padding:26px 32px; border-radius:18px; background:linear-gradient(100deg, rgba(247,169,53,.18) 0%, rgba(247,169,53,.07) 40%, transparent 78%), var(--card); border:1px solid rgba(247,169,53,.3); overflow:hidden; position:relative; }
+  .fb-card::before { content:""; position:absolute; inset:0; background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.07) 52%, transparent 62%); transform:translateX(-120%); animation:shine 5.5s infinite; }
+  @keyframes shine { 0%{transform:translateX(-120%);} 40%{transform:translateX(120%);} 100%{transform:translateX(120%);} }
+  .fb-card h3 { margin:0 0 7px; font-size:1.15rem; color:var(--gold); font-weight:800; letter-spacing:.05em; }
+  .fb-card p { margin:0; color:var(--text); font-size:.95rem; line-height:1.5; max-width:620px; }
+  .fb-card .right { text-align:right; }
+  .fb-ths { font-size:2.5rem; font-weight:800; color:var(--gold-2); letter-spacing:-.02em; line-height:1; }
+  .fb-ths .u { font-size:.85rem; color:var(--dim); font-weight:500; }
+  /* Stats row */
+  .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(175px, 1fr)); gap:14px; margin-bottom:30px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px 17px; position:relative; overflow:hidden; }
+  .stat::after { content:""; position:absolute; inset:0; background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.06) 56%, transparent 70%); transform:translateX(-120%); transition:.8s; }
+  .stat:hover::after { transform:translateX(120%); }
+  .stat .k { font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  .stat .v { font-size:1.65rem; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .stat .unit { font-size:.75rem; color:var(--dim); margin-left:5px; font-weight:500; }
+  .gold { color:var(--gold); } .green { color:var(--green); } .blue { color:var(--blue); } .purple { color:var(--purple); }
+  .stat.gold-b { border-color:rgba(247,169,53,.35); box-shadow:0 10px 32px -22px rgba(247,169,53,.5); }
+  .stat.green-b { border-color:rgba(46,224,133,.3); }
+  .stat.blue-b { border-color:rgba(79,195,247,.3); }
+  .stat.purple-b { border-color:rgba(169,123,245,.3); }
+  /* Two-column grid */
+  .grid { display:grid; grid-template-columns:minmax(300px, 1.1fr) auto; gap:16px; align-items:start; }
+  @media (max-width:1000px) { .grid { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; }
+  .card h3 { margin:0 0 3px; font-size:.95rem; font-weight:700; letter-spacing:.06em; color:var(--gold); }
+  .card .hint { color:var(--dim); font-size:.76rem; margin-bottom:11px; }
+  #chart { width:100%; height:190px; display:block; }
+  /* Antminer visual */
+  .rig-visual { text-align:center; padding:20px 24px 18px; }
+  .rig-visual img { max-width:100%; height:auto; display:block; margin:0 auto 14px; border-radius:12px; }
+  .rig-visual .svg-only { max-width:100%; }
+  .rig-visual svg { max-width:100%; height:auto; filter:drop-shadow(0 18px 40px rgba(247,169,53,.2)); }
+  .rig-visual.fallback img { display:none; }
+  .rig-label { color:var(--gold); font-weight:800; letter-spacing:.1em; font-size:.95rem; margin-top:16px; }
+  .rig-sub { color:var(--dim); font-size:.75rem; letter-spacing:.08em; margin-top:3px; }
+  /* Feature cards */
+  .features { display:grid; grid-template-columns:repeat(auto-fit, minmax(265px, 1fr)); gap:16px; margin:44px 0; }
+  .feature { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; position:relative; }
+  .feature .ic { display:inline-block; width:38px; height:38px; border-radius:11px; background:rgba(247,169,53,.14); border:1px solid rgba(247,169,53,.28); color:var(--gold); font-size:1.1rem; display:grid; place-items:center; margin-bottom:12px; }
+  .feature h4 { margin:0 0 8px; font-size:.98rem; font-weight:700; color:var(--text); }
+  .feature p { margin:0; color:var(--dim); font-size:.87rem; line-height:1.55; }
+  feature-pct { color:var(--gold); font-weight:700; }
+  .feature .pct { color:var(--gold); font-weight:700; }
+  /* Pricing tiers */
+  .tiers { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; margin:40px 0; }
+  .tier { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 22px 24px; text-align:center; transition:.2s; position:relative; overflow:hidden; }
+  .tier::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--gold), var(--gold-2)); opacity:0; transition:.25s; }
+  .tier:hover { transform:translateY(-3px); border-color:rgba(247,169,53,.4); }
+  .tier:hover::before { opacity:1; }
+  .tier.featured { border-color:rgba(247,169,53,.5); background:linear-gradient(160deg, rgba(247,169,53,.09), transparent 55%), var(--card); }
+  .tier.featured::before { opacity:1; }
+  .tier .name { color:var(--dim); font-size:.74rem; letter-spacing:.13em; text-transform:uppercase; margin-bottom:12px; font-weight:700; }
+  .tier .price { font-size:2rem; font-weight:800; color:var(--gold); letter-spacing:-.02em; margin-bottom:6px; }
+  .tier .price .cur { font-size:.9rem; color:var(--dim); font-weight:500; margin-right:3px; }
+  .tier .ths { font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:14px; }
+  .tier .ths .u { color:var(--dim); font-size:.78rem; font-weight:500; }
+  .tier ul { text-align:left; list-style:none; padding:0; margin:0 0 16px; font-size:.85rem; line-height:1.7; color:var(--text); }
+  .tier ul li { padding-left:20px; position:relative; }
+  .tier ul li::before { content:"✓"; position:absolute; left:0; color:var(--green); font-weight:700; }
+  .tier .btn { width:100%; justify-content:center; padding:11px 18px; font-size:.8rem; }
+  .tier .rate { color:var(--gold); font-weight:800; letter-spacing:.04em; margin-bottom:14px; font-size:.92rem; }
+  /* Withdrawals table */
+  .withdrawals { margin:38px 0; }
+  table { width:100%; border-collapse:collapse; font-size:.83rem; }
+  thead { color:var(--dim); font-size:.68rem; text-transform:uppercase; letter-spacing:.11em; font-weight:700; }
+  th { padding:9px 12px 11px; text-align:left; border-bottom:1px solid var(--line); }
+  td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.035); color:var(--text); font-variant-numeric:tabular-nums; }
+  td.hash { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:.71rem; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:170px; }
+  td.hash a { color:var(--dim); text-decoration:none; }
+  td.amt { color:var(--green); font-weight:700; }
+  tbody tr { transition:.12s; animation:fadeRow .45s ease; }
+  tbody tr:hover { background:rgba(255,255,255,.03); }
+  @keyframes fadeRow { from { opacity:0; transform:translateY(-6px);} to { opacity:1; transform:none; } }
+  /* Wallet card */
+  .wallet-card { margin:34px 0; }
+  .wallet-grid { display:grid; grid-template-columns:1fr auto; gap:22px; align-items:center; }
+  @media (max-width:760px) { .wallet-grid { grid-template-columns:1fr; } .qr-wrap { justify-self:center; } }
+  .addr { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:.86rem; padding:11px 13px; background:rgba(3,7,16,.55); border:1px solid var(--line); border-radius:10px; color:var(--gold); word-break:break-all; cursor:pointer; display:block; }
+  .addr:hover { background:rgba(247,169,53,.10); }
+  .priv { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:.72rem; padding:10px 12px; color:var(--purple); background:rgba(169,123,245,.07); border:1px solid rgba(169,123,245,.3); border-radius:9px; word-break:break-all; margin-top:11px; }
+  .lbl { display:block; font-size:.65rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:13px 0 5px; font-weight:700; }
+  .btn-row { margin-top:16px; }
+  .copied { color:var(--green); font-size:.8rem; margin-left:9px; opacity:0; transition:.3s; }
+  .copied.show { opacity:1; }
+  #qr { border-radius:10px; border:1px solid var(--line); background:#fff; }
+  .qr-wrap { text-align:center; }
+  .qr-cap { color:var(--dim); font-size:.72rem; margin-top:9px; letter-spacing:.05em; }
+  /* Miner card list */
+  .miner-farm .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.05); gap:8px; }
+  .miner-farm .row:last-child { border-bottom:none; }
+  .miner-farm .tag { padding:3px 10px; border-radius:999px; font-size:.68rem; letter-spacing:.1em; background:rgba(46,224,133,.14); color:var(--green); border:1px solid rgba(46,224,133,.32); font-weight:700; }
+  .meter-row { display:flex; align-items:center; justify-content:space-between; gap:10px; font-variant-numeric:tabular-nums; }
+  .meter-label { color:var(--dim); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
+  .bar { width:95px; height:6px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; position:relative; }
+  .bar > i { position:absolute; inset:0; background:linear-gradient(90deg, var(--gold), var(--gold-2)); border-radius:999px; }
+  .bar.cool > i { background:linear-gradient(90deg, var(--blue), var(--green)); }
+  .bar.hot > i { background:linear-gradient(90deg, var(--gold), var(--red)); }
+  /* Ticker */
+  .ticker { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:14px; }
+  .chip { padding:5px 11px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid var(--line); font-size:.74rem; font-variant-numeric:tabular-nums; animation:pop .4s ease; }
+  .chip b { color:var(--gold); font-weight:700; }
+  @keyframes pop { 0%{ transform:scale(.7); opacity:0;} 100%{ transform:scale(1); opacity:1;} }
+  /* Footer */
+  footer { text-align:center; padding:30px 14px; color:var(--dim); font-size:.74rem; border-top:1px solid var(--line); }
+  .sim-tag { display:inline-block; padding:3px 10px; border-radius:999px; background:rgba(239,96,117,.1); border:1px solid rgba(239,96,117,.35); color:var(--red); font-weight:700; letter-spacing:.1em; font-size:.65rem; margin-right:8px; vertical-align:middle; }
+  footer a { color:var(--dim); }
+  /* Toast */
+  .toast { position:fixed; right:22px; top:20px; padding:12px 18px; background:var(--card); border:1px solid var(--gold); border-radius:11px; color:var(--gold); font-size:.85rem; opacity:0; transform:translateY(-9px); transition:.25s; z-index:99; pointer-events:none; backdrop-filter:blur(6px); }
+  .toast.show { opacity:1; transform:none; }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+  <nav class="top">
+    <div class="logo">
+      <div class="mark"></div>
+      <span class="brand">MineThrive</span><span class="thriv" style="color:var(--text)"> .demo</span>
+    </div>
+    <span class="demo-pill">Simulation</span>
+    <div class="spacer"></div>
+    <div class="nav">
+      <a href="#plans">Plans</a>
+      <a href="#withdrawals">Withdrawals</a>
+      <a href="#wallet">Wallet</a>
+      <a href="#farm">Rig</a>
+    </div>
+    <span class="live-pill"><i></i> Pool Connected</span>
+  </nav>
+
+  <section class="hero">
+    <h1><span class="gold">Fast &amp; Free Bitcoin</span> Mining</h1>
+    <p>High-performance Bitcoin mining with hardware-as-a-service.<br/>Antminer S19 Pro · SHA-256 · Stratum pool connected.</p>
+    <div class="cta">
+      <a class="btn gold" href="#plans">⛏ Start Mining</a>
+      <a class="btn ghost" href="#farm">Learn more</a>
+    </div>
+  </section>
+
+  <section class="free-bonus">
+    <div class="fb-card">
+      <div>
+        <h3>Free 1.500 TH/s · No setup fees</h3>
+        <p>Create an account and test the hardware miner today for free. Instant mining, withdrawable 24/7, demo mode running on box <b>ghost-Inspiron-7348</b>.</p>
+      </div>
+      <div class="right">
+        <div class="fb-ths">1,500<span class="u"> TH/s</span></div>
+        <div style="color:var(--dim);font-size:.76rem;letter-spacing:.1em;">Free bonus</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat gold-b"><div class="k">Hashrate</div><div class="v gold" id="hr">0.00</div><span class="unit">TH/s</span></div>
+    <div class="stat green-b"><div class="k">Est. Daily BTC</div><div class="v green" id="btc">0.000000</div></div>
+    <div class="stat blue-b"><div class="k">Power Draw</div><div class="v blue" id="watt">0</div><span class="unit">W</span></div>
+    <div class="stat purple-b"><div class="k">Efficiency</div><div class="v purple" id="eff">0.0</div><span class="unit">J/TH</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Real-time Hashrate</h3>
+      <div class="hint">last 3 minutes · rolling average</div>
+      <canvas id="chart" width="880" height="190"></canvas>
+      <div class="ticker" id="ticker"></div>
+    </div>
+
+    <div class="rig-visual card" style="padding:22px">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Antminer_S9_004.jpg/560px-Antminer_S9_004.jpg" alt="Antminer S19 Pro real unit" onerror="this.onerror=null;this.style.display='none';document.getElementById('svgFallback').style.display='block';"/>
+      <div id="svgFallback" style="display:none;">
+        <svg viewBox="0 0 340 210" width="320" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4048"/><stop offset="45%" stop-color="#21252b"/><stop offset="100%" stop-color="#0d1015"/>
+            </linearGradient>
+            <linearGradient id="goldg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffd766"/><stop offset="100%" stop-color="#f7a935"/>
+            </linearGradient>
+            <radialGradient id="fanGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="rgba(79,195,247,.35)"/><stop offset="100%" stop-color="rgba(79,195,247,0)"/>
+            </radialGradient>
+          </defs>
+          <rect x="20" y="32" rx="12" width="300" height="150" fill="url(#metal)" stroke="rgba(255,255,255,.06)"/>
+          <g fill="rgba(255,255,255,.08)">
+            <rect x="34" y="40" width="10" height="4" rx="2"/><rect x="50" y="40" width="10" height="4" rx="2"/>
+            <rect x="66" y="40" width="10" height="4" rx="2"/><rect x="82" y="40" width="10" height="4" rx="2"/>
+            <rect x="98" y="40" width="10" height="4" rx="2"/>
+          </g>
+          <text x="34" y="72" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#e9edf5" letter-spacing="2">ANTMINER</text>
+          <text x="128" y="72" font-family="Inter,sans-serif" font-size="10" fill="rgba(247,169,53,.9)" letter-spacing="2">S19 PRO</text>
+          <g>
+            <circle cx="34" cy="92" r="3" fill="#2ee085" class="led"/>
+            <circle cx="42" cy="92" r="3" fill="#2ee085" class="led"/>
+            <circle cx="50" cy="92" r="3" fill="#2ee085" class="led"/>
+          </g>
+          <g>
+            <rect x="34" y="110" width="60" height="40" rx="6" fill="rgba(247,169,53,.1)" stroke="rgba(247,169,53,.45)"/>
+            <rect x="104" y="110" width="60" height="40" rx="6" fill="rgba(247,169,53,.1)" stroke="rgba(247,169,53,.45)"/>
+            <rect x="174" y="110" width="60" height="40" rx="6" fill="rgba(247,169,53,.1)" stroke="rgba(247,169,53,.45)"/>
+          </g>
+          <g font-family="Monaco,Menlo,monospace" font-size="8" fill="rgba(247,169,53,.85)">
+            <text x="40" y="134">HB-01</text><text x="110" y="134">HB-02</text><text x="180" y="134">HB-03</text>
+          </g>
+          <g transform="translate(270 68)">
+            <circle cx="0" cy="0" r="32" fill="url(#fanGlow)"/>
+            <g class="spin">
+              <path d="M0 0 L24 -8 A26 26 0 0 1 24 8 Z" fill="rgba(79,195,247,.5)"/>
+              <path d="M0 0 L8 -24 A26 26 0 0 1 -24 -8 Z" fill="rgba(79,195,247,.35)"/>
+              <path d="M0 0 L-24 8 A26 26 0 0 1 -8 24 Z" fill="rgba(79,195,247,.3)"/>
+            </g>
+            <circle cx="0" cy="0" r="5" fill="rgba(255,255,255,.25)"/>
+          </g>
+          <g transform="translate(270 135)">
+            <circle cx="0" cy="0" r="32" fill="url(#fanGlow)"/>
+            <g class="spin" style="animation-delay:-.6s">
+              <path d="M0 0 L24 -8 A26 26 0 0 1 24 8 Z" fill="rgba(79,195,247,.5)"/>
+              <path d="M0 0 L8 -24 A26 26 0 0 1 -24 -8 Z" fill="rgba(79,195,247,.35)"/>
+              <path d="M0 0 L-24 8 A26 26 0 0 1 -8 24 Z" fill="rgba(79,195,247,.3)"/>
+            </g>
+            <circle cx="0" cy="0" r="5" fill="rgba(255,255,255,.25)"/>
+          </g>
+          <ellipse cx="170" cy="197" rx="150" ry="6" fill="rgba(0,0,0,.45)"/>
+        </svg>
+      </div>
+      <div class="rig-label">ANTMINER S19 PRO</div>
+      <div class="rig-sub">Bitmain · 110 TH/s · SHA-256 · 3 × HB-01</div>
+    </div>
+  </div>
+
+  <!-- Feature cards matching MineThrive: 11% daily, 10% power, direct transfer, no setup fees -->
+  <div class="features">
+    <div class="feature">
+      <div class="ic">⛏</div>
+      <h4><span class="pct">11%</span> Daily Minings</h4>
+      <p>Mine up to 11% Bitcoins daily, based on hardware miner costs. Without runtime limits. <em>(demo numbers only).</em></p>
+    </div>
+    <div class="feature">
+      <div class="ic">🎁</div>
+      <h4><span class="pct">10%</span> Extra Mining Power</h4>
+      <p>Invite new users and earn extra mining-power commission on every purchase. Build your network with up to 3 levels: <b>7% + 2% + 1%</b>.</p>
+    </div>
+    <div class="feature">
+      <div class="ic">⚡</div>
+      <h4>Direct Mining Transfer</h4>
+      <p>Receive Bitcoin mining rewards quickly, directly to your personal BTC wallet. Simply add a Bitcoin address to your MineThrive demo account.</p>
+    </div>
+    <div class="feature">
+      <div class="ic">✅</div>
+      <h4>No Setup Fees · No Delays</h4>
+      <p>Start the hardware miner directly at first login or after purchasing more power. No waiting times. Start mining in real time.</p>
+    </div>
+  </div>
+
+  <!-- Pricing / Tiers -->
+  <div id="plans" class="tiers">
+    <div class="tier featured">
+      <div class="name">Free Bonus</div>
+      <div class="price"><span class="cur">$</span>0</div>
+      <div class="ths">1.500 <span class="u">TH/s</span></div>
+      <ul>
+        <li>Upgrade anytime</li>
+        <li>Limited time offer</li>
+        <li>Instant Bitcoin mining</li>
+        <li>No setup fees</li>
+        <li>0.00040446071904128 monthly minings</li>
+      </ul>
+      <div class="rate">Free</div>
+      <a class="btn gold">Get started</a>
+    </div>
+
+    <div class="tier">
+      <div class="name">Beginner</div>
+      <div class="price"><span class="cur">$</span>0.0010</div>
+      <div class="ths">7.408 <span class="u">TH/s</span></div>
+      <ul>
+        <li>Basic Support</li>
+        <li>Minings Withdrawable 24/7</li>
+        <li>Instant Bitcoin mining</li>
+        <li>No setup fees</li>
+        <li>+7% Daily</li>
+      </ul>
+      <div class="rate">+7% Daily</div>
+      <a class="btn ghost">Upgrade now</a>
+    </div>
+
+    <div class="tier">
+      <div class="name">Advanced</div>
+      <div class="price"><span class="cur">$</span>0.275</div>
+      <div class="ths">2.097 <span class="u">PH/s</span></div>
+      <ul>
+        <li>Premium Support</li>
+        <li>Minings Withdrawable 24/7</li>
+        <li>Instant Bitcoin mining</li>
+        <li>No setup fees</li>
+        <li>+8% Daily</li>
+      </ul>
+      <div class="rate">+8% Daily</div>
+      <a class="btn ghost">Upgrade now</a>
+    </div>
+
+    <div class="tier">
+      <div class="name">Enterprise</div>
+      <div class="price"><span class="cur">$</span>3.5</div>
+      <div class="ths">40.957 <span class="u">PH/s</span></div>
+      <ul>
+        <li>Personal Premium Support</li>
+        <li>Minings Withdrawable 24/7</li>
+        <li>Instant Bitcoin mining</li>
+        <li>No setup fees</li>
+        <li>+11% Daily</li>
+      </ul>
+      <div class="rate">+11% Daily</div>
+      <a class="btn ghost">Upgrade now</a>
+    </div>
+  </div>
+
+  <!-- Recent withdrawals -->
+  <div id="withdrawals" class="card withdrawals">
+    <h3>Recent Withdrawals</h3>
+    <div class="hint">live payouts from the pool · simulated data</div>
+    <table>
+      <thead>
+        <tr><th>Date &amp; Time</th><th>Username</th><th>Amount</th><th>Transaction</th></tr>
+      </thead>
+      <tbody id="wtBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Wallet generator -->
+  <div id="wallet" class="card wallet-card">
+    <h3>Hash Wallet — Deposit Address Generator</h3>
+    <div class="hint">fresh SHA-256 keypair · Base58Check format · copy into the mining pool payout field</div>
+    <div class="wallet-grid">
+      <div>
+        <label class="lbl">Deposit Address</label>
+        <div class="addr" id="addr">click generate to create</div>
+        <label class="lbl">Private Key (WIF)</label>
+        <div class="priv" id="wif">—</div>
+        <div class="btn-row">
+          <button class="btn gold" id="gen">⛏ Generate Wallet</button>
+          <button class="btn ghost" id="reset">Reset Rig</button>
+          <span class="copied" id="copied">copied ✓</span>
+        </div>
+      </div>
+      <div class="qr-wrap">
+        <label class="lbl">Scan Payout Address</label>
+        <canvas id="qr" width="140" height="140"></canvas>
+        <div class="qr-cap">demo QR pattern</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Farm -->
+  <div id="farm" class="card miner-farm" style="margin:34px 0;">
+    <h3>Miner Farm</h3>
+    <div class="hint">3 units online · S19 Pro firmware: 1.18.2026a</div>
+    <div id="farmBody"></div>
+    <div style="margin-top:14px;">
+      <div class="meter-row"><span class="meter-label">Fan Speed</span><span class="blue" id="fanSpd" style="font-weight:700">5400 rpm</span></div>
+      <div class="bar cool" style="margin:8px 0 6px"><i id="fanBar" style="width:75%"></i></div>
+      <div class="meter-row"><span class="meter-label">Temp (avg)</span><span class="gold" id="temp" style="font-weight:700">62°C</span></div>
+      <div class="bar hot" style="margin:8px 0 6px"><i id="tempBar" style="width:62%"></i></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><span class="sim-tag">Simulation</span>This is a demo / mock mining dashboard inspired by cloud-mining dashboards. No real mining hardware, mining pool, Bitcoin balance, or payout is involved. Built for personal showcase.</div>
+  <div style="margin-top:7px;">⛏ Built on <b>ghost-Inspiron-7348</b> · served at port 8213 · <a href="/README.txt">how it works</a></div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (n, d=2) => n.toFixed(d);
+const ri = (a,b) => Math.floor(a + Math.random()*(b-a+1));
+const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+
+// ── Wallet generator (Base58Check-style + WIF-style) ─────────────
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function fakeBase58(len) {
+  let s = Math.random() < .5 ? '1' : '3';
+  for (let i = 1; i < len; i++) s += B58[ri(0, B58.length-1)];
+  return s;
+}
+function fakeWIF() { return 'L' + fakeBase58(50).slice(1); }
+let addr = null;
+function generateWallet() {
+  addr = fakeBase58(32 + ri(0,3));
+  const wif = fakeWIF();
+  $('addr').textContent = addr;
+  $('wif').textContent = wif;
+  drawFakeQR($('qr'), addr);
+  showToast('⛏ Fresh wallet generated');
+  pushChip(`<b>addr</b> ${addr.slice(0,6)}…${addr.slice(-4)}`);
+}
+$('gen').onclick = generateWallet;
+$('reset').onclick = () => {
+  data.length = 0;
+  currentHashrate = 0.5;
+  $('addr').textContent = 'click generate to create';
+  $('wif').textContent = '—';
+  drawFakeQR($('qr'), '—');
+  showToast('⛏ Rig reset — hashrate restarting');
+};
+$('addr').onclick = () => {
+  if (!addr) return;
+  navigator.clipboard?.writeText(addr);
+  const c = $('copied'); c.classList.add('show');
+  setTimeout(() => c.classList.remove('show'), 1900);
+};
+
+// fake QR pattern (not a real QR)
+function drawFakeQR(canvas, text) {
+  const ctx = canvas.getContext('2d');
+  const s = canvas.width;
+  const cell = s / 21;
+  ctx.clearRect(0,0,s,s);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,s,s);
+  let h = 0; for (let i=0;i<text.length;i++) h = (h*31 + text.charCodeAt(i)) & 0x7fffffff;
+  const rnd = () => { h = (h*1103515245 + 12345) & 0x7fffffff; return (h / 0x7fffffff); };
+  ctx.fillStyle = '#071021';
+  function finder(x, y) {
+    for (let i=0;i<7;i++) for (let j=0;j<7;j++) {
+      const edge = i===0 || i===6 || j===0 || j===6;
+      const inner = (i>=2 && i<=4 && j>=2 && j<=4);
+      ctx.fillStyle = (edge || inner) ? '#071021' : '#fff';
+      ctx.fillRect(x*cell + i*cell, y*cell + j*cell, cell, cell);
+    }
+  }
+  finder(0,0); finder(14,0); finder(0,14);
+  for (let i=8;i<13;i++) {
+    ctx.fillStyle = (i%2) ? '#071021' : '#fff'; ctx.fillRect(i*cell, 6*cell, cell, cell);
+    ctx.fillStyle = (i%2) ? '#071021' : '#fff'; ctx.fillRect(6*cell, i*cell, cell, cell);
+  }
+  for (let i=0;i<21;i++) for (let j=0;j<21;j++) {
+    if ((i<8 && j<8) || (i>12 && j<8) || (i<8 && j>12)) continue;
+    if (rnd() > .52) { ctx.fillStyle = '#071021'; ctx.fillRect(i*cell, j*cell, cell, cell); }
+  }
+}
+
+// ── Live hashrate chart ─────────────────────────────────────────
+const chartEl = $('chart'); const cctx = chartEl.getContext('2d');
+const data = [];
+let currentHashrate = 108.4;
+const targetHashrate = 110.0;
+function pushPoint() {
+  currentHashrate += (targetHashrate - currentHashrate) * .04;
+  currentHashrate += (Math.random() - .5) * 2.1;
+  currentHashrate = clamp(currentHashrate, targetHashrate - 12, targetHashrate + 6);
+  data.push({ t:Date.now(), v:currentHashrate });
+  while (data.length && (Date.now() - data[0].t) > 3*60*1000) data.shift();
+  drawHashrate();
+}
+function drawHashrate() {
+  const w = chartEl.width = chartEl.width;
+  const h = chartEl.height;
+  cctx.clearRect(0,0,w,h);
+  if (!data.length) return;
+  const pad = 18;
+  const xs = x => (x - data[0].t) / (Date.now() - data[0].t || 1) * (w - 20) + 10;
+  const ys = v => pad + (1 - (v / (targetHashrate * 1.12))) * (h - 2 * pad);
+  cctx.strokeStyle = 'rgba(255,255,255,.05)'; cctx.lineWidth = 1;
+  for (let i=0;i<4;i++) {
+    const y = pad + (h-2*pad) * i / 3;
+    cctx.beginPath(); cctx.moveTo(10, y); cctx.lineTo(w-10, y); cctx.stroke();
+  }
+  const grad = cctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0, 'rgba(247,169,53,.35)'); grad.addColorStop(1, 'rgba(79,195,247,.05)');
+  cctx.beginPath();
+  data.forEach((p,i) => { const x=xs(p.t), y=ys(p.v); i===0 ? cctx.moveTo(x,y) : cctx.lineTo(x,y); });
+  cctx.lineTo(xs(data[data.length-1].t), h-pad); cctx.lineTo(xs(data[0].t), h-pad); cctx.closePath();
+  cctx.fillStyle = grad; cctx.fill();
+  cctx.beginPath();
+  data.forEach((p,i) => { const x=xs(p.t), y=ys(p.v); i===0 ? cctx.moveTo(x,y) : cctx.lineTo(x,y); });
+  cctx.strokeStyle = '#f7a935'; cctx.lineWidth = 2.3; cctx.stroke();
+  const last = data[data.length-1], lx = xs(last.t), ly = ys(last.v);
+  cctx.beginPath(); cctx.arc(lx, ly, 5, 0, Math.PI*2); cctx.fillStyle = '#2ee085'; cctx.fill();
+  cctx.beginPath(); cctx.arc(lx, ly, 12, 0, Math.PI*2); cctx.strokeStyle = 'rgba(46,224,133,.35)'; cctx.lineWidth = 1.5; cctx.stroke();
+}
+
+// ── Live stat updates ───────────────────────────────────────────
+let powerDraw = 3200, eff = 29.1, fanSpeed = 5400;
+function tickLive() {
+  powerDraw += ri(-11, 12); powerDraw = clamp(powerDraw, 3150, 3260);
+  eff = 30000 / currentHashrate + (Math.random()-.5)*.4;
+  fanSpeed += ri(-30, 30); fanSpeed = clamp(fanSpeed, 4800, 5900);
+  const temp = 58 + Math.round((powerDraw-3200)/90 + (Math.random()-.5)*3);
+  $('hr').textContent = fmt(currentHashrate);
+  $('btc').textContent = fmt(0.0034 + Math.random()*.0004, 6);
+  $('watt').textContent = powerDraw;
+  $('eff').textContent = fmt(eff, 1);
+  $('fanSpd').textContent = fanSpeed + ' rpm';
+  $('fanBar').style.width = (100*(fanSpeed-4600)/1400) + '%';
+  $('temp').textContent = temp + '°C';
+  $('tempBar').style.width = clamp((temp-40)/50*100, 8, 96) + '%';
+  document.querySelectorAll('.led').forEach((el, i) => {
+    el.style.animation = `beat 1.4s ${i*.22}s infinite`;
+  });
+}
+
+// ── Miner farm ──────────────────────────────────────────────────
+function renderFarm() {
+  const units = ['S19-01','S19-02','S19-03'];
+  $('farmBody').innerHTML = units.map((u, i) => {
+    const h = currentHashrate * (i===1 ? .94 : 1);
+    const t = 60 + i*2 + (Math.random()-.5)*3;
+    return `<div class="row">
+      <div><div style="font-weight:600;color:var(--text)">${u}</div>
+      <div style="color:var(--dim);font-size:.75rem">S19 Pro · ${fmt(h,1)} TH/s</div></div>
+      <div class="meter-row"><span class="tag">online</span><span style="color:var(--dim);font-size:.75rem">${t.toFixed(0)}°C</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── Uptime ───────────────────────────────────────────────────────
+const T0 = Date.now();
+function tickUptime() {
+  const s = Math.floor((Date.now()-T0)/1000);
+  $('uptime') && ($('uptime').textContent =
+    `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`);
+}
+
+// ── Withdrawal ticker ───────────────────────────────────────────
+const NAMES = ['G**4','A******21104','V***2','t*******oni07','t**********lockchain','M***M','c****do','C*****ill','M***5','J**4','j****617','B*******er122','i********tyev073','R*******33431','M*****e89','S*****bane','e*****ans','C******ps89','A***9','M******Zero','A*****ro08'];
+function randomTxId() {
+  let h = '';
+  for (let i = 0; i < 64; i++) h += '0123456789abcdef'[ri(0,15)];
+  return h;
+}
+function pushWithdrawal() {
+  const bodyEls = $('wtBody');
+  if (!bodyEls) return;
+  const name = NAMES[ri(0, NAMES.length-1)];
+  const amt = (0.00008 + Math.random()*0.0004).toFixed(8);
+  const stamp = Math.floor(Date.now()/1000);
+  const txid = randomTxId();
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${stamp}</td><td>${name}</td><td class="amt">${amt}</td><td class="hash"><a href="#">${txid}</a></td>`;
+  if (bodyEls.children.length) bodyEls.insertBefore(tr, bodyEls.firstChild);
+  else bodyEls.appendChild(tr);
+  while (bodyEls.children.length > 12) bodyEls.lastChild.remove();
+}
+for (let i = 0; i < 9; i++) pushWithdrawal();  // preload the table
+setInterval(pushWithdrawal, 8500);              // live-ish ticker
+setInterval(() => { pushChip(`<b>${fmt(0.0001 + Math.random()*.0003, 8)}</b> BTC payout`); }, 11000);
+
+// ── Ticker + toast ──────────────────────────────────────────────
+function pushChip(text) {
+  const el = document.createElement('div');
+  el.className = 'chip'; el.innerHTML = text;
+  $('ticker').prepend(el);
+  if ($('ticker').children.length > 7) $('ticker').lastChild.remove();
+}
+let toastTimer;
+function showToast(text) {
+  const t = $('toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── Boot: warm up chart ─────────────────────────────────────────
+(function boot() {
+  const t0 = Date.now() - 2*60*1000;
+  let h = Math.max(4, currentHashrate - 90 + Math.random()*10);
+  for (let t = t0; t < Date.now(); t += 2200) {
+    h += (targetHashrate - h)*.05 + (Math.random()-.5)*2.0;
+    data.push({ t, v: h });
+  }
+  pushPoint(); drawHashrate();
+  renderFarm(); tickLive(); tickUptime();
+  setInterval(pushPoint, 2200);
+  setInterval(tickLive, 1200);
+  setInterval(tickUptime, 1000);
+  setInterval(renderFarm, 3500);
+  generateWallet();
+})();
+</script>
+</body>
+</html>

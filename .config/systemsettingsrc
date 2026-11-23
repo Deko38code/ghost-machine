@@ -1,8 +1,23 @@
+[FileDialogSize]
+1920x1080 screen: Height=928
+1920x1080 screen: Width=1794
+
+[KFileDialog Settings]
+detailViewIconSize=16
+
 [MainWindow]
-1920x1080 screen: XPosition=454
-1920x1080 screen: YPosition=182
+1463x823 screen: Height=658
+1463x823 screen: Width=1020
+1463x823 screen: Window-Maximized=true
+1463x823 screen: XPosition=340
+1463x823 screen: YPosition=73
+1920x1080 screen: Height=942
+1920x1080 screen: Width=1844
+1920x1080 screen: Window-Maximized=true
+1920x1080 screen: XPosition=76
+1920x1080 screen: YPosition=64
 MenuBar=Disabled
 None-1=None-1
-State=AAAA/wAAAAD9AAAAAAAAA/wAAAK8AAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgAAAAAA/////wAAAAAAAAAA
+State=AAAA/wAAAAD9AAAAAAAAA/wAAAKSAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgAAAAAA/////wAAAAAAAAAA
 ToolBarsMovable=Disabled
 eDP-1=eDP-1

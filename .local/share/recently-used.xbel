@@ -3,37 +3,87 @@
       xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
       xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
 >
-  <bookmark href="https://huggingface.co/settings/tokens/new?ownUserPermissions=inference.serverless.write&amp;tokenType=fineGrained" added="2026-10-07T02:19:23.981000Z" modified="2026-10-07T02:19:23.981000Z" visited="2026-10-07T02:19:23.981000Z">
+  <bookmark href="file:///home/ghost/Downloads/Neon%20Green%20HaksterAI%20Hacker%20Desk.png" added="2026-11-07T09:13:44.438979Z" modified="2026-11-22T04:11:51.779592Z" visited="2026-11-07T09:13:44.438981Z">
     <info>
       <metadata owner="http://freedesktop.org">
-        <mime:mime-type type="application/octet-stream"/>
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
         <bookmark:applications>
-          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-10-07T02:19:23.981000Z" count="1"/>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-07T09:13:44.438984Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-11-15T01:30:59.849665Z" count="6"/>
+          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-11-07T20:22:20.665140Z" count="8"/>
+          <bookmark:application name="nemo" exec="&apos;xviewer %U&apos;" modified="2026-11-14T10:11:52.478499Z" count="11"/>
+          <bookmark:application name="cinnamon-settings.py" exec="&apos;cinnamon-settings.py %u&apos;" modified="2026-11-08T15:09:56.660667Z" count="1"/>
+          <bookmark:application name="gnome-background-panel" exec="&apos;gio open %u&apos;" modified="2026-11-17T01:43:27.522808Z" count="1"/>
+          <bookmark:application name="xdg-desktop-portal-gnome" exec="&apos;xdg-desktop-portal-gnome %u&apos;" modified="2026-11-17T01:43:27.684606Z" count="1"/>
+          <bookmark:application name="guake" exec="&apos;guake %u&apos;" modified="2026-11-22T04:11:51.779589Z" count="1"/>
         </bookmark:applications>
       </metadata>
     </info>
   </bookmark>
-  <bookmark href="https://ollama.com/settings/keys" added="2026-10-07T06:47:07.901000Z" modified="2026-10-07T06:47:07.901000Z" visited="2026-10-07T06:47:07.901000Z">
+  <bookmark href="file:///home/ghost/Downloads" added="2026-11-10T01:16:53.374263Z" modified="2026-11-16T10:41:49.900242Z" visited="2026-11-10T01:16:53.374264Z">
     <info>
       <metadata owner="http://freedesktop.org">
-        <mime:mime-type type="application/octet-stream"/>
+        <mime:mime-type type="inode/directory"/>
         <bookmark:applications>
-          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-10-07T06:47:07.901000Z" count="1"/>
+          <bookmark:application name="Archive Manager" exec="&apos;file-roller %u&apos;" modified="2026-11-16T10:41:49.900237Z" count="2"/>
         </bookmark:applications>
       </metadata>
     </info>
   </bookmark>
-  <bookmark href="https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/" added="2026-10-07T11:12:12.359000Z" modified="2026-10-07T11:12:12.359000Z" visited="2026-10-07T11:12:12.359000Z">
+  <bookmark href="file:///tmp/mouse-diag.png" added="2026-11-15T20:55:06.035559Z" modified="2026-11-15T20:55:06.035565Z" visited="2026-11-15T20:55:06.035560Z">
     <info>
       <metadata owner="http://freedesktop.org">
-        <mime:mime-type type="application/octet-stream"/>
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
         <bookmark:applications>
-          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-10-07T11:12:12.359000Z" count="1"/>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;gwenview %u&apos;" modified="2026-11-15T20:55:06.035562Z" count="1"/>
         </bookmark:applications>
       </metadata>
     </info>
   </bookmark>
-  <bookmark href="file:///home/ghost/backups/auto-backup.log" added="2026-10-07T11:24:20.307030Z" modified="2026-10-07T11:24:23.335576Z" visited="2026-10-07T11:24:20.307030Z">
+  <bookmark href="file:///tmp/mouse-diag-after.png" added="2026-11-15T20:56:31.248769Z" modified="2026-11-15T20:56:31.248775Z" visited="2026-11-15T20:56:31.248770Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;gwenview %u&apos;" modified="2026-11-15T20:56:31.248772Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="computer:///" added="2026-11-15T22:38:43.517821Z" modified="2026-11-15T22:38:43.517825Z" visited="2026-11-15T22:38:43.517821Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="nemo-desktop" exec="&apos;nemo %U&apos;" modified="2026-11-15T22:38:43.517823Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-16%20at%2008-14-35%20Usage%20%C2%B7%20Settings.png" added="2026-11-15T23:29:35.534963Z" modified="2026-11-15T23:29:42.630785Z" visited="2026-11-15T23:29:35.534964Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-15T23:29:35.534966Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-11-15T23:29:42.630783Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/api.perfalytics.com.json" added="2026-11-16T00:17:43.954501Z" modified="2026-11-16T00:17:54.599478Z" visited="2026-11-16T00:17:43.954502Z">
     <info>
       <metadata owner="http://freedesktop.org">
         <mime:mime-type type="text/plain"/>
@@ -41,24 +91,513 @@
           <bookmark:group>xed</bookmark:group>
         </bookmark:groups>
         <bookmark:applications>
-          <bookmark:application name="nemo" exec="&apos;xed %U&apos;" modified="2026-10-07T11:24:20.487027Z" count="2"/>
-          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2026-10-07T11:24:23.335574Z" count="1"/>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-16T00:17:43.954504Z" count="1"/>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2026-11-16T00:17:54.599476Z" count="1"/>
         </bookmark:applications>
       </metadata>
     </info>
   </bookmark>
-  <bookmark href="file:///home/ghost/Downloads/rmt-badge-ISIo3dDw.webp" added="2026-10-07T20:16:35.370350Z" modified="2026-10-07T20:20:00.354505Z" visited="2026-10-07T20:16:35.370351Z">
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-16%20at%2011-20-48%20HaksterAI-Bots%20%C2%B7%20Chat.png" added="2026-11-16T02:35:49.971512Z" modified="2026-11-16T02:35:53.919217Z" visited="2026-11-16T02:35:49.971514Z">
     <info>
       <metadata owner="http://freedesktop.org">
-        <mime:mime-type type="image/webp"/>
+        <mime:mime-type type="image/png"/>
         <bookmark:groups>
           <bookmark:group>Graphics</bookmark:group>
         </bookmark:groups>
         <bookmark:applications>
-          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-10-07T20:20:00.354503Z" count="4"/>
-          <bookmark:application name="one.ablaze.floorp" exec="&apos;gio open %u&apos;" modified="2026-10-07T20:20:00.343302Z" count="4"/>
-          <bookmark:application name="nemo" exec="&apos;xviewer %U&apos;" modified="2026-10-07T20:18:41.815391Z" count="1"/>
-          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-10-07T20:18:42.635535Z" count="1"/>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-16T02:35:49.971519Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-11-16T02:35:53.919215Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/screen-now.png" added="2026-11-16T03:18:48.817232Z" modified="2026-11-16T03:18:48.817238Z" visited="2026-11-16T03:18:48.817233Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:18:48.817236Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/tg-window.png" added="2026-11-16T03:20:16.636548Z" modified="2026-11-16T03:20:16.636551Z" visited="2026-11-16T03:20:16.636548Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:20:16.636550Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/full-now.png" added="2026-11-16T03:20:58.822382Z" modified="2026-11-16T03:20:58.822418Z" visited="2026-11-16T03:20:58.822388Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:20:58.822411Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s1.png" added="2026-11-16T03:21:38.474833Z" modified="2026-11-16T03:21:38.474837Z" visited="2026-11-16T03:21:38.474834Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:21:38.474835Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s2.png" added="2026-11-16T03:21:50.195283Z" modified="2026-11-16T03:21:50.195288Z" visited="2026-11-16T03:21:50.195284Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:21:50.195286Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s3.png" added="2026-11-16T03:22:14.026675Z" modified="2026-11-16T03:22:14.026680Z" visited="2026-11-16T03:22:14.026676Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:22:14.026678Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s4.png" added="2026-11-16T03:22:37.663181Z" modified="2026-11-16T03:22:37.663185Z" visited="2026-11-16T03:22:37.663182Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:22:37.663184Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s5.png" added="2026-11-16T03:22:51.434919Z" modified="2026-11-16T03:22:51.434924Z" visited="2026-11-16T03:22:51.434920Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:22:51.434922Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s6.png" added="2026-11-16T03:23:13.666884Z" modified="2026-11-16T03:23:13.666888Z" visited="2026-11-16T03:23:13.666885Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:23:13.666887Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s7.png" added="2026-11-16T03:23:46.171363Z" modified="2026-11-16T03:23:46.171380Z" visited="2026-11-16T03:23:46.171366Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:23:46.171375Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s8.png" added="2026-11-16T03:24:54.387420Z" modified="2026-11-16T03:24:54.387424Z" visited="2026-11-16T03:24:54.387421Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:24:54.387422Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s9.png" added="2026-11-16T03:25:14.474921Z" modified="2026-11-16T03:25:14.474927Z" visited="2026-11-16T03:25:14.474922Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:25:14.474925Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s10.png" added="2026-11-16T03:25:38.146597Z" modified="2026-11-16T03:25:38.146604Z" visited="2026-11-16T03:25:38.146598Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:25:38.146602Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s11.png" added="2026-11-16T03:26:07.087409Z" modified="2026-11-16T03:26:07.087444Z" visited="2026-11-16T03:26:07.087413Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:26:07.087436Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s12.png" added="2026-11-16T03:26:34.967230Z" modified="2026-11-16T03:26:34.967234Z" visited="2026-11-16T03:26:34.967231Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:26:34.967233Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s13.png" added="2026-11-16T03:27:01.314861Z" modified="2026-11-16T03:27:01.314867Z" visited="2026-11-16T03:27:01.314862Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:27:01.314865Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s14.png" added="2026-11-16T03:27:32.170201Z" modified="2026-11-16T03:27:32.170208Z" visited="2026-11-16T03:27:32.170202Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:27:32.170205Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s15.png" added="2026-11-16T03:28:00.586592Z" modified="2026-11-16T03:28:00.586596Z" visited="2026-11-16T03:28:00.586593Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:28:00.586595Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s16.png" added="2026-11-16T03:29:17.071599Z" modified="2026-11-16T03:29:17.071603Z" visited="2026-11-16T03:29:17.071600Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:29:17.071602Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///tmp/s17.png" added="2026-11-16T03:30:42.581582Z" modified="2026-11-16T03:30:42.581586Z" visited="2026-11-16T03:30:42.581583Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="GNOME Screenshot" exec="&apos;xviewer %u&apos;" modified="2026-11-16T03:30:42.581585Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="https://sourcefoundry.org/hack/" added="2026-11-16T10:38:51.339000Z" modified="2026-11-16T10:38:51.339000Z" visited="2026-11-16T10:38:51.339000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-11-16T10:38:51.339000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Hack-v3.003-ttf.zip" added="2026-11-16T10:41:20.014999Z" modified="2026-11-22T00:42:03.865573Z" visited="2026-11-16T10:41:20.015000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/zip"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-16T10:41:20.015003Z" count="1"/>
+          <bookmark:application name="File Roller" exec="&apos;file-roller&apos;" modified="2026-11-22T00:42:03.865570Z" count="3"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/ttf" added="2026-11-16T10:41:56.293000Z" modified="2026-11-16T10:41:56.293000Z" visited="2026-11-16T10:41:56.293000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="" exec="dolphin %u" modified="2026-11-16T10:41:56.293000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/ttf/Hack-Bold.ttf" added="2026-11-16T10:42:09.633000Z" modified="2026-11-16T10:42:09.633000Z" visited="2026-11-16T10:42:09.633000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="font/ttf"/>
+        <bookmark:applications>
+          <bookmark:application name="org.kde.kfontview" exec="kfontview %U %u" modified="2026-11-16T10:42:09.633000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/claude_agents/session_backup.tar.gz" added="2026-11-16T11:25:05.349000Z" modified="2026-11-16T11:25:09.067330Z" visited="2026-11-16T11:25:05.349000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/x-compressed-tar"/>
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.FileRoller" exec="file-roller %U %u" modified="2026-11-16T11:25:05.349000Z" count="1"/>
+          <bookmark:application name="File Roller" exec="&apos;file-roller&apos;" modified="2026-11-16T11:25:09.067327Z" count="5"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="appstream://android-file-transfer" added="2026-11-16T11:32:13.305000Z" modified="2026-11-16T11:32:13.305000Z" visited="2026-11-16T11:32:13.305000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="org.kde.discover.urlhandler" exec="plasma-discover %U %u" modified="2026-11-16T11:32:13.305000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="https://haksterai.com/admin/license/" added="2026-11-16T14:41:36.524000Z" modified="2026-11-16T14:41:36.524000Z" visited="2026-11-16T14:41:36.524000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-11-16T14:41:36.524000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="appstream://virtualbox.desktop" added="2026-11-16T16:29:19.431000Z" modified="2026-11-16T16:29:19.431000Z" visited="2026-11-16T16:29:19.431000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="org.kde.discover.urlhandler" exec="plasma-discover %U %u" modified="2026-11-16T16:29:19.431000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="https://access.stripe.com/stripecli/oauth2/device?user_code=JCGB-DJRX" added="2026-11-16T21:39:51.912000Z" modified="2026-11-16T21:39:51.912000Z" visited="2026-11-16T21:39:51.912000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-11-16T21:39:51.912000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="https://freebuff.com/login?auth_code=YByUptxU147QY7iftw4UhA" added="2026-11-16T23:23:01.305000Z" modified="2026-11-16T23:23:01.305000Z" visited="2026-11-16T23:23:01.305000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-11-16T23:23:01.305000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="https://freebuff.com/login?auth_code=eNWIEyekUlH6JQD5tJmseQ" added="2026-11-16T23:38:24.074000Z" modified="2026-11-16T23:38:24.074000Z" visited="2026-11-16T23:38:24.074000Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="firefox" exec="firefox %u %u" modified="2026-11-16T23:38:24.074000Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Pictures/Screenshots/Screenshot%20from%202026-11-17%2011-11-34.png" added="2026-11-17T02:26:34.861879Z" modified="2026-11-17T02:26:34.861885Z" visited="2026-11-17T02:26:34.861881Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="gnome-shell" exec="&apos;gio open %u&apos;" modified="2026-11-17T02:26:34.861881Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-17%20at%2012-33-47%20Junk-A-Lot%20Junk%20Removal%20Walnut%20Creek%20Contra%20Costa%20County%20&amp;%20East%20Bay%20CA.png" added="2026-11-17T03:48:49.049631Z" modified="2026-11-17T03:49:14.220765Z" visited="2026-11-17T03:48:49.049633Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-17T03:48:49.049635Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-11-17T03:48:54.974201Z" count="1"/>
+          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-11-17T03:49:14.220761Z" count="2"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Freebuff-0.0.203-linux-amd64--fb_v1.11ad5aeb-fcfd-4874-9430-aaf4b4cea706.tomcv7.linux.x8Du8wem6y0D9JzH9ljMqKhdcKc28yP-UORnl0s2Ym8.deb" added="2026-11-18T04:39:08.124166Z" modified="2026-11-18T04:39:08.124172Z" visited="2026-11-18T04:39:08.124167Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/vnd.debian.binary-package"/>
+        <bookmark:applications>
+          <bookmark:application name="nemo" exec="&apos;captain %u&apos;" modified="2026-11-18T04:39:08.124169Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/junkalot-invoices-2026-11-19.csv" added="2026-11-19T23:21:57.801192Z" modified="2026-11-19T23:21:57.801211Z" visited="2026-11-19T23:21:57.801193Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/csv"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-19T23:21:57.801196Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/cloudflare.4.14.5.zip" added="2026-11-20T21:03:06.716153Z" modified="2026-11-20T21:03:06.716165Z" visited="2026-11-20T21:03:06.716154Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/zip"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-20T21:03:06.716160Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-21%20at%2013-47-27%20Write%20Claude%20Fix%20Script.png" added="2026-11-21T05:02:28.471129Z" modified="2026-11-21T05:02:28.471137Z" visited="2026-11-21T05:02:28.471130Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-21T05:02:28.471132Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/ubuntu-24.04-latest-desktop-amd64.iso" added="2026-11-21T05:32:01.022169Z" modified="2026-11-21T05:32:06.589519Z" visited="2026-11-21T05:32:01.022170Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/vnd.efi.iso"/>
+        <bookmark:applications>
+          <bookmark:application name="nemo" exec="&apos;ark %U&apos;" modified="2026-11-21T05:32:06.589515Z" count="7"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="network:///" added="2026-11-21T09:56:05.271377Z" modified="2026-11-21T09:56:06.973533Z" visited="2026-11-21T09:56:05.271377Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="nemo-desktop" exec="&apos;nemo %U&apos;" modified="2026-11-21T09:56:06.973527Z" count="2"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-23%20at%2011-00-33%20Plans%20&amp;%20pricing%20%E2%80%94%20HaksterAI.png" added="2026-11-23T02:15:33.887279Z" modified="2026-11-23T02:15:33.887302Z" visited="2026-11-23T02:15:33.887284Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-23T02:15:33.887289Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost" added="2026-11-23T04:31:36.262789Z" modified="2026-11-23T04:31:36.262796Z" visited="2026-11-23T04:31:36.262790Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="nemo-desktop" exec="&apos;nemo %U&apos;" modified="2026-11-23T04:31:36.262792Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/ghost/Downloads/Screenshot%202026-11-23%20at%2017-25-32%20Junk-A-Lot%20Junk%20Removal%20Walnut%20Creek%20Contra%20Costa%20County%20&amp;%20East%20Bay%20CA.png" added="2026-11-23T08:40:35.080014Z" modified="2026-11-23T08:41:32.962864Z" visited="2026-11-23T08:40:35.080016Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:groups>
+          <bookmark:group>Graphics</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox %u&apos;" modified="2026-11-23T08:40:35.080021Z" count="1"/>
+          <bookmark:application name="Image Viewer" exec="&apos;xviewer %u&apos;" modified="2026-11-23T08:40:44.252781Z" count="1"/>
+          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-11-23T08:41:32.962862Z" count="2"/>
         </bookmark:applications>
       </metadata>
     </info>

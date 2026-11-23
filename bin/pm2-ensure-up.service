@@ -1,0 +1,15 @@
+[Unit]
+Description=PM2 reconcile required apps after boot
+Documentation=file:///home/ghost/bin/pm2-ensure-up.sh
+After=pm2-ghost.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ghost
+Environment=PM2_HOME=/home/ghost/.pm2
+ExecStart=/home/ghost/bin/pm2-ensure-up.sh
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

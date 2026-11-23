@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Orebolt Logs</title>
+<link rel="stylesheet" href="/style.css"/><script src="/live.js"></script><script src="/layout.js"></script><script src="/footer.js"></script>
+</head><body class="app">
+<div class="wrap">
+  <section class="hero"><h1>Request log.</h1><p>Live server activity from real requests. No mock data, no placeholder numbers.</p></section>
+  <section class="pad"><div class="grid grid-4" id="metrics"></div></section>
+  <section class="pad"><div class="card"><h3>Recent requests</h3><div class="stream" id="logs"></div></div></section>
+</div>
+<script>
+async function load(){
+  const [metrics, logs] = await Promise.all([
+    fetch('/api/security').then(r=>r.json()),
+    fetch('/api/logs').then(r=>r.json())
+  ]);
+  Orebolt.renderLogs(document.getElementById('logs'), logs);
+  document.getElementById('metrics').innerHTML=[
+    {k:'Requests', v:metrics.totalRequests||0},
+    {k:'Last 24h', v:metrics.last24h||0},
+    {k:'Last 1m', v:metrics.last1m||0},
+    {k:'Errors', v:metrics.errors||0}
+  ].map(x=>`<div class="card"><div class="kx">${x.k}</div><div class="v">${x.v}</div></div>`).join('');
+}
+load(); setInterval(load,5000);
+</script>
+</body></html>

@@ -1,0 +1,329 @@
+<title>PhantomIDE Order Form</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two sheets. Sheet one is the client-facing order form, sized to print on one page.
+   Sheet two is the owner-only cost sheet and must never be sent out. */
+:root{
+  --bg:#e8eae7; --paper:#fcfcfa; --ink:#161c23; --ink2:#4b5560; --ink3:#6d7883;
+  --rule:#d3d8d2; --rule-strong:#b3bcb4;
+  --accent:#2b5f7e; --accent-ink:#1d465f; --accent-soft:#e6eef3;
+  --warn:#7d4a1d; --warn-soft:#f6ede2; --good:#2f6b4f;
+  --shadow:0 1px 2px rgba(18,26,32,.06),0 12px 34px rgba(18,26,32,.07);
+  --serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --display:"Newsreader","Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b0e12; --paper:#12171d; --ink:#e4e9ee; --ink2:#a8b3be; --ink3:#8592a0;
+    --rule:#242d36; --rule-strong:#38434f;
+    --accent:#7fb3d1; --accent-ink:#a8cee4; --accent-soft:#152430;
+    --warn:#d9a86b; --warn-soft:#241a10; --good:#7fc79c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b0e12; --paper:#12171d; --ink:#e4e9ee; --ink2:#a8b3be; --ink3:#8592a0;
+  --rule:#242d36; --rule-strong:#38434f;
+  --accent:#7fb3d1; --accent-ink:#a8cee4; --accent-soft:#152430;
+  --warn:#d9a86b; --warn-soft:#241a10; --good:#7fc79c;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:56rem;margin:0 auto;padding-block:clamp(18px,3.5vw,36px) 60px}
+.sheet{background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);
+  padding:clamp(18px,4vw,40px);margin-bottom:26px}
+.head{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:flex-start;
+  padding-bottom:12px;border-bottom:2px solid var(--rule-strong);margin-bottom:18px}
+.brand{display:flex;flex-direction:column;gap:2px;min-width:0}
+.brand .name{font-family:var(--display);font-size:1.35rem;font-weight:600;letter-spacing:-.01em}
+.brand .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.head .doc{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.9}
+.head .doc .refin{width:8.5rem;margin-left:2px;font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;
+  text-transform:none;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--rule-strong);
+  padding:1px 2px;text-align:right}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(1.35rem,3vw,1.75rem);margin:0 0 4px;letter-spacing:-.01em}
+.lede{margin:0 0 18px;color:var(--ink2);font-size:.9rem;max-width:64ch}
+h2{font-family:var(--mono);font-weight:500;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent-ink);margin:20px 0 8px;padding-top:10px;border-top:1px solid var(--rule)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 16px}
+label.field{display:flex;flex-direction:column;gap:3px;min-width:0;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+label.field input,label.field textarea{font-family:var(--serif);font-size:.92rem;color:var(--ink);
+  background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;min-width:0;width:100%;
+  text-transform:none;letter-spacing:0}
+label.field textarea{min-height:64px;resize:vertical;line-height:1.45}
+label.field input:focus-visible,label.field textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+table{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums;margin:4px 0 6px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:middle}
+thead th{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:.84rem;white-space:nowrap}
+tr.total td,tr.total th{border-top:2px solid var(--rule-strong);font-weight:600}
+td input{width:100%;font-family:var(--mono);font-size:.82rem;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px dashed var(--rule-strong);padding:3px 2px;min-width:0}
+td input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:3px}
+td.num input{text-align:right}
+.hint{font-size:.78rem;color:var(--ink3);margin:4px 0 0;max-width:70ch}
+.sig{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px 36px;margin-top:18px}
+.sig .party h4{margin:0 0 16px;font-family:var(--mono);font-size:.58rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sig .line{border-bottom:1px solid var(--ink2);height:22px;margin-bottom:4px}
+.sig .cap{font-family:var(--mono);font-size:.58rem;color:var(--ink3);letter-spacing:.05em}
+.terms{margin:16px 0 0;padding:10px 12px;background:var(--bg);border-left:3px solid var(--accent);
+  border-radius:0 6px 6px 0;font-size:.78rem;color:var(--ink2)}
+.terms p{margin:0 0 5px}.terms p:last-child{margin:0}
+.internal{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);
+  border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--warn);margin:0 0 16px}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0 0}
+.out .cell{border:1px solid var(--rule);border-radius:9px;padding:10px 12px;background:var(--bg);min-width:0}
+.out .cell .lab{font-family:var(--mono);font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.out .cell .val{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums;margin-top:3px}
+.out .cell .val.neg{color:var(--warn)}
+.out .cell .val.pos{color:var(--good)}
+footer.packet{margin-top:4px;color:var(--ink3);font-family:var(--mono);font-size:.62rem;
+  display:flex;flex-wrap:wrap;gap:6px 20px;justify-content:space-between}
+@media print{
+  @page{size:letter;margin:10mm}
+  body{background:#fff;color:#000;font-size:8.8pt;padding:0;line-height:1.3}
+  .wrap{max-width:none;padding:0}
+  .sheet{border:0;box-shadow:none;border-radius:0;padding:0;margin:0;break-after:page}
+  .sheet:last-of-type{break-after:auto}
+  footer.packet{display:none}
+  input,textarea{border-color:#999}
+  .head{padding-bottom:6px;margin-bottom:7px}
+  .brand .name{font-size:1.1rem}
+  .brand .tag{font-size:.54rem}
+  h1{font-size:1.15rem;margin-bottom:1px}
+  .lede{margin-bottom:6px;font-size:.72rem;max-width:none}
+  h2{margin:6px 0 4px;padding-top:4px;font-size:.56rem}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 10px}
+  label.field{gap:1px;font-size:.52rem}
+  label.field input,label.field textarea{padding:2px 4px;font-size:.8rem;border-radius:4px}
+  label.field textarea{min-height:26px;line-height:1.3}
+  table{font-size:.8rem;margin:1px 0 3px}
+  th,td{padding:2px 5px}
+  td input{font-size:.74rem;padding:1px}
+  .hint{font-size:.64rem;margin-top:2px}
+  .terms{margin-top:7px;padding:6px 8px;font-size:.66rem}
+  .terms p{margin-bottom:2px}
+  .sig{margin-top:8px;gap:10px 28px}
+  .sig .party h4{margin-bottom:8px;font-size:.52rem}
+  .sig .line{height:15px;margin-bottom:2px}
+  .sig .line[style]{margin-top:8px!important}
+  .sig .cap{font-size:.52rem}
+  .out{margin-top:8px;gap:7px}
+  .out .cell{padding:6px 8px}
+  .out .cell .val{font-size:1rem}
+  .internal{margin-bottom:8px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="wrap">
+  <!-- ================= SHEET 1 — client-facing order form ================= -->
+  <section class="sheet" aria-labelledby="form-title">
+    <div class="head">
+      <div class="brand">
+        <span class="tag">Website build order form</span>
+        <span class="name" data-brand>PhantomIDE</span>
+      </div>
+      <div class="doc">
+        Attach to the services agreement<br>
+        Reference: <input class="s refin" data-k="reference" placeholder="—" aria-label="Reference number">
+      </div>
+    </div>
+
+    <h1 id="form-title">Project order</h1>
+    <p class="lede">This form sets what is being built, what it costs and when it is delivered. Signed by both parties, it becomes Schedule A of the Website Design, Development and Hosting Agreement.</p>
+
+    <h2>Provider</h2>
+    <div class="grid">
+      <label class="field">Legal name<input class="s" data-k="providerName" placeholder="business legal name"></label>
+      <label class="field">Email<input class="s" data-k="providerEmail" placeholder="name@business.com" inputmode="email"></label>
+      <label class="field">Notice address<input class="s" data-k="providerAddr" placeholder="street, city, state ZIP"></label>
+    </div>
+
+    <h2>Client</h2>
+    <div class="grid">
+      <label class="field">Legal name<input class="s" data-k="clientName" placeholder="full legal name"></label>
+      <label class="field">Contact person<input class="s" data-k="clientContact" placeholder="name and title"></label>
+      <label class="field">Email<input class="s" data-k="clientEmail" placeholder="name@company.com" inputmode="email"></label>
+      <label class="field">Phone<input class="s" data-k="clientPhone" placeholder="(000) 000-0000" inputmode="tel"></label>
+      <label class="field" style="grid-column:1/-1">Address<input class="s" data-k="clientAddr" placeholder="street, city, state ZIP"></label>
+    </div>
+
+    <h2>Project</h2>
+    <div class="grid">
+      <label class="field">Project / site name<input class="s" data-k="project" placeholder="e.g. Pawfect Booking"></label>
+      <label class="field">Domain<input class="s" data-k="domain" placeholder="example.com"></label>
+      <label class="field">Order date<input class="s" data-k="orderDate" placeholder="8 November 2026"></label>
+      <label class="field">Target launch<input class="s" data-k="launch" placeholder="date"></label>
+      <label class="field" style="grid-column:1/-1">Pages and included features
+        <textarea class="s" data-k="scope" placeholder="List each page and each working feature: booking form, payments, member sign-in, AI chat, admin panel, and so on."></textarea>
+      </label>
+      <label class="field" style="grid-column:1/-1">Not included
+        <textarea class="s" data-k="excluded" placeholder="Anything the client may assume is included but is not: copywriting, photography, logo design, paid ads, SEO retainer, third-party subscriptions."></textarea>
+      </label>
+    </div>
+
+    <h2>Price</h2>
+    <table>
+      <thead><tr><th scope="col">Line</th><th scope="col">Detail</th><th scope="col" class="num">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Build</td><td><input class="s" data-k="buildNote" placeholder="Design, build and launch"></td><td class="num"><input class="s" data-k="buildFee" placeholder="0.00"></td></tr>
+        <tr><td>Deposit at signing</td><td><input class="s" data-k="depositNote" placeholder="Due before build work starts"></td><td class="num"><input class="s" data-k="deposit" placeholder="0.00"></td></tr>
+        <tr><td>Balance at launch</td><td><input class="s" data-k="balanceNote" placeholder="Due before launch"></td><td class="num"><input class="s" data-k="balance" placeholder="0.00"></td></tr>
+        <tr><td>Hosting and care</td><td><input class="s" data-k="careNote" placeholder="Monthly, month to month"></td><td class="num"><input class="s" data-k="care" placeholder="0.00 / mo"></td></tr>
+        <tr><td>Out-of-scope work</td><td><input class="s" data-k="rateNote" placeholder="Change orders and extra work"></td><td class="num"><input class="s" data-k="rate" placeholder="0.00 / hr"></td></tr>
+        <tr class="total"><td>Total build price</td><td>Deposit plus balance</td><td class="num" id="total-build">—</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">Third-party costs — domain registration, email service, payment processing — are billed at cost and only with written approval.</p>
+
+    <h2>Terms in short</h2>
+    <div class="terms">
+      <p><b>Revisions:</b> two rounds within the scope above. Further work is a written change order at the hourly rate.</p>
+      <p><b>Acceptance:</b> five business days after a delivery notice to report a defect in writing; otherwise the delivery is accepted.</p>
+      <p><b>Ownership:</b> copyright in the custom work transfers on payment in full. Hosting and care run month to month with thirty days' notice.</p>
+      <p><b>Full terms:</b> the Website Design, Development and Hosting Agreement signed with this form governs everything not written here.</p>
+    </div>
+
+    <h2>Signatures</h2>
+    <div class="sig">
+      <div class="party">
+        <h4>Provider — <span data-provider>PhantomIDE</span></h4>
+        <div class="line"></div><div class="cap">Signature</div>
+        <div class="line" style="margin-top:14px"></div><div class="cap">Printed name and title</div>
+        <div class="line" style="margin-top:14px"></div><div class="cap">Date</div>
+      </div>
+      <div class="party">
+        <h4>Client</h4>
+        <div class="line"></div><div class="cap">Signature</div>
+        <div class="line" style="margin-top:14px"></div><div class="cap">Printed name and title</div>
+        <div class="line" style="margin-top:14px"></div><div class="cap">Date</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SHEET 2 — owner only ================= -->
+  <section class="sheet" aria-labelledby="cost-title">
+    <p class="internal">Internal — do not send this sheet to a client</p>
+    <h1 id="cost-title">What the care plan costs you</h1>
+    <p class="lede">Fill your real monthly numbers once. The page works out what the care plan returns after infrastructure, and what an hour of your support time is actually paying.</p>
+
+    <h2>Monthly infrastructure</h2>
+    <div class="grid">
+      <label class="field">Server / hosting<input class="c" data-k="host" placeholder="0.00"></label>
+      <label class="field">Domain (yearly ÷ 12)<input class="c" data-k="domain" placeholder="0.00"></label>
+      <label class="field">Email service<input class="c" data-k="email" placeholder="0.00"></label>
+      <label class="field">AI inference<input class="c" data-k="ai" placeholder="0.00"></label>
+      <label class="field">Backups / storage<input class="c" data-k="backup" placeholder="0.00"></label>
+      <label class="field">Other tools<input class="c" data-k="other" placeholder="0.00"></label>
+      <label class="field">Care plan price<input class="c" data-k="price" placeholder="249.00"></label>
+      <label class="field">Support hours per month<input class="c" data-k="hours" placeholder="e.g. 4"></label>
+      <label class="field">Stripe % per payment<input class="c" data-k="feePct" placeholder="2.9"></label>
+      <label class="field">Stripe fixed per payment<input class="c" data-k="feeFix" placeholder="0.30"></label>
+    </div>
+
+    <div class="out">
+      <div class="cell"><div class="lab">Infrastructure / mo</div><div class="val" id="o-infra">—</div></div>
+      <div class="cell"><div class="lab">Payment fees / mo</div><div class="val" id="o-fees">—</div></div>
+      <div class="cell"><div class="lab">Kept per month</div><div class="val" id="o-margin">—</div></div>
+      <div class="cell"><div class="lab">Effective per support hour</div><div class="val" id="o-hourly">—</div></div>
+    </div>
+
+    <p class="hint" id="o-note">Enter the price you charge and your real monthly costs above. Payment fees use the card rate you set; adjust them to your processor's current terms. Nothing here is saved anywhere but this browser.</p>
+
+    <h2>Why this matters</h2>
+    <div class="terms">
+      <p><b>Costs you absorb stay invisible.</b> Every dollar of hosting, email and AI you pay for a client is a dollar of margin you never see on an invoice.</p>
+      <p><b>Support time is the real cost.</b> A care plan that clears $200 but eats six hours pays about $33 an hour. Decide whether that is the rate you want before you sell it again.</p>
+      <p><b>Price the plan against the work, not the market.</b> What the client pays for is uptime, fixes and someone answering — not the server bill.</p>
+    </div>
+  </section>
+
+  <footer class="packet">
+    <span>PhantomIDE · order form and cost sheet</span>
+    <span>Draft 8 November 2026</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var KEY = 'phantomide_order_form_v1';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  var data = load();
+
+  var fields = Array.prototype.slice.call(document.querySelectorAll('.s'));
+  fields.forEach(function (el) {
+    var k = el.getAttribute('data-k');
+    if (data[k]) el.value = data[k];
+    el.addEventListener('input', function () { data[k] = el.value; save(data); paint(); });
+  });
+
+  // The provider's legal name shows in the masthead and again over the signature line.
+  function paint() {
+    var p = (document.querySelector('[data-k="providerName"]') || {}).value || 'PhantomIDE';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-provider]'), function (n) { n.textContent = p; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-brand]'), function (n) { n.textContent = p; });
+  }
+
+  function money(n) {
+    if (!isFinite(n)) return '—';
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function num(v) { var n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isFinite(n) ? n : 0; }
+
+  var totalCell = document.getElementById('total-build');
+  function updateTotal() {
+    var dep = num(document.querySelector('[data-k="deposit"]').value);
+    var bal = num(document.querySelector('[data-k="balance"]').value);
+    totalCell.textContent = (dep || bal) ? money(dep + bal) : '—';
+  }
+  ['deposit', 'balance'].forEach(function (k) {
+    document.querySelector('[data-k="' + k + '"]').addEventListener('input', updateTotal);
+  });
+  updateTotal();
+  paint();
+
+  var inputs = Array.prototype.slice.call(document.querySelectorAll('.c'));
+  inputs.forEach(function (el) {
+    var k = el.getAttribute('data-k');
+    if (data['cost_' + k]) el.value = data['cost_' + k];
+    el.addEventListener('input', function () { data['cost_' + k] = el.value; save(data); calc(); });
+  });
+
+  function calc() {
+    var get = function (k) { return num((document.querySelector('[data-k="' + k + '"]') || {}).value); };
+    var infra = get('host') + get('domain') + get('email') + get('ai') + get('backup') + get('other');
+    var price = get('price');
+    var pct = get('feePct');
+    var fix = get('feeFix');
+    var hours = get('hours');
+    var fees = price > 0 ? (price * pct / 100) + fix : 0;
+    var kept = price - infra - fees;
+    var hourly = hours > 0 ? kept / hours : NaN;
+
+    var any = infra || price || hours;
+    document.getElementById('o-infra').textContent = any ? money(infra) : '—';
+    document.getElementById('o-fees').textContent = price ? money(fees) : '—';
+    var marginCell = document.getElementById('o-margin');
+    marginCell.textContent = price ? money(kept) : '—';
+    marginCell.className = 'val ' + (price ? (kept < 0 ? 'neg' : 'pos') : '');
+    var hourlyCell = document.getElementById('o-hourly');
+    hourlyCell.textContent = hours > 0 && price ? money(hourly) : '—';
+    hourlyCell.className = 'val ' + (hours > 0 && price ? (hourly < 25 ? 'neg' : 'pos') : '');
+  }
+  calc();
+})();
+</script>

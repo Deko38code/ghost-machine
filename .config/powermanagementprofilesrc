@@ -5,42 +5,57 @@ icon=battery-charging
 idleTime=480000
 
 [AC][HandleButtonEvents]
-lidAction=32
+lidAction=8
 powerButtonAction=16
 powerDownAction=16
-triggerLidActionWhenExternalMonitorPresent=false
+triggerLidActionWhenExternalMonitorPresent=true
 
 [AC][KeyboardBrightnessControl]
 value=40
 
+[AC][PowerProfile]
+profile=balanced
+
+[AC][WirelessPowerSaving]
+btOption=2
+wifiOption=2
+wwanOption=2
+
+[Activities][2082dcef-65d9-485d-9a49-67cbed1cc476]
+mode=SpecialBehavior
+
+[Activities][2082dcef-65d9-485d-9a49-67cbed1cc476][SpecialBehavior]
+noScreenManagement=true
+noSuspend=true
+performAction=true
+
+[Activities][2082dcef-65d9-485d-9a49-67cbed1cc476][SpecialBehavior][ActionConfig]
+idleTime=600000
+suspendType=1
+
 [Battery]
 icon=battery-060
-
-[Battery][DPMSControl]
-idleTime=780
-lockBeforeTurnOff=0
 
 [Battery][DimDisplay]
 idleTime=120000
 
 [Battery][HandleButtonEvents]
-lidAction=32
+lidAction=64
 powerButtonAction=16
 powerDownAction=16
-triggerLidActionWhenExternalMonitorPresent=false
+triggerLidActionWhenExternalMonitorPresent=true
 
 [Battery][KeyboardBrightnessControl]
-value=40
+value=45
+
+[Battery][PowerProfile]
+profile=balanced
 
 [LowBattery]
 icon=battery-low
 
 [LowBattery][BrightnessControl]
 value=30
-
-[LowBattery][DPMSControl]
-idleTime=480
-lockBeforeTurnOff=0
 
 [LowBattery][DimDisplay]
 idleTime=60000
@@ -50,3 +65,6 @@ lidAction=32
 powerButtonAction=16
 powerDownAction=16
 triggerLidActionWhenExternalMonitorPresent=false
+
+[LowBattery][KeyboardBrightnessControl]
+value=20

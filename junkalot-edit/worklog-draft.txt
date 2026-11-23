@@ -1,0 +1,7 @@
+2026-11-22 worklog additions (append-only). Lines are appended to
+data/invoice-worklog.jsonl and the readable file by the agent after the final build
+answers on port 5006 and the served chunks carry the strings.
+
+1) fix+addon  Mr Ed full-screen entry points + section nav bar
+2) fix        PWA installs keep receiving builds through the update widget
+3) addon      Auto-compact answers disk pressure at 7% and 2% free

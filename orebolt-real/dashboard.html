@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Orebolt Dashboard</title>
+<link rel="stylesheet" href="/style.css"/>
+<style>
+.hero{padding:34px 0 16px}
+.hero h1{margin:0 0 12px;font-size:clamp(2rem,5vw,3rem)}
+.hero p{margin:0 auto 18px;max-width:720px;color:var(--dim);line-height:1.55}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{padding:18px 20px}
+.metric{font-size:1.4rem;font-weight:700;color:var(--text)}
+.metric.ok{color:var(--green)}
+.metric.bad{color:var(--red)}
+.metric.warn{color:var(--gold)}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th,td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
+th{color:var(--dim);font-size:.68rem;text-transform:uppercase;letter-spacing:.12em}
+.badge{padding:4px 10px;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid var(--line)}
+.badge.low{color:var(--green);border-color:rgba(46,224,133,.38)}
+.badge.medium{color:var(--gold);border-color:rgba(247,169,53,.42)}
+.badge.high{color:var(--red);border-color:rgba(239,96,117,.42)}
+</style>
+</head>
+<body class="app">
+<div class="wrap">
+<section class="hero">
+<h1>Security &amp; logs</h1>
+<p>This is the live control surface. It uses real server telemetry and real request analytics. No fake hashes, no fake hashrates, no fake balances.</p>
+</section>
+<div class="cards">
+  <div class="card"><div class="kx">Requests / 24h</div><div class="metric" id="req24">-</div></div>
+  <div class="card"><div class="kx">Requests / 1m</div><div class="metric" id="req1m">-</div></div>
+  <div class="card"><div class="kx">Errors / 24h</div><div class="metric" id="err24">-</div></div>
+  <div class="card"><div class="kx">Risk</div><div class="metric" id="risk">-</div></div>
+  <div class="card"><div class="kx">Pool status</div><div class="metric" id="poolStatus">-</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+  <div class="kx">Security analysis</div>
+  <div id="security" style="margin-top:10px"></div>
+</div>
+<div class="card" style="margin-top:20px">
+  <div class="kx">Live logs</div>
+  <div id="logs" style="margin-top:10px;max-height:420px;overflow:auto"></div>
+</div>
+</div>
+<script>
+async function load(){
+  try {
+    const security = await fetch('/api/security').then(r=>r.json());
+    const pool = await fetch('/api/pool/stats').then(r=>r.json());
+    const logs = await fetch('/api/logs').then(r=>r.json());
+    document.getElementById('req24').textContent = security.last24h || 0;
+    document.getElementById('req1m').textContent = security.last1m || 0;
+    document.getElementById('err24').textContent = security.errors || 0;
+    document.getElementById('err24').className = 'metric ' + (security.errors ? 'bad' : '');
+    document.getElementById('risk').textContent = security.risk || 'low';
+    document.getElementById('risk').className = 'metric ' + (security.risk === 'low' ? 'ok' : (security.risk === 'medium' ? 'warn' : 'bad'));
+    document.getElementById('poolStatus').textContent = pool.ok ? 'Live' : 'Not configured';
+    document.getElementById('security').innerHTML = `
+      <div style="display:grid;gap:8px">
+        <div><strong>Top IPs</strong> ${security.topIps.map(x=>`<span class="badge">${x.ip}</span>`).join(' ')}</div>
+        <div><strong>Top paths</strong> ${security.topPaths.map(x=>`<span class="badge">${x.path}</span>`).join(' ')}</div>
+        <div><strong>Anomalies</strong> ${security.anomalies.map(x=>`<span class="badge">${x.type}</span>`).join(' ')}</div>
+      </div>`;
+    document.getElementById('logs').innerHTML = logs.map(l=>`
+      <div style="display:grid;grid-template-columns:130px 60px 1fr 80px 90px 90px;gap:10px;font-size:.83rem;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);">
+        <span>${new Date(l.time).toLocaleTimeString()}</span><span>${l.method}</span><span>${l.path}</span><span>${l.status}</span><span>${l.ip}</span><span>${l.ms}ms</span>
+      </div>`).join('');
+  } catch (error) {
+    console.error(error);
+  }
+}
+load();
+setInterval(load, 5000);
+</script>
+</body></html>

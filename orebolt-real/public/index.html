@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="stylesheet" href="/style.css"/><title>Orebolt — Real Bitcoin Mining</title>
+<style>
+:root{--bg:#070a14;--card:rgba(16,24,40,.72);--line:rgba(255,255,255,.08);--gold:#f7a935;--text:#e5edf8;--dim:#9aa5b6;}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}.wrap{max-width:1080px;margin:0 auto;padding:0 20px 40px}nav{display:flex;align-items:center;gap:16px;padding:18px 0}.logo{font-weight:800;letter-spacing:.05em}.logo span{color:var(--gold)}.pill{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}.hero{padding:60px 0 40px;text-align:center}.hero h1{margin:0 0 14px;font-size:clamp(2rem,5vw,3.2rem);line-height:1.1}.hero p{margin:0 auto 30px;max-width:660px;color:var(--dim);line-height:1.6}.btn{padding:14px 26px;border-radius:12px;font-weight:700;background:var(--gold);color:#1a0b00;border:0}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:30px 0}footer{border-top:1px solid var(--line);padding:20px 0;color:var(--dim);font-size:.75rem;text-align:center}
+</style></head>
+<body><div class="wrap">
+<nav><div class="logo">Ore<span>bolt</span></div></nav><nav style="justify-content:center;margin-bottom:20px"><a href="hardware.html" style="color:#9aa5b6;text-decoration:none;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase">Hardware</a><a href="pool.html" style="color:#9aa5b6;text-decoration:none;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase">Pool</a><a href="logs.html" style="color:#9aa5b6;text-decoration:none;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase">Logs</a><a href="security.html" style="color:#9aa5b6;text-decoration:none;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase">Security</a></nav>
+<section class="hero">
+<h1>Real Bitcoin mining.<br/>No fake returns.</h1>
+<p>Orebolt is being built as an honest mining business. This is a skeleton, not a live offer.</p>
+<a class="btn" href="#waitlist">Join waitlist</a>
+</section>
+<div class="card">
+<h3>What this site will do</h3>
+<p>It will use real mining hardware, a real mining pool, and real payouts. We will not use fabricated daily returns or invented withdrawals.</p>
+</div>
+<div id="waitlist" class="card">
+<h3>Waitlist</h3>
+<p>If you want access when the first real batch is ready, add your email.</p>
+<form id="waitlistForm"><input id="email" type="email" placeholder="you@example.com" required style="padding:12px;border-radius:10px;border:1px solid var(--line);background:#0a1018;color:#fff"/><button class="btn" style="margin-left:10px">Join</button></form>
+<div id="waitlistMsg" style="margin-top:10px;color:#2ee085"></div>
+</div>
+<footer>© Orebolt — honest build demo.</footer>
+</div>
+<script>
+document.getElementById('waitlistForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  const r = await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  const j = await r.json();
+  document.getElementById('waitlistMsg').textContent = j.ok ? 'Added to waitlist ✅' : 'Failed ❌';
+});
+</script>
+<script src="/site.js"></script><script src="/menu.js"></script></body></html>

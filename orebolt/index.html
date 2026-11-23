@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orebolt — Fleet Dashboard</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#07090d; --bg2:#0b0f16; --card:rgba(255,255,255,.032); --card2:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --gold:#f5b400; --gold2:#ffd54a; --green:#22c55e; --red:#ef4444; --orange:#f97316;
+  --blue:#3b82f6; --purple:#a78bfa; --txt:#e8ecf4; --mut:#8b93a7; --mut2:#5b6478;
+  --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --rad:18px; --rad2:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.55;
+  background-image:radial-gradient(1200px 600px at 80% -10%,rgba(245,180,0,.055),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(59,130,246,.05),transparent 60%);}
+::selection{background:rgba(245,180,0,.35)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:8px}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1280px;margin:0 auto;padding:0 22px 60px}
+nav.nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:14px 22px;background:rgba(7,9,13,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px;letter-spacing:.4px}
+.brand .mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(135deg,#f5b400,#ff8a00 55%,#ff5e3a);box-shadow:0 4px 18px rgba(245,180,0,.35);color:#161006}
+.brand .mark svg{width:22px;height:22px}
+.brand small{display:block;font-weight:600;font-size:10.5px;color:var(--mut);letter-spacing:1.6px;margin-top:-2px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-left:4px}
+.tab{padding:8px 15px;border-radius:999px;border:1px solid transparent;color:var(--mut);cursor:pointer;
+  font-weight:650;font-size:13.5px;background:transparent;transition:all .18s}
+.tab:hover{color:var(--txt);background:var(--card2)}
+.tab.active{color:#161006;background:linear-gradient(135deg,var(--gold),var(--gold2));border-color:transparent;box-shadow:0 3px 14px rgba(245,180,0,.3)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;
+  border:1px solid var(--line);background:var(--card);color:var(--mut)}
+.pill .dot{width:8px;height:8px;border-radius:50%}
+.pill.live{color:#7ff0a9;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.07)}
+.pill.live .dot{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite}
+.pill.sim{color:var(--gold2);border-color:rgba(245,180,0,.35);background:rgba(245,180,0,.08)}
+.pill.sim .dot{background:var(--gold)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.clock{font-family:var(--mono);font-size:12px;color:var(--mut)}
+
+main section{display:none;padding-top:26px}
+main section.active{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- cards & stats ---------- */
+.grid{display:grid;gap:16px}
+h2.sec{font-size:15px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--mut);margin:6px 0 14px;display:flex;align-items:center;gap:10px}
+h2.sec::after{content:'';flex:1;height:1px;background:var(--line)}
+h2.sec .tagx{font-size:10px;letter-spacing:1px;color:var(--mut2);border:1px solid var(--line);padding:2px 8px;border-radius:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:20px;position:relative;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--line2)}
+.stats{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px}
+.stat .k{font-size:11.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-size:30px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.stat .s{font-size:12px;color:var(--mut2)}
+.stat .v small{font-size:15px;color:var(--mut);font-weight:650}
+.stat .v.gold{color:var(--gold2);text-shadow:0 0 22px rgba(245,180,0,.25)}
+.stat .v.green{color:#7ff0a9}
+.stat .icon{position:absolute;top:18px;right:18px;opacity:.5}
+
+/* ---------- hero chart ---------- */
+.hero-grid{grid-template-columns:1fr 340px;margin-bottom:22px}
+.chartcard .head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+.chartcard .head .t{font-weight:800;font-size:17px}
+.chartcard .head .sub{font-size:12px;color:var(--mut)}
+canvas{width:100%;display:block}
+.banner{display:none;align-items:center;gap:12px;margin-top:14px;padding:13px 16px;border-radius:var(--rad2);
+  background:linear-gradient(90deg,rgba(245,180,0,.14),rgba(245,180,0,.03));border:1px solid rgba(245,180,0,.4)}
+.banner.show{display:flex;animation:fadeUp .4s ease}
+.banner .b-ic{font-size:22px}
+.banner .b-t1{font-weight:800;color:var(--gold2)}
+.banner .b-t2{font-size:12px;color:var(--mut)}
+
+/* ---------- dials ---------- */
+.dials{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.dial{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad2);padding:14px 8px}
+.dial .ring{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--c,#22c55e) calc(var(--p,0)*1%),rgba(255,255,255,.07) 0)}
+.dial .ring::before{content:'';position:absolute;inset:7px;border-radius:50%;background:var(--bg2)}
+.dial .ring .rv{position:relative;z-index:1;font-family:var(--mono);font-size:12.5px;font-weight:700}
+.dial .dl{font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+.dial .dv{font-family:var(--mono);font-size:12px;color:var(--txt)}
+
+/* ---------- machine posters ---------- */
+.fleet-grid{grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+.mc{overflow:hidden;padding:0;display:flex;flex-direction:column}
+.mc-top{height:96px;display:grid;place-items:center;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015))}
+.mc-top svg{width:74px;height:64px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.mc-top .fan{animation:spin 2.4s linear infinite;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mc-top .brandchip{position:absolute;top:10px;left:10px;font-size:10px;font-weight:800;letter-spacing:1.2px;
+  text-transform:uppercase;padding:3px 9px;border-radius:7px;background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--mut)}
+.mc-top .led{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%}
+.mc-top .led.on{background:var(--green);box-shadow:0 0 9px var(--green);animation:pulse 2s infinite}
+.mc-top .led.off{background:var(--mut2)}
+.mc-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:9px;flex:1}
+.mc-name{font-weight:800;font-size:15.5px;letter-spacing:-.2px}
+.mc-chips{display:flex;gap:6px;flex-wrap:wrap}
+.mchip{font-size:10.5px;font-weight:700;font-family:var(--mono);padding:3px 8px;border-radius:6px;
+  background:var(--bg2);border:1px solid var(--line);color:var(--mut)}
+.live-row{display:flex;align-items:baseline;gap:7px;margin-top:2px}
+.live-val{font-size:24px;font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.live-unit{font-size:12px;color:var(--mut);font-weight:700}
+.avail{position:absolute;bottom:10px;right:10px;font-size:10px;font-weight:800;letter-spacing:.8px;padding:3px 9px;border-radius:6px}
+.avail.stock{color:#7ff0a9;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35)}
+.avail.rental{color:var(--gold2);background:rgba(245,180,0,.1);border:1px solid rgba(245,180,0,.35)}
+.avail.owned{color:#9ecbff;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.35)}
+.avail.planned{color:var(--mut);background:var(--card2);border:1px solid var(--line)}
+.mbar{height:5px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
+.mbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#22c55e,#f5b400);width:0%;transition:width .5s ease}
+.mrow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut)}
+.mrow .mlab{width:34px;font-weight:750;letter-spacing:.5px}
+.mrow .mval{font-family:var(--mono);width:64px;text-align:right}
+
+/* ---------- rentals / links ---------- */
+.rent{display:flex;flex-direction:column;gap:10px}
+.rent .price{font-size:22px;font-weight:800;color:var(--gold2);font-family:var(--mono);letter-spacing:-.4px}
+.rent .per{font-size:11px;color:var(--mut);font-weight:700}
+.note{font-size:12.5px;color:var(--mut);border:1px dashed var(--line2);border-radius:var(--rad2);padding:12px 15px;background:var(--card)}
+.note b{color:var(--gold2)}
+.bl-grid{grid-template-columns:repeat(auto-fill,minmax(215px,1fr))}
+.bl{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--txt);padding:15px 17px}
+.bl:hover{border-color:rgba(245,180,0,.5);transform:translateY(-2px)}
+.bl .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;font-size:18px;
+  background:var(--bg2);border:1px solid var(--line)}
+.bl .bt{font-weight:750;font-size:13.5px}
+.bl .bs{font-size:11px;color:var(--mut2)}
+.netstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.netcell{background:var(--card);border:1px solid var(--line);border-radius:var(--rad2);padding:13px 16px}
+.netcell .k{font-size:10.5px;color:var(--mut);font-weight:750;letter-spacing:1.2px;text-transform:uppercase}
+.netcell .v{font-size:19px;font-weight:800;font-family:var(--mono);margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* ---------- security ---------- */
+.sec-grid{grid-template-columns:340px 1fr 1fr}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:10px}
+.ring-big{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;position:relative;transition:background .6s}
+.ring-big::before{content:'';position:absolute;inset:13px;border-radius:50%;background:var(--bg2);border:1px solid var(--line)}
+.ring-big .rv{position:relative;z-index:1;text-align:center}
+.ring-big .rv .n{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}
+.ring-big .rv .l{font-size:10px;letter-spacing:1.6px;color:var(--mut);font-weight:800;text-transform:uppercase}
+.riskchip{font-size:11px;font-weight:800;letter-spacing:1.4px;padding:4px 12px;border-radius:6px;text-transform:uppercase}
+.riskchip.low{color:#7ff0a9;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4)}
+.riskchip.medium{color:var(--gold2);background:rgba(245,180,0,.1);border:1px solid rgba(245,180,0,.4)}
+.riskchip.high{color:#ff8f8f;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4)}
+.an-list{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto}
+.an{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12px}
+.an .lv{font-size:9.5px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:5px;text-transform:uppercase;flex:none}
+.an .lv.high{color:#ff8f8f;background:rgba(239,68,68,.15)}
+.an .lv.medium{color:var(--gold2);background:rgba(245,180,0,.13)}
+.an .lv.low{color:var(--mut);background:var(--card2)}
+.an .code{font-family:var(--mono);color:var(--mut);word-break:break-all}
+.kvlist{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.kv{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:8px 12px}
+.kv .k{color:var(--mut);font-weight:700}
+.kv .v{font-family:var(--mono);text-align:right;word-break:break-all}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:12px;cursor:not-allowed;
+  background:#fff;color:#1f2937;font-weight:750;font-size:14px;border:1px solid var(--line2);opacity:.85}
+.gbtn svg{width:19px;height:19px}
+.gbtn-hint{font-size:11px;color:var(--mut2);text-align:center;margin-top:7px}
+
+/* ---------- logs ---------- */
+.logctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.logctl input[type=text]{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;color:var(--txt);
+  font-family:var(--mono);font-size:12.5px;min-width:230px;outline:none}
+.logctl input[type=text]:focus{border-color:rgba(245,180,0,.5)}
+.tgl{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut);cursor:pointer;user-select:none}
+.tblwrap{overflow:auto;max-height:480px;border:1px solid var(--line);border-radius:var(--rad2);background:var(--bg2)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{position:sticky;top:0;background:#11151d;color:var(--mut);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);z-index:2}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.045);white-space:nowrap;color:var(--mut)}
+td.pth{color:var(--txt);max-width:340px;overflow:hidden;text-overflow:ellipsis}
+td .st{font-weight:800;padding:2px 8px;border-radius:5px;font-size:10.5px}
+td .st.s2{color:#7ff0a9;background:rgba(34,197,94,.1)} td .st.s3{color:var(--blue);background:rgba(59,130,246,.1)}
+td .st.s4{color:var(--gold2);background:rgba(245,180,0,.1)} td .st.s5{color:#ff8f8f;background:rgba(239,68,68,.12)}
+tr:hover td{background:rgba(255,255,255,.028)}
+
+/* ---------- wallet / footer ---------- */
+.wallet-grid{grid-template-columns:1fr 300px}
+.wbox{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad2);padding:14px 16px;font-family:var(--mono);
+  font-size:13px;color:var(--txt);word-break:break-all;min-height:44px}
+.wlbl{font-size:10.5px;color:var(--mut);font-weight:800;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:7px}
+.btn{padding:11px 18px;border-radius:11px;border:1px solid var(--line2);background:var(--card2);color:var(--txt);
+  font-weight:750;font-size:13.5px;cursor:pointer;transition:all .18s;font-family:var(--sans)}
+.btn:hover{border-color:rgba(245,180,0,.55);color:var(--gold2)}
+.btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#161006;border:none;box-shadow:0 3px 14px rgba(245,180,0,.3)}
+.btn.gold:hover{filter:brightness(1.07);color:#161006}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+#qr{width:150px;height:150px;margin:10px auto 0;display:block;border-radius:10px;border:1px dashed var(--line);image-rendering:pixelated}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;
+  font-size:12px;color:var(--mut2)}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+  background:#151a24;border:1px solid rgba(245,180,0,.5);color:var(--txt);padding:12px 20px;border-radius:12px;
+  font-size:13.5px;font-weight:650;z-index:99;transition:all .3s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- responsive ---------- */
+@media(max-width:1020px){.hero-grid{grid-template-columns:1fr}.sec-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.dials{grid-template-columns:repeat(2,1fr)}.sec-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}.stat .v{font-size:24px}.wallet-grid{grid-template-columns:1fr}
+  .nav{padding:12px 14px}.wrap{padding:0 14px 50px}.clock{display:none}}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.fleet-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2Z" fill="currentColor"/></svg></div>
+    <div>OREBOLT<small>MINING OPS</small></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-t="overview">Overview</button>
+    <button class="tab" data-t="fleet">Fleet</button>
+    <button class="tab" data-t="rentals">Rentals</button>
+    <button class="tab" data-t="network">Network</button>
+    <button class="tab" data-t="pools">Pools</button>
+    <button class="tab" data-t="security">Security</button>
+    <button class="tab" data-t="logs">Logs</button>
+    <button class="tab" data-t="wallet">Wallet</button>
+  </div>
+  <div class="nav-right">
+    <span class="pill live" id="btcPill" title="CoinGecko — cached 60s server-side"><span class="dot"></span><span id="btcPillTxt">BTC —</span></span>
+    <span class="pill live"><span class="dot"></span>LIVE SIM</span>
+    <span class="pill sim"><span class="dot"></span>SIM · NO FUNDS</span>
+    <span class="clock" id="clock"></span>
+    <a class="gbtn-mini" href="/auth/google" title="Google sign-in — wire later" onclick="return gStub(event)">G</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview" class="active">
+  <div class="grid stats" id="statGrid">
+    <div class="card stat"><div class="icon">⚡</div><div class="k">Fleet Hashrate</div><div class="v gold" id="sHash">—<small> TH/s</small></div><div class="s">simulated telemetry · spec-sheet fleet</div></div>
+    <div class="card stat"><div class="icon">🔌</div><div class="k">Power Draw</div><div class="v" id="sPower">—<small> kW</small></div><div class="s">all online units</div></div>
+    <div class="card stat"><div class="icon">🎯</div><div class="k">Fleet Efficiency</div><div class="v" id="sEff">—<small> J/TH</small></div><div class="s">power ÷ hashrate</div></div>
+    <div class="card stat"><div class="icon">⛏</div><div class="k">Units Online</div><div class="v green" id="sUnits">—<small> / —</small></div><div class="s">live ASIC fleet</div></div>
+    <div class="card stat"><div class="icon">🌡</div><div class="k">Avg Temp</div><div class="v" id="sTemp">—<small> °C</small></div><div class="s">target &lt; 70°C</div></div>
+    <div class="card stat"><div class="icon">₿</div><div class="k">BTC / USD</div><div class="v" id="sBtc">—</div><div class="s" id="sBtcSub">CoinGecko · auto-refresh 60s</div></div>
+  </div>
+
+  <div class="grid hero-grid">
+    <div class="card chartcard">
+      <div class="head"><span class="t">Live Fleet Hashrate</span><span class="sub" id="chartSub">rolling · 1s interval</span></div>
+      <canvas id="chart" height="230"></canvas>
+      <div class="banner" id="banner"><span class="b-ic">⚡</span><div><div class="b-t1" id="bT1">Block found</div><div class="b-t2" id="bT2"></div></div></div>
+      <div class="dials" id="dials">
+        <div class="dial"><div class="ring" id="dPow" style="--p:0;--c:#f5b400"><span class="rv">0%</span></div><span class="dl">Load</span><span class="dv" id="dPowV">—</span></div>
+        <div class="dial"><div class="ring" id="dEff" style="--p:0;--c:#3b82f6"><span class="rv">0%</span></div><span class="dl">Efficiency</span><span class="dv" id="dEffV">—</span></div>
+        <div class="dial"><div class="ring" id="dTmp" style="--p:0;--c:#ef4444"><span class="rv">0%</span></div><span class="dl">Temp</span><span class="dv" id="dTmpV">—</span></div>
+        <div class="dial"><div class="ring" id="dFan" style="--p:0;--c:#22c55e"><span class="rv">0%</span></div><span class="dl">Fans</span><span class="dv" id="dFanV">—</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="head" style="margin-bottom:10px"><span class="t" style="font-weight:800;font-size:15px">Connection</span></div>
+        <div class="kvlist">
+          <div class="kv"><span class="k">Pool</span><span class="v" id="poolChip">not configured</span></div>
+          <div class="kv"><span class="k">Data mode</span><span class="v">SIM telemetry</span></div>
+          <div class="kv"><span class="k">Price feed</span><span class="v">CoinGecko (live)</span></div>
+          <div class="kv"><span class="k">Uptime</span><span class="v" id="upV">—</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="head" style="margin-bottom:10px"><span class="t" style="font-weight:800;font-size:15px">Network</span></div>
+        <div class="kvlist">
+          <div class="kv"><span class="k">Tip height</span><span class="v" id="nTip">—</span></div>
+          <div class="kv"><span class="k">Retarget</span><span class="v" id="nRet">—</span></div>
+          <div class="kv"><span class="k">Fast fee</span><span class="v" id="nFee">—</span></div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--mut)">via mempool.space · cached 5 min</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FLEET ================= -->
+<section id="fleet">
+  <h2 class="sec">Fleet Composition <span class="tagx">SPEC-SHEET + LIVE SIM</span></h2>
+  <div class="card" style="margin-bottom:18px">
+    <div id="compBars" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  <h2 class="sec">Machine Posters <span class="tagx">LIVE SIM HASHRATES</span></h2>
+  <div class="grid fleet-grid" id="fleetGrid"></div>
+</section>
+
+<!-- ================= RENTALS ================= -->
+<section id="rentals">
+  <h2 class="sec">Rental Estimates <span class="tagx">DEMO · NO PAYMENTS</span></h2>
+  <div class="note" style="margin-bottom:16px">Indicative hosting-style only: <b>energy cost × 1.35 margin @ $0.06/kWh</b>. No payments, processing, or investment offers exist on this box — wiring a real rental desk is on you.</div>
+  <div class="grid fleet-grid" id="rentGrid"></div>
+</section>
+
+<!-- ================= NETWORK ================= -->
+<section id="network">
+  <h2 class="sec">Bitcoin Network <span class="tagx">REAL LINKS</span></h2>
+  <div class="netstrip">
+    <div class="netcell"><div class="k">Tip Height</div><div class="v" id="nTip2">—</div></div>
+    <div class="netcell"><div class="k">Difficulty Retarget</div><div class="v" id="nRet2">—</div></div>
+    <div class="netcell"><div class="k">Fast Fee</div><div class="v" id="nFee2">—</div></div>
+    <div class="netcell"><div class="k">BTC / USD</div><div class="v" id="nBtc">—</div></div>
+  </div>
+  <h2 class="sec">Explorers & Feeds <span class="tagx">LIVE SITES</span></h2>
+  <div class="grid bl-grid">
+    <a class="card bl" href="https://mempool.space" target="_blank" rel="noopener"><span class="ic">🧭</span><span><span class="bt">mempool.space</span><br><span class="bs">blocks · fees · mempool</span></span></a>
+    <a class="card bl" href="https://mempool.space/mining" target="_blank" rel="noopener"><span class="ic">📊</span><span><span class="bt">mempool /mining</span><br><span class="bs">difficulty · hashrate charts</span></span></a>
+    <a class="card bl" href="https://blockstream.info" target="_blank" rel="noopener"><span class="ic">🛰</span><span><span class="bt">blockstream.info</span><br><span class="bs">full-block explorer</span></span></a>
+    <a class="card bl" href="https://www.blockchair.com/bitcoin" target="_blank" rel="noopener"><span class="ic">🔎</span><span><span class="bt">Blockchair</span><br><span class="bs">multi-chain explorer</span></span></a>
+    <a class="card bl" href="https://www.blockchain.com/explorer/assets/btc" target="_blank" rel="noopener"><span class="ic">🧱</span><span><span class="bt">Blockchain.com</span><br><span class="bs">tx lookup</span></span></a>
+    <a class="card bl" href="https://mempool.space/blocks" target="_blank" rel="noopener"><span class="ic">🧱</span><span><span class="bt">mempool /blocks</span><br><span class="bs">recent block feed</span></span></a>
+    <a class="card bl" href="https://www.coingecko.com/en/coins/bitcoin" target="_blank" rel="noopener"><span class="ic">💲</span><span><span class="bt">CoinGecko BTC</span><br><span class="bs">price · markets · 24h</span></span></a>
+    <a class="card bl" href="https://www.coingecko.com/en/coins/bitcoin/historical_data" target="_blank" rel="noopener"><span class="ic">📈</span><span><span class="bt">CoinGecko History</span><br><span class="bs">OHLC · 90-day</span></span></a>
+  </div>
+</section>
+
+<!-- ================= POOLS ================= -->
+<section id="pools">
+  <h2 class="sec">Solo Pool Links <span class="tagx">YOU OWN THE BLOCK</span></h2>
+  <div class="grid bl-grid">
+    <a class="card bl" href="https://mempool.space/mining" target="_blank" rel="noopener"><span class="ic">🟣</span><span><span class="bt">mempool.space Solo</span><br><span class="bs">stratum+tcp://solo.ckpool.org:3333</span></span></a>
+    <a class="card bl" href="https://solo.ckpool.org" target="_blank" rel="noopener"><span class="ic">⛏</span><span><span class="bt">ckpool SOLO</span><br><span class="bs">classic solo · stratum :3333</span></span></a>
+    <a class="card bl" href="https://solomining.io" target="_blank" rel="noopener"><span class="ic">🪙</span><span><span class="bt">SoloMining</span><br><span class="bs">solo portal</span></span></a>
+    <a class="card bl" href="https://solo.pool.kano.is" target="_blank" rel="noopener"><span class="ic">🅺</span><span><span class="bt">KanoPool Solo</span><br><span class="bs">solo-luck stratum</span></span></a>
+    <a class="card bl" href="https://public-pool.io" target="_blank" rel="noopener"><span class="ic">🟠</span><span><span class="bt">Public Pool</span><br><span class="bs">Bitaxe-native solo pool</span></span></a>
+  </div>
+  <h2 class="sec" style="margin-top:22px">Team Pool Links <span class="tagx">SHARE THE BLOCK</span></h2>
+  <div class="grid bl-grid">
+    <a class="card bl" href="https://foundrydigital.com" target="_blank" rel="noopener"><span class="ic">🇺🇸</span><span><span class="bt">Foundry USA</span><br><span class="bs">top NA pool</span></span></a>
+    <a class="card bl" href="https://www.antpool.com" target="_blank" rel="noopener"><span class="ic">🐜</span><span><span class="bt">Antpool</span><br><span class="bs">Bitmain family</span></span></a>
+    <a class="card bl" href="https://www.f2pool.com" target="_blank" rel="noopener"><span class="ic">🐟</span><span><span class="bt">F2Pool</span><br><span class="bs">long-running · PPS</span></span></a>
+    <a class="card bl" href="https://www.viabtc.com" target="_blank" rel="noopener"><span class="ic">⚡</span><span><span class="bt">ViaBTC</span><br><span class="bs">PPS+ / SOLO modes</span></span></a>
+    <a class="card bl" href="https://braiins.com" target="_blank" rel="noopener"><span class="ic">🧠</span><span><span class="bt">Braiins Pool</span><br><span class="bs">slush classic</span></span></a>
+    <a class="card bl" href="https://spiderpool.com" target="_blank" rel="noopener"><span class="ic">🕷</span><span><span class="bt">SpiderPool</span><br><span class="bs">low fees</span></span></a>
+  </div>
+  <div class="note" style="margin-top:16px">Stratum strings above are the well-known public endpoints — verify each pool's current ports on its site before pointing hardware. Pool connection itself (pool.json) is staged in <span style="font-family:var(--mono)">data/pool.json</span>.</div>
+</section>
+
+<!-- ================= SECURITY ================= -->
+<section id="security">
+  <h2 class="sec">Security & Anomaly Detection <span class="tagx">LIVE ENGINE</span></h2>
+  <div class="grid sec-grid">
+    <div class="card gauge">
+      <div class="ring-big" id="secRing" style="background:conic-gradient(var(--green) 0%,rgba(255,255,255,.07) 0)"><div class="rv"><div class="n" id="secScore">0</div><div class="l">Risk Score</div></div></div>
+      <span class="riskchip low" id="secRisk">LOW</span>
+      <div class="kvlist" style="width:100%">
+        <div class="kv"><span class="k">Requests 24h</span><span class="v" id="sec24h">—</span></div>
+        <div class="kv"><span class="k">Last 5m</span><span class="v" id="sec5m">—</span></div>
+        <div class="kv"><span class="k">Last 1m</span><span class="v" id="sec1m">—</span></div>
+        <div class="kv"><span class="k">Errors</span><span class="v" id="secErr">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head" style="margin-bottom:10px"><span class="t" style="font-weight:800;font-size:15px">Anomalies</span><span class="sub" style="margin-left:8px;font-size:11px;color:var(--mut2)" id="anCount"></span></div>
+      <div class="an-list" id="anList"><div class="an" style="justify-content:center;color:var(--mut2)">quiet — no anomalies detected</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="head" style="margin-bottom:10px"><span class="t" style="font-weight:800;font-size:15px">Session / IP Auth</span></div>
+        <div class="kvlist">
+          <div class="kv"><span class="k">Your IP</span><span class="v" id="myIp">—</span></div>
+          <div class="kv"><span class="k">Allowlisted</span><span class="v" id="myAuth">—</span></div>
+          <div class="kv"><span class="k">Gate mode</span><span class="v" id="authMode">disabled</span></div>
+        </div>
+        <div class="btn-row"><button class="btn" onclick="copyIp()">Copy IP</button></div>
+        <div style="margin-top:12px;font-size:12px;color:var(--mut)">Gate: set <span style="font-family:var(--mono)">data/auth.json</span> → <span style="font-family:var(--mono)">{"enabled":true,"allowedIps":["1.2.3.4"]}</span>. Until then traffic is logged, not blocked.</div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="gbtn" onclick="gStub(event)" aria-disabled="true">
+            <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 35.7 24 35.7c-6.5 0-11.7-5.2-11.7-11.7S17.5 12.3 24 12.3c3 0 5.7 1.1 7.8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12.3 24 12.3c3 0 5.7 1.1 7.8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.5-11.3-8.2l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4-4 5.3l6.2 5.2C41.4 34.9 44 29.9 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+            Sign in with Google
+          </button>
+        </div>
+        <div class="gbtn-hint">/auth/google stubbed (501) — wire OAuth after</div>
+      </div>
+      <div class="card">
+        <div class="head" style="margin-bottom:10px"><span class="t" style="font-weight:800;font-size:15px">Top IPs</span></div>
+        <div class="kvlist" id="kvIps"><div class="kv"><span class="k">—</span><span class="v">no traffic yet</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="grid-column:1/-1;margin-top:16px">
+    <div class="head" style="margin-bottom:12px"><span class="t" style="font-weight:800;font-size:15px">Multiple-Account (Sybil) Detection</span>
+      <span class="sub" style="margin-left:8px;font-size:11px;color:var(--mut2)">clientIds ↔ IPs ↔ fingerprints</span></div>
+    <div class="syb-grid">
+      <div class="syb-chips">
+        <div class="kv"><span class="k">Visitor sessions tracked</span><span class="v" id="sbxAccounts">—</span></div>
+        <div class="kv"><span class="k">Same-IP account groups</span><span class="v" id="sbxGroups">—</span></div>
+        <div class="kv"><span class="k">Multi-IP clients</span><span class="v" id="sbxMulti">—</span></div>
+        <div class="kv"><span class="k">Findings</span><span class="v" id="sbxCount">—</span></div>
+        <div class="an-list" id="sbxFindings" style="max-height:220px;width:100%"><div class="an" style="justify-content:center;color:var(--mut2)">no sybil findings</div></div>
+      </div>
+      <div class="tblwrap syb-session" style="max-height:260px">
+        <table><thead><tr><th>CLIENT</th><th>IPs SEEN</th><th>REQS</th><th>LAST SEEN</th><th>UA</th></tr></thead>
+        <tbody id="sbxTable"></tbody></table>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11.5px;color:var(--mut2)">Demo: clientId = persistent browser session (localStorage). Wire real logins later — clientId becomes the user id, detection logic unchanged.</div>
+  </div>
+</section>
+
+<!-- ================= LOGS ================= -->
+<section id="logs">
+  <h2 class="sec">Live Access Logs <span class="tagx">LOGS/*.JSONL</span></h2>
+  <div class="logctl">
+    <input type="text" id="logFilter" placeholder="filter: path, ip, status…">
+    <label class="tgl"><input type="checkbox" id="logAuto" checked> auto-refresh 3s</label>
+    <button class="btn" onclick="loadLogs()">Refresh</button>
+    <span class="sub" style="font-size:12px;color:var(--mut2)" id="logCount"></span>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Time</th><th>METHOD</th><th>Path</th><th>STATUS</th><th>IP</th><th>MS</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= WALLET ================= -->
+<section id="wallet">
+  <h2 class="sec">Demo Wallet Factory <span class="tagx">DEMO KEYS ONLY</span></h2>
+  <div class="grid wallet-grid">
+    <div class="card">
+      <div class="note" style="margin-bottom:14px"><b>Demo only.</b> Base58Check-style keys generated in-browser for the dashboard look. Never store real funds in these.</div>
+      <div class="wlbl">Address (legacy, 1…)</div><div class="wbox" id="addr">—</div>
+      <div class="wlbl" style="margin-top:12px">WIF Private Key</div><div class="wbox" id="wif">—</div>
+      <div class="btn-row">
+        <button class="btn gold" id="gen">Generate</button>
+        <button class="btn" onclick="copyBox('addr')">Copy Address</button>
+        <button class="btn" onclick="copyBox('wif')">Copy Key</button>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;align-items:center">
+      <canvas id="qr" width="150" height="150"></canvas>
+      <div style="font-size:11px;color:var(--mut2);margin-top:8px" id="qrLbl">demo QR pattern — not scannable</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"></div>
+
+<footer>
+  <span>Orebolt · simulation dashboard — no funds, no payouts, no investment offer</span>
+  <span>built on ghost-Inspiron-7348 · :8214 · pm2</span>
+</footer>
+<style>
+.gbtn-mini{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;text-decoration:none;
+  background:#fff;color:#1f2937;font-weight:800;font-size:13px;border:1px solid var(--line2)}
+.gbtn-mini:hover{filter:brightness(.92)}
+.syb-grid{display:grid;grid-template-columns:320px 1fr;gap:16px}
+.syb-chips{display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.syb-session{margin-top:12px}
+@media(max-width:860px){.syb-grid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=n=>n==null?'—':n.toLocaleString('en-US');
+
+/* ---------- tabs ---------- */
+const tabs=$('tabs');
+tabs.addEventListener('click',e=>{
+  const b=e.target.closest('.tab'); if(!b)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
+  document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));
+  $(b.dataset.t).classList.add('active');
+  if(b.dataset.t==='overview') resizeChart();
+  history.replaceState(null,'','#'+b.dataset.t);
+});
+
+/* ---------- clock / toast / copy ---------- */
+setInterval(()=>{const d=new Date();$('clock').textContent=d.toLocaleTimeString('en-US',{hour12:false});},1000);
+let toastT; function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+let CID='';
+try{CID=localStorage.getItem('ob-cid')||''}catch{}
+if(!CID){CID=(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36))+'-'+Math.random().toString(36).slice(2));try{localStorage.setItem('ob-cid',CID)}catch{}}
+function copyText(s){(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject(s)).then(()=>toast('copied ✓')).catch(()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('copied ✓');});}
+function copyBox(id){copyText($(id).textContent||'—');}
+function copyIp(){copyText($('myIp').textContent||'—');}
+function gStub(e){if(e)e.preventDefault();toast('Google sign-in is stubbed (501) — wire OAuth later');return false;}
+
+/* ---------- machines / fleet build ---------- */
+let MACHINES=[],TELEM=null;
+const state={chart:[],lastBanner:0};
+
+async function jget(u){try{const r=await fetch(u,{cache:'no-store',headers:{'x-client-id':CID}});if(!r.ok)throw 0;return await r.json();}catch{return null;}}
+
+function machArt(m){
+  const big=m.th>=1;
+  return `<svg viewBox="0 0 90 74">
+    <rect x="6" y="8" width="78" height="58" rx="8" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.14)"/>
+    <rect x="12" y="14" width="30" height="46" rx="4" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.1)"/>
+    <circle class="fan" cx="60" cy="28" r="13" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-dasharray="4 3"/>
+    <circle class="fan" cx="60" cy="52" r="13" fill="none" stroke="rgba(245,180,0,.4)" stroke-width="2" stroke-dasharray="4 3" style="animation-duration:2s"/>
+    <rect x="16" y="20" width="22" height="3" rx="1.5" fill="rgba(245,180,0,.55)"/>
+    <rect x="16" y="27" width="22" height="3" rx="1.5" fill="rgba(59,130,246,.5)"/>
+    <rect x="16" y="34" width="22" height="3" rx="1.5" fill="rgba(255,255,255,.25)"/>
+    <text x="14" y="70" font-size="${big?'7':'6'}" fill="rgba(232,236,244,.55)" font-family="monospace">${big?'SHA-256 ASIC':'SOLO ASIC'}</text>
+  </svg>`;
+}
+async function buildFleet(){
+  MACHINES=await jget('/api/machines')||[];
+  const g=$('fleetGrid'),r=$('rentGrid');g.innerHTML='';r.innerHTML='';
+  for(const m of MACHINES){
+    const card=document.createElement('div');
+    card.className='card mc';
+    card.id='mc-'+m.id;
+    card.innerHTML=`
+      <div class="mc-top">${machArt(m)}<span class="brandchip">${m.brand}</span><span class="led on"></span></div>
+      <div class="mc-body">
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-chips"><span class="mchip">${m.qty} unit${m.qty===1?'':'s'}</span><span class="mchip">${m.th>=1?m.th+' TH/s':(m.th*1000)+' GH/s'} spec</span><span class="mchip">${m.jth} J/TH</span><span class="mchip">${m.w} W</span></div>
+        <div class="live-row"><span class="live-val">0.00</span><span class="live-unit">TH/s unit (sim)</span></div>
+        <div class="mrow"><span class="mlab">TEMP</span><div class="mbar"><i></i></div><span class="mval">—</span></div>
+        <div class="mrow"><span class="mlab">FAN</span><div class="mbar"><i></i></div><span class="mval">—</span></div>
+        <span class="avail ${m.avail}">${m.avail.toUpperCase()}</span>
+      </div>`;
+    g.appendChild(card);
+    if(m.avail==='rental'){
+      const rc=document.createElement('div');
+      rc.className='card rent';
+      rc.innerHTML=`
+        <div class="mc-name">${m.name}</div>
+        <div><span class="price">$${m.rentEstPerThDay.toFixed(3)}</span> <span class="per">/ TH · day</span></div>
+        <div style="font-size:12px;color:var(--mut)">$${m.rentEstPerUnitDay.toFixed(2)} / rig · day · ${m.qty} unit${m.qty===1?'':'s'} in fleet</div>
+        <div class="mchip" style="align-self:flex-start">${m.dayKwhPerTh} kWh / TH · day @ $0.06 kWh</div>
+        <div style="font-size:11.5px;color:var(--mut2)">estimate only — demo, no billing</div>`;
+      r.appendChild(rc);
+    }
+    if(m.qty>0){
+      const b=document.createElement('div');
+      b.id='cb-'+m.id;
+      b.style.cssText='display:flex;align-items:center;gap:10px;font-size:12px';
+      b.innerHTML=`<span style="width:150px;color:var(--mut);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.model||m.name}</span>
+        <div class="mbar" style="flex:1"><i></i></div><span style="width:120px;text-align:right;font-family:var(--mono)" class="cbv">—</span>`;
+      $('compBars').appendChild(b);
+    }
+  }
+}
+
+/* ---------- telemetry tick ---------- */
+function applyTelemetry(t){
+  TELEM=t;
+  $('sHash').innerHTML=(t.fleetTH>=1000?(t.fleetTH/1000).toFixed(2)+'<small> PH/s</small>':t.fleetTH+'<small> TH/s</small>');
+  $('sPower').innerHTML=(t.powerW/1000).toFixed(1)+'<small> kW</small>';
+  $('sEff').innerHTML=t.effJth+'<small> J/TH</small>';
+  $('sUnits').innerHTML=t.unitsOnlineNow+'<small> / '+t.unitsTotal+'</small>';
+  $('sTemp').innerHTML=t.avgTemp+'<small> °C</small>';
+  state.chart.push(t.fleetTH); if(state.chart.length>150)state.chart.shift();
+  drawChart();
+  for(const m of t.models){
+    const c=$('mc-'+m.id); if(!c)continue;
+    c.querySelector('.live-val').textContent=m.online?m.liveUnitTH.toFixed(2):'0.00';
+    const led=c.querySelector('.led'); led.className='led '+(m.online?'on':'off');
+    const bars=c.querySelectorAll('.mbar i'),vals=c.querySelectorAll('.mval');
+    bars[0].style.width=Math.min(100,Math.max(0,(m.temp-40)/40*100))+'%'; vals[0].textContent=m.online?m.temp+'°C':'—';
+    bars[1].style.width=(m.fan||0)+'%'; vals[1].textContent=m.online?Math.round(m.fan)+'%':'—';
+    const cb=$('cb-'+m.id);
+    if(cb){const maxFleet=Math.max(1,t.models.reduce((s,x)=>s+x.specTH*x.qty,0));
+      cb.querySelector('.mbar i').style.width=Math.min(100,m.liveTH/maxFleet*100*3)+'%';
+      cb.querySelector('.cbv').textContent=m.liveTH+' TH/s · '+m.online+'/'+m.qty;}
+  }
+  const maxW=t.models.reduce((s,x)=>s+x.specW*Math.max(x.qty,1),0)||1;
+  setDial('dPow','dPowV',t.powerW/maxW*100,t.powerW/1000+' kW','#f5b400');
+  setDial('dEff','dEffV',Math.min(100,t.effJth/40*100),t.effJth+' J/TH','#3b82f6');
+  setDial('dTmp','dTmpV',Math.min(100,(t.avgTemp-40)/40*100),t.avgTemp+' °C','#ef4444');
+  setDial('dFan','dFanV',t.avgFan,Math.round(t.avgFan)+'%','#22c55e');
+}
+function setDial(ringId,txtId,pct,label,color){
+  const r=$(ringId);r.style.setProperty('--p',Math.min(100,pct));r.style.setProperty('--c',color);
+  r.querySelector('.rv').textContent=Math.round(Math.min(100,pct))+'%';$(txtId).textContent=label;
+}
+
+/* ---------- chart ---------- */
+const cv=$('chart');let ctx=cv.getContext('2d');
+function resizeChart(){
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth||1180,h=230;
+  cv.width=w*dpr;cv.height=h*dpr;ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawChart();
+}
+function drawChart(){
+  const w=cv.clientWidth||1180,h=230,data=state.chart.length>1?state.chart:[0,0];
+  ctx.clearRect(0,0,w,h);
+  const min=Math.min(...data)*0.985,max=Math.max(...data)*1.015,range=max-min||1;
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+  for(let i=1;i<4;i++){const y=h/4*i;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  const pt=i=>[i/(data.length-1)*w,h-8-((data[i]-min)/range)*(h-30)];
+  const grd=ctx.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0,'rgba(245,180,0,.28)');grd.addColorStop(1,'rgba(245,180,0,0)');
+  ctx.beginPath();ctx.moveTo(0,h-8);
+  data.forEach((_,i)=>{const[x,y]=pt(i);ctx.lineTo(x,y);});
+  ctx.lineTo(w,h-8);ctx.closePath();ctx.fillStyle=grd;ctx.fill();
+  ctx.beginPath();data.forEach((_,i)=>{const[x,y]=pt(i);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='#f5b400';ctx.lineWidth=2.2;ctx.shadowColor='rgba(245,180,0,.55)';ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
+  const[lx,ly]=pt(data.length-1);
+  ctx.beginPath();ctx.arc(lx,ly,3.4,0,7);ctx.fillStyle='#ffd54a';ctx.fill();
+}
+window.addEventListener('resize',resizeChart);
+
+/* ---------- block banner (sim) ---------- */
+function simBlock(){
+  const online=TELEM?TELEM.models.filter(m=>m.online):[];
+  if(!online.length)return;
+  const m=online[Math.floor(Math.random()*online.length)];
+  $('bT1').textContent='Block found (SIM)';
+  $('bT2').textContent=`simulated winner: ${m.name} unit · +6.25 demo BTC · no real payout`;
+  $('banner').classList.add('show');
+  toast('⚡ simulated block found — demo only');
+  setTimeout(()=>$('banner').classList.remove('show'),9000);
+}
+function bannerLoop(){setTimeout(()=>{simBlock();bannerLoop();},90000+Math.random()*70000);}
+
+/* ---------- BTC price (CoinGecko via server cache) ---------- */
+async function loadPrice(){
+  const p=await jget('/api/btcprice');
+  if(p&&p.ok){
+    const chg=p.change24h!=null?(p.change24h>=0?'+':'')+p.change24h.toFixed(2)+'%':'—';
+    const up=p.change24h>=0;
+    $('btcPillTxt').textContent='BTC $'+fmt(Math.round(p.usd))+' · '+chg;
+    $('btcPill').style.color=up?'#7ff0a9':'#ff8f8f';
+    $('sBtc').innerHTML='$'+fmt(Math.round(p.usd));
+    $('sBtcSub').innerHTML=`24h <span style="color:${up?'#7ff0a9':'#ff8f8f'}">${chg}</span> · CoinGecko live`;
+    $('nBtc').textContent='$'+fmt(Math.round(p.usd));
+    state.btc=p.usd;
+  }else{
+    $('btcPillTxt').textContent='BTC offline';
+    $('sBtcSub').textContent='CoinGecko unreachable — will retry';
+  }
+}
+
+/* ---------- network (mempool.space via server cache) ---------- */
+async function loadNet(){
+  const n=await jget('/api/btcnet');
+  if(n&&n.ok){
+    $('nTip').textContent=fmt(n.tipHeight);$('nTip2').textContent=fmt(n.tipHeight);
+    const rp=n.retarget&&n.retarget.progressPercent!=null?n.retarget.progressPercent:null;
+    const rs=rp!=null?rp.toFixed(1)+'% : '+n.retarget.remainingBlocks+' blk':'—';
+    const rd=((n.retarget&&n.retarget.difficultyChange!=null?(n.retarget.difficultyChange>=0?'+':'')+n.retarget.difficultyChange.toFixed(2)+'% est':'—'));
+    $('nRet').textContent=rs;$('nRet2').textContent=rd;
+    $('nFee').textContent=n.fees?n.fees.fastestFee+' sat/vB':'—';$('nFee2').textContent=n.fees?n.fees.fastestFee+' sat/vB':'—';
+  }
+}
+
+/* ---------- uptime/pool ---------- */
+async function loadHealth(){
+  const h=await jget('/api/health');
+  if(h){
+    const s=h.uptime,d=Math.floor(s/86400),hh=Math.floor(s%86400/3600),mm=Math.floor(s%3600/60);
+    $('upV').textContent=(d?d+'d ':'')+(hh?hh+'h ':'')+mm+'m';
+  }
+  const p=await jget('/api/pool/stats');
+  $('poolChip').innerHTML=(p&&p.ok)?`<span style="color:#7ff0a9">connected · ${p.data.provider||'pool'}</span>`:`<span style="color:var(--mut2)">not configured</span>`;
+}
+
+/* ---------- security ---------- */
+async function loadSecurity(){
+  const s=await jget('/api/security');if(!s)return;
+  const col=s.risk==='high'?'var(--red)':s.risk==='medium'?'var(--gold)':'var(--green)';
+  $('secRing').style.background=`conic-gradient(${col} ${Math.min(100,s.score)}%,rgba(255,255,255,.07) 0)`;
+  $('secScore').textContent=s.score;
+  const rk=$('secRisk');rk.textContent=s.risk.toUpperCase();rk.className='riskchip '+s.risk;
+  $('sec24h').textContent=fmt(s.last24h);$('sec5m').textContent=fmt(s.last5m);
+  $('sec1m').textContent=fmt(s.last1m);$('secErr').textContent=fmt(s.errors);
+  const al=$('anList');
+  if(!s.anomalies.length){al.innerHTML='<div class="an" style="justify-content:center;color:var(--mut2)">quiet — no anomalies detected</div>';}
+  else{
+    al.innerHTML=s.anomalies.slice(0,14).map(a=>{
+      const det=a.path||a.ip||a.method||a.req1m||'';
+      return `<div class="an"><span class="lv ${a.level}">${a.type}</span><span class="code">${String(det).replace(/</g,'&lt;')}</span></div>`;
+    }).join('');
+  }
+  $('anCount').textContent=s.anomalies.length+' flagged / '+s.totalRequests+' req';
+  $('kvIps').innerHTML=s.topIps.slice(0,6).map(x=>`<div class="kv"><span class="k">${String(x.ip).replace(/</g,'&lt;')}</span><span class="v">${x.count} req</span></div>`).join('')||'<div class="kv"><span class="k">—</span><span class="v">no traffic</span></div>';
+  const y=s.sybil||{};
+  $('sbxAccounts').textContent=y.accounts??'—';
+  $('sbxGroups').textContent=(y.sameIpGroups||[]).length;
+  $('sbxMulti').textContent=(y.multiIp||[]).length;
+  const fnd=y.findings||[];
+  $('sbxCount').textContent=fnd.length;
+  $('sbxFindings').innerHTML=fnd.length?fnd.slice(0,12).map(f=>{
+    const det=[f.ip&&'ip '+f.ip,(f.accounts!=null&&f.accounts+' accts'),(f.ips!=null&&f.ips+' ips'),(f.newAccounts1h&&f.newAccounts1h+' new/1h'),(f.uas&&f.uas.length+' uas')].filter(Boolean).join(' · ');
+    return `<div class="an"><span class="lv ${f.level}">${f.type}</span><span class="code">${String(det).replace(/</g,'&lt;')}</span></div>`;
+  }).join(''):'<div class="an" style="justify-content:center;color:var(--mut2)">no sybil findings</div>';
+  const ses=y.sessions||[];
+  $('sbxTable').innerHTML=ses.slice(0,30).map(sx=>{
+    const esc=x=>String(x).replace(/</g,'&lt;');
+    return `<tr><td class="pth">${esc(sx.clientId)}…</td><td>${esc((sx.ips||[]).join(', '))}</td><td>${sx.reqs}</td><td>${esc((sx.last||'').slice(11,19))}</td><td class="pth" style="max-width:200px">${esc((sx.uas&&sx.uas[0]||'').slice(0,50))}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--mut2)">no sessions yet</td></tr>';
+}
+async function loadClient(){
+  const c=await jget('/api/clientinfo');if(!c)return;
+  $('myIp').textContent=c.ip||'—';
+  $('myAuth').textContent=c.allowed?'✓ allowlisted':'not listed';
+  $('authMode').textContent=c.gate?'ENABLED':'disabled';
+  $('authMode').style.color=c.gate?'#ff8f8f':'';
+}
+
+/* ---------- logs ---------- */
+let logRows=[];
+async function loadLogs(){
+  const rows=await jget('/api/logs?limit=250');if(!rows)return;
+  logRows=rows;renderLogs();
+}
+function renderLogs(){
+  const f=($('logFilter').value||'').toLowerCase();
+  const tb=$('logBody');
+  const shown=logRows.filter(l=>!f||(`${l.time} ${l.method} ${l.path} ${l.status} ${l.ip}`.toLowerCase().includes(f))).slice(0,200);
+  tb.innerHTML=shown.map(l=>{
+    const c=l.status>=500?'s5':l.status>=400?'s4':'s2';
+    const t=new Date(l.time).toLocaleTimeString('en-US',{hour12:false});
+    const ipS=String(l.ip).replace(/</g,'&lt;'),pS=String(l.path).replace(/</g,'&lt;');
+    return `<tr><td>${t}</td><td>${l.method}</td><td class="pth">${pS}</td><td><span class="st ${c}">${l.status}</span></td><td>${ipS}</td><td>${l.ms}</td></tr>`;
+  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mut2)">no matching entries</td></tr>';
+  $('logCount').textContent=shown.length+' shown · '+logRows.length+' buffered';
+}
+$('logFilter').addEventListener('input',renderLogs);
+setInterval(()=>{if($('logAuto').checked&&$('logs').classList.contains('active'))loadLogs();},3000);
+
+/* ---------- wallet (demo, Base58Check-style) ---------- */
+const B58='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function b58(buf){let x=BigInt('0x'+[...buf].map(b=>b.toString(16).padStart(2,'0')).join('')),s='';
+  while(x>0n){s=B58[Number(x%58n)]+s;x/=58n;}
+  for(const b of buf){if(b===0)s='1'+s;else break;}return s;}
+async function sha256(bytes){return new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));}
+async function genWallet(){
+  const priv=crypto.getRandomValues(new Uint8Array(32));
+  const c1=await sha256(priv),c2=await sha256(c1);
+  const wif=b58(new Uint8Array([0x80,...priv,...c2.slice(0,4)]));
+  const h20=(await sha256(await sha256(priv))).slice(0,20);   // demo hash (not ripemd160)
+  const payload=new Uint8Array([0x00,...h20]);
+  const ck=await sha256(await sha256(payload));
+  const addr=b58(new Uint8Array([...payload,...ck.slice(0,4)]));
+  $('addr').textContent=addr;$('wif').textContent=wif;
+  drawQr(priv);$('qrLbl').textContent='demo QR pattern — not scannable';
+}
+function drawQr(buf){
+  const c=$('qr'),g=c.getContext('2d'),n=21,s=c.width/n;
+  g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+  const bit=(i)=>buf[i%buf.length]>>(i%8)&1||(Math.floor(i/7)*7+buf[i%buf.length]*3+i*11)%2===0;
+  g.fillStyle='#111';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){if((x*y*13+((x*7+y*3)%5)*31+ (x+y))%3==0)g.fillRect(x*s,y*s,s,s);}
+  const fin=(fx,fy)=>{g.fillStyle='#111';g.fillRect(fx*s,fy*s,7*s,7*s);g.fillStyle='#fff';g.fillRect((fx+1)*s,(fy+1)*s,5*s,5*s);g.fillStyle='#111';g.fillRect((fx+2)*s,(fy+2)*s,3*s,3*s);};
+  fin(0,0);fin(14,0);fin(0,14);
+}
+$('gen').addEventListener('click',genWallet);genWallet();
+
+/* ---------- boot: deep-link via #hash ---------- */
+resizeChart();
+{
+  const hh=location.hash.slice(1);
+  if(hh){const tb=document.querySelector('.tab[data-t="'+hh+'"]'); if(tb)tb.click();}
+}
+buildFleet();
+setInterval(async()=>{const t=await jget('/api/telemetry');if(t)applyTelemetry(t);},1000);
+jget('/api/telemetry').then(t=>t&&applyTelemetry(t));
+loadPrice();loadNet();loadHealth();loadSecurity();loadClient();loadLogs();
+setInterval(loadPrice,60000);
+setInterval(loadNet,300000);
+setInterval(loadHealth,30000);
+setInterval(loadSecurity,5000);
+setInterval(loadClient,30000);
+bannerLoop();
+})();
+</script>
+</body>
+</html>

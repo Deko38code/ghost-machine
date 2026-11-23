@@ -1,2 +1,25 @@
+[General]
+ConfigVersion=1
+
 [MainWindow]
-RestorePositionForNextInstance=false
+1463x823 screen: Height=638
+1463x823 screen: Width=1463
+1463x823 screen: XPosition=0
+1463x823 screen: YPosition=72
+1920x1080 screen: Height=920
+1920x1080 screen: Width=1920
+1920x1080 screen: Window-Maximized=true
+1920x1080 screen: XPosition=0
+1920x1080 screen: YPosition=40
+960x540 screen: Height=468
+960x540 screen: Width=960
+960x540 screen: Window-Maximized=true
+960x540 screen: XPosition=0
+960x540 screen: YPosition=32
+None-1=None-1
+State=AAAA/wAAAAD9AAAAAQAAAAAAAAAAAAAAAPwCAAAAAvsAAAAcAFMAUwBIAE0AYQBuAGEAZwBlAHIARABvAGMAawAAAAAA/////wAAAOoA////+wAAACIAUQB1AGkAYwBrAEMAbwBtAG0AYQBuAGQAcwBEAG8AYwBrAAAAAAD/////AAABOgD///8AAAW3AAACWQAAAAQAAAAEAAAACAAAAAj8AAAAAQAAAAIAAAACAAAAFgBtAGEAaQBuAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAAAAAAAAAABwAcwBlAHMAcwBpAG8AbgBUAG8AbwBsAGIAYQByAQAAAMn/////AAAAAAAAAAA=
+ToolBarsMovable=Disabled
+eDP-1=eDP-1
+
+[UiSettings]
+ColorScheme=

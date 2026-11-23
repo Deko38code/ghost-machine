@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>frame</title>
+<style>html,body{margin:0;background:#000}#f{display:block;border:0}#report{display:none}</style>
+</head>
+<body>
+<iframe id="f" src="about:blank"></iframe>
+<pre id="report"></pre>
+<script>
+  const p = new URLSearchParams(location.search)
+  const w = p.get('w') || '390', h = p.get('h') || '844'
+  const f = document.getElementById('f')
+  f.style.width = w + 'px'
+  f.style.height = h + 'px'
+  f.addEventListener('load', () => {
+    setTimeout(() => {
+      try {
+        document.getElementById('report').textContent = f.contentDocument.getElementById('report').textContent
+      } catch (e) {
+        document.getElementById('report').textContent = 'ERR ' + e.message
+      }
+    }, 2200)
+  })
+  f.src = 'index.html?view=' + encodeURIComponent(p.get('view') || 'extras') +
+          '&section=' + encodeURIComponent(p.get('section') || '') +
+          '&quiz=' + encodeURIComponent(p.get('quiz') || '') +
+          '&open=' + encodeURIComponent(p.get('open') || '') +
+          '&only=' + encodeURIComponent(p.get('only') || '')
+</script>
+</body>
+</html>

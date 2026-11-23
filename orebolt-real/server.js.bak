@@ -1,0 +1,120 @@
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const PORT = parseInt(process.env.PORT || '8215', 10);
+const ROOT = path.join(__dirname, 'public');
+const DATA = path.join(__dirname, 'data');
+const siteFile = path.join(DATA, 'site.json');
+const poolFile = path.join(DATA, 'pool.json');
+const waitlistFile = path.join(DATA, 'waitlist.json');
+
+function ensureFiles() {
+  if (!fs.existsSync(siteFile)) {
+    fs.writeFileSync(siteFile, JSON.stringify({
+      name: 'Orebolt',
+      tagline: 'Real Bitcoin mining, built to be honest.',
+      note: 'Real site skeleton — no fake returns, no fake balances, no fake withdrawals.',
+      status: 'in_progress',
+      lastUpdated: new Date().toISOString()
+    }, null, 2));
+  }
+  if (!fs.existsSync(poolFile)) {
+    fs.writeFileSync(poolFile, JSON.stringify({
+      provider: null,
+      apiUrl: null,
+      apiToken: null,
+      wallet: null,
+      status: 'not-configured',
+      lastChecked: null
+    }, null, 2));
+  }
+  if (!fs.existsSync(waitlistFile)) fs.writeFileSync(waitlistFile, '[]');
+}
+ensureFiles();
+
+function readJSON(file) {
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+function writeJSON(file, value) {
+  fs.writeFileSync(file, JSON.stringify(value, null, 2));
+}
+function safeSend(res, code, body, type = 'application/json') {
+  res.writeHead(code, { 'Content-Type': type });
+  res.end(typeof body === 'string' ? body : JSON.stringify(body));
+}
+function poolStatus() {
+  const cfg = readJSON(poolFile);
+  if (!cfg.provider || !cfg.apiUrl) return { ok: false, reason: 'missing_provider_or_url', config: cfg };
+  if (!cfg.apiToken) return { ok: false, reason: 'missing_token', config: { ...cfg, apiToken: null } };
+  return { ok: true, reason: null, config: { ...cfg, apiToken: null } };
+}
+async function fetchPoolStats() {
+  const cfg = readJSON(poolFile);
+  if (!cfg.provider || !cfg.apiUrl || !cfg.apiToken) {
+    return { ok: false, reason: 'not-configured' };
+  }
+  try {
+    const headers = {};
+    if (cfg.apiToken) headers.Authorization = `Bearer ${cfg.apiToken}`;
+    const resp = await fetch(cfg.apiUrl, { headers });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, reason: 'pool_request_failed', error: String(error) };
+  }
+}
+const server = http.createServer(async (req, res) => {
+  const url = req.url.split('?')[0];
+  if (url === '/api/health') return safeSend(res, 200, { ok: true, status: 'up', time: new Date().toISOString() });
+  if (url === '/api/site') return safeSend(res, 200, readJSON(siteFile));
+  if (url === '/api/pool/') return safeSend(res, 200, poolStatus());
+  if (url === '/api/pool/stats') {
+    const stats = await fetchPoolStats();
+    return safeSend(res, stats.ok ? 200 : 503, stats);
+  }
+  if (url === '/api/waitlist' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const { email } = JSON.parse(body || '{}');
+        if (!email || typeof email !== 'string') return safeSend(res, 400, { ok: false, error: 'email_required' });
+        const list = readJSON(waitlistFile);
+        if (!Array.isArray(list)) throw new Error('waitlist_corrupt');
+        if (!list.some(x => x.email === email.toLowerCase())) {
+          list.push({ email: email.toLowerCase(), at: new Date().toISOString() });
+          writeJSON(waitlistFile, list);
+        }
+        return safeSend(res, 200, { ok: true, email: email.toLowerCase() });
+      } catch (error) {
+        return safeSend(res, 400, { ok: false, error: 'invalid_json' });
+      }
+    });
+    return;
+  }
+  if (url.startsWith('/api/')) return safeSend(res, 404, { ok: false, error: 'not_found' });
+
+  const file = path.join(ROOT, decodeURIComponent(url).replace(/^(\.\.[\/\\])+/, ''));
+  if (!file.startsWith(ROOT)) return safeSend(res, 403, 'forbidden', 'text/plain');
+  fs.readFile(file, (err, data) => {
+    if (err) {
+      if (url === '/') return fs.readFile(path.join(ROOT, 'index.html'), (err2, idx) => {
+        if (err2) return safeSend(res, 500, 'server_error', 'text/plain');
+        safeSend(res, 200, idx, 'text/html');
+      });
+      return safeSend(res, 404, 'not found', 'text/plain');
+    }
+    const ext = path.extname(file);
+    const mime = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.js': 'application/javascript',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.svg': 'image/svg+xml'
+    }[ext] || 'application/octet-stream';
+    safeSend(res, 200, data, mime);
+  });
+}).listen(PORT, () => console.log(`Orebolt real skeleton http://localhost:${PORT}`));

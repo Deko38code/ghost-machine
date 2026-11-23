@@ -1,0 +1,132 @@
+[
+ {
+  "vp": "360x640",
+  "mode": "card",
+  "card": {
+   "w": 340,
+   "h": 466,
+   "right": 344,
+   "bottom": 634
+  },
+  "viewport": {
+   "w": 360,
+   "h": 640
+  },
+  "overflowX": false,
+  "appletH": "472px",
+  "stabilityText": "Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "debugOpen": true,
+  "debugBox": {
+   "w": 310,
+   "h": 165,
+   "right": 329,
+   "bottom": 525
+  },
+  "debugText": "scope    public | frames   1 received · 4s ago | poll     check 10s · feed 5s · errors 0 · misses 0 | cpu      not in this scope | state    DEGRADED | reason   failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "rootText": "👻 PHANTOM IDE UPDATE FROM PHANTOMIDE SERVER ✓ haksterai.com is up to date haksterai.com is up to date — site build 16:43:10Z, server current. Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lin"
+ },
+ {
+  "vp": "390x844",
+  "mode": "card",
+  "card": {
+   "w": 370,
+   "h": 450,
+   "right": 374,
+   "bottom": 838
+  },
+  "viewport": {
+   "w": 390,
+   "h": 844
+  },
+  "overflowX": false,
+  "appletH": "456px",
+  "stabilityText": "Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "debugOpen": true,
+  "debugBox": {
+   "w": 340,
+   "h": 165,
+   "right": 359,
+   "bottom": 729
+  },
+  "debugText": "scope    public | frames   1 received · 4s ago | poll     check 10s · feed 5s · errors 0 · misses 0 | cpu      not in this scope | state    DEGRADED | reason   failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "rootText": "👻 PHANTOM IDE UPDATE FROM PHANTOMIDE SERVER ✓ haksterai.com is up to date haksterai.com is up to date — site build 16:43:10Z, server current. Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lin"
+ },
+ {
+  "vp": "414x896",
+  "mode": "card",
+  "card": {
+   "w": 394,
+   "h": 450,
+   "right": 398,
+   "bottom": 890
+  },
+  "viewport": {
+   "w": 414,
+   "h": 896
+  },
+  "overflowX": false,
+  "appletH": "456px",
+  "stabilityText": "Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "debugOpen": true,
+  "debugBox": {
+   "w": 364,
+   "h": 165,
+   "right": 383,
+   "bottom": 781
+  },
+  "debugText": "scope    public | frames   1 received · 4s ago | poll     check 10s · feed 5s · errors 0 · misses 0 | cpu      not in this scope | state    DEGRADED | reason   failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "rootText": "👻 PHANTOM IDE UPDATE FROM PHANTOMIDE SERVER ✓ haksterai.com is up to date haksterai.com is up to date — site build 16:43:10Z, server current. Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lin"
+ },
+ {
+  "vp": "1440x900",
+  "mode": "card",
+  "card": {
+   "w": 420,
+   "h": 413,
+   "right": 1424,
+   "bottom": 894
+  },
+  "viewport": {
+   "w": 1440,
+   "h": 900
+  },
+  "overflowX": false,
+  "appletH": "419px",
+  "stabilityText": "Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "debugOpen": true,
+  "debugBox": {
+   "w": 390,
+   "h": 165,
+   "right": 1409,
+   "bottom": 805
+  },
+  "debugText": "scope    public | frames   1 received · 4s ago | poll     check 10s · feed 5s · errors 0 · misses 0 | cpu      not in this scope | state    DEGRADED | reason   failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "rootText": "👻 PHANTOM IDE UPDATE FROM PHANTOMIDE SERVER ✓ haksterai.com is up to date haksterai.com is up to date — site build 16:43:10Z, server current. Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lin"
+ },
+ {
+  "vp": "1920x1080",
+  "mode": "card",
+  "card": {
+   "w": 420,
+   "h": 413,
+   "right": 1904,
+   "bottom": 1074
+  },
+  "viewport": {
+   "w": 1920,
+   "h": 1080
+  },
+  "overflowX": false,
+  "appletH": "419px",
+  "stabilityText": "Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "debugOpen": true,
+  "debugBox": {
+   "w": 390,
+   "h": 165,
+   "right": 1889,
+   "bottom": 985
+  },
+  "debugText": "scope    public | frames   1 received · 4s ago | poll     check 10s · feed 5s · errors 0 · misses 0 | cpu      not in this scope | state    DEGRADED | reason   failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lines/60s)",
+  "rootText": "👻 PHANTOM IDE UPDATE FROM PHANTOMIDE SERVER ✓ haksterai.com is up to date haksterai.com is up to date — site build 16:43:10Z, server current. Stability DEGRADED · failing: resources (mem available 54.6% · load 2.85/core · disk free 30.8%) · error-rate (12 lin"
+ }
+]

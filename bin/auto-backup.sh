@@ -21,4 +21,15 @@ done
 mkdir -p /home/ghost/backups
 tar czf "/home/ghost/backups/configs-$STAMP.tar.gz" -C /home/ghost .cloudflared .pm2/dump.pm2 2>/dev/null
 ls -1t /home/ghost/backups/configs-*.tar.gz 2>/dev/null | tail -n +15 | xargs -r rm --
+# RMT database + uploads backup (not in git — .gitignore'd)
+if [ -d /home/ghost/rent-my-trailer/server ]; then
+  tar czf "/home/ghost/backups/rmt-data-$STAMP.tar.gz" -C /home/ghost/rent-my-trailer/server rentmytrailer.db uploads 2>/dev/null
+  ls -1t /home/ghost/backups/rmt-data-*.tar.gz 2>/dev/null | tail -n +15 | xargs -r rm --
+  echo "$LOG_TAG rmt-data: backed up"
+  if node /home/ghost/rent-my-trailer/server/archive-network-ads.js >> /home/ghost/backups/network-ads-archive.log 2>&1; then
+    echo "$LOG_TAG network-ads: archived to Dell"
+  else
+    echo "$LOG_TAG network-ads: archive reported errors; see /home/ghost/backups/network-ads-archive.log"
+  fi
+fi
 echo "$LOG_TAG done"

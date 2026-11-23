@@ -3,19 +3,19 @@
     <logicalmonitor>
       <x>0</x>
       <y>0</y>
-      <scale>2</scale>
+      <scale>1</scale>
       <primary>yes</primary>
       <monitor>
         <monitorspec>
-          <connector>None-1</connector>
-          <vendor>unknown</vendor>
-          <product>unknown</product>
-          <serial>unknown</serial>
+          <connector>eDP-1</connector>
+          <vendor>SDC</vendor>
+          <product>0x4c48</product>
+          <serial>0x00000000</serial>
         </monitorspec>
         <mode>
           <width>1920</width>
           <height>1080</height>
-          <rate>60</rate>
+          <rate>59.996440887451172</rate>
         </mode>
       </monitor>
     </logicalmonitor>

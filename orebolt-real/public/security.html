@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Orebolt Security &amp; Anomaly Monitoring</title>
+<link rel="stylesheet" href="/style.css"/><script src="/live.js"></script><script src="/layout.js"></script><script src="/footer.js"></script>
+</head><body class="app">
+<div class="wrap">
+  <section class="hero"><h1>Security &amp; anomaly monitoring.</h1><p>Live request telemetry, IP / endpoint patterns, and risk score from actual server logs. No mock data, no fake numbers.</p></section>
+  <section class="pad"><div class="grid grid-4" id="metrics"></div></section>
+  <section class="pad"><div class="grid grid-2">
+    <div class="card"><h3>Endpoint activity</h3><div id="paths"></div></div>
+    <div class="card"><h3>Top IPs</h3><div id="ips"></div></div>
+  </div></section>
+  <section class="pad"><div class="card"><h3>Anomalies &amp; alerts</h3><div id="anomalies"></div></div></section>
+  <section class="pad"><div class="card"><h3>Live request stream</h3><div class="stream" id="logs"></div></div></section>
+</div>
+<script>
+async function load(){
+  const [security, logs] = await Promise.all([
+    fetch('/api/security').then(r=>r.json()),
+    fetch('/api/logs').then(r=>r.json())
+  ]);
+  Orebolt.renderAnomalies(document.getElementById('anomalies'), security.anomalies || []);
+  Orebolt.renderLogs(document.getElementById('logs'), logs);
+  document.getElementById('metrics').innerHTML=[
+    {k:'Requests', v:security.totalRequests||0},
+    {k:'Last 24h', v:security.last24h||0},
+    {k:'Last 1m', v:security.last1m||0},
+    {k:'Errors', v:security.errors||0}
+  ].map(x=>`<div class="card"><div class="kx">${x.k}</div><div class="v">${x.v}</div></div>`).join('');
+  document.getElementById('paths').innerHTML=`<table><thead><tr><th>Path</th><th>Count</th></tr></thead><tbody>${(security.topPaths||[]).map(p=>`<tr><td>${p.path}</td><td>${p.count}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('ips').innerHTML=`<table><thead><tr><th>IP</th><th>Count</th></tr></thead><tbody>${(security.topIps||[]).map(i=>`<tr><td>${i.ip}</td><td>${i.count}</td></tr>`).join('')}</tbody></table>`;
+}
+load(); setInterval(load,5000);
+</script>
+</body></html>

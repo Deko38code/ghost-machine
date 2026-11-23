@@ -115,3 +115,19 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+command -v omp-posh >/dev/null && eval "$(omp-posh init bash)" || true
+[ -f "$HOME/.secrets.env" ] && . "$HOME/.secrets.env"
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Hermes Agent command
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+
+# opencode
+export PATH=/home/ghost/.opencode/bin:$PATH
+export FREEBUFF_MODE=true
+
+export PATH="/home/ghost/.stripe/bin:$PATH"

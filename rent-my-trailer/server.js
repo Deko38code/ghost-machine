@@ -194,13 +194,18 @@ app.post('/api/bookings/:id/deposit-checkout', async (req, res) => {
     if (amount <= 0) return res.status(400).json({ error: 'nothing to charge' });
     const origin = req.headers.origin || `http://localhost:${PORT}`;
     const session = await stripe.checkout.sessions.create({
+      ui_mode: 'hosted_page',
       mode: 'payment',
-      payment_method_types: ['card'],
-      customer_email: b.email || undefined,
+      billing_address_collection: 'auto',
+      phone_number_collection: { enabled: false },
+      automatic_tax: { enabled: false },
+      allow_promotion_codes: false,
+      submit_type: 'auto',
+      integration_identifier: 'hosted_mobile_app_0001',
+      origin_context: 'mobile_app',
       line_items: [{ price_data: { currency: 'usd', product_data: { name: `Refundable deposit — ${b.trailerTitle}` }, unit_amount: amount }, quantity: 1 }],
       success_url: `${origin}/#/booking/${b.id}?paid=1`,
       cancel_url: `${origin}/#/booking/${b.id}?paid=0`,
-      metadata: { bookingId: b.id, trailerId: b.trailerId },
     });
     b.stripeSessionId = session.id;
     persistBookings();

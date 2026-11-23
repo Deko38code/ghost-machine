@@ -1,0 +1,75 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════
+# hakster — CineVault Dell launcher (restores the Mint hakster command)
+# Starts haksterAi server (port 3579) via pm2 if not running,
+# then hands you a session / status view.
+# ═══════════════════════════════════════════════════════════════
+
+HAKSTER_DIR="$HOME/haksterAi"
+HEALTH_URL="http://localhost:3579/api/health"
+MCP_STATUS_URL="http://localhost:3579/api/agent/mcp-status"
+
+# 2026-11-22: bare `hakster` must behave the same in every shell. Hand it
+# straight to the single shared entry point; this launcher's own view (splash,
+# server ping, MCP list) is `hakster status`. Originals backed up as
+# hakster.bak-20261122T040422Z.
+if [ "$#" -eq 0 ]; then
+  exec "$HOME/.local/bin/hakster"
+fi
+
+ping_ok() {
+  curl -sS --max-time 2 -o /dev/null -w '%{http_code}' "$HEALTH_URL" 2>/dev/null | grep -qE '^(200|40[1-5])'
+}
+
+show_mcp_status() {
+  echo -e "\x1b[1;35m── MCP servers ──\x1b[0m"
+  curl -sS --max-time 5 "$MCP_STATUS_URL" 2>/dev/null | python3 -c '
+import json, sys
+try:
+    d=json.load(sys.stdin)
+    print(f"total tools: {d.get(\"totalTools\",\"?\")} · builtin: {d.get(\"builtinTools\",\"?\")} · mcp tools: {d.get(\"totalMcpTools\",\"?\")}")
+    for s in d.get("servers", []):
+        name=s.get("name","?")
+        st=s.get("status","?")
+        tc=s.get("toolCount",0)
+        arrow="🟢" if st=="connected" else ("🟡" if st=="lazy" or tc==0 else "🔴")
+        print(f"  {arrow} {name:20s} {st:12s} {tc} tools")
+except Exception as e:
+    print(f"could not read mcp status: {e}")
+' 2>/dev/null
+}
+
+echo -e "\x1b[38;2;160;80;255m╔══════════════════════════════════════════════════════════════╗\x1b[0m"
+echo -e "\x1b[38;2;160;80;255m║\x1b[0m  \x1b[1;37m👻 HAKSTER\x1b[0m  \x1b[38;2;160;80;255m·\x1b[0m  \x1b[2;37mDell edition\x1b[0m  \x1b[38;2;160;80;255m║\x1b[0m"
+echo -e "\x1b[38;2;160;80;255m╚══════════════════════════════════════════════════════════════╝\x1b[0m"
+echo ""
+
+if ping_ok; then
+  echo "🟢 haksterAi server already running on :3579"
+else
+  echo "🟡 haksterAi server not running — starting via pm2..."
+  pm2 start "$HAKSTER_DIR/ecosystem.config.cjs" 2>&1 | grep -E 'started|online|error|failed' | head -5
+  echo "⏳ waiting for :3579 to come up (~10s)"
+  for i in 1 2 3 4 5; do
+    sleep 2
+    ping_ok && break
+  done
+  ping_ok && echo "🟢 server is up" || echo "🔴 server not answering — check pm2 logs: pm2 logs hakster"
+fi
+
+echo ""
+show_mcp_status
+echo ""
+
+# Default: hand control back to a real session
+case "${1:-}" in
+  status) exit 0 ;;
+  up|start) exit 0 ;;
+  down|stop) pm2 stop hakster >/dev/null 2>&1 && echo "🛑 haksterAi stopped" ;;
+  logs) pm2 logs hakster "${@:2}" ;;
+  *)  echo "→ session mode (default)"
+      # 2026-11-22: delegate to the one shared entry point so a shell that
+      # resolves this launcher sees the same program as every other shell.
+      exec "$HOME/.local/bin/hakster" "$@"
+      ;;
+esac

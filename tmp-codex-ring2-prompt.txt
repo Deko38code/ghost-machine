@@ -1,0 +1,17 @@
+Review these screenshots of the junkalot.co update applet (dark panel, neon green, bottom right of every page).
+
+Since your last review the ring was enlarged (40 px phones / 48 px from 1024 px wide) and the repeated "applies in 8s" caption under it was removed. A new checklist was also added inside the card: "Build on disk", "Service answering", "Portfolio images". In these shots the portfolio row is a real FAIL because 17 of 279 image variants are the wrong size — that red cross is intended, not a bug.
+
+View all of these:
+1. ring-360x640.png  (phone)
+2. ring-390x844.png  (phone)
+3. ring-414x896.png  (phone)
+4. ring-1440x900.png (desktop)
+5. ring-1920x1080.png (FireStick / TV)
+
+Answer concisely, most important first:
+- Is the ring now legible and well placed under the ghost at each width? Any clipping or horizontal overflow at 360 px?
+- Does the checklist read clearly, and is the red FAIL row obvious without looking broken?
+- On the 1920x1080 TV shot, can the ring's number and the checklist text be read from couch distance? If not, name the exact sizes to change.
+- Anything that looks unfinished or misaligned.
+Keep it to a short list of concrete fixes.

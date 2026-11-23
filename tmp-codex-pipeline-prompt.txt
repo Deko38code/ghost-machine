@@ -1,0 +1,22 @@
+Read-only review. Do not edit anything, do not run a build, do not restart anything.
+
+Goal from the owner: junkalot.co should build and ship live (npm run build:update) behind the in-page update widget, with accurate timing shown in the widget, a smooth pop-out, and zero downtime. Downtime only when a serious update genuinely needs it.
+
+Read these files on this host:
+- /home/ghost694/junkalot/package.json (the build:update script)
+- /home/ghost694/junkalot/scripts/stage-update.mjs
+- /home/ghost694/junkalot/next.config.js
+- /home/ghost694/junkalot/src/lib/update-state.ts
+- /home/ghost694/junkalot/src/app/api/version/route.ts (or wherever /api/version is served)
+- /home/ghost694/junkalot/src/components/UpdateToast.tsx (the widget)
+- whatever systemd unit or PM2 entry actually runs the service (look under /etc/systemd/system for junkalot*, and `pm2 list`-style config files on disk)
+
+Answer these, concretely and in order:
+1. Is the current deploy truly zero-downtime? Trace exactly what happens between "build finished" and "new build serving": is there a restart, a reload, a symlink/next.config swap, a window where requests 502? Name the evidence (file + behaviour), not an assumption.
+2. Where can a request be dropped today, and what is the shortest safe fix (build to a new dir, atomic switch, keep the old dir serving until the new one answers)? Do not propose deleting anything.
+3. Are the widget's timings accurate — the poll interval, the 8-second countdown (AUTO_SECS), the deploy phase/progress numbers? What is measured vs. guessed? Point at anything that is an estimate dressed up as a measurement.
+4. Is the pop-out/reopen of the widget smooth, and can it be made smoother without slowing detection of a new build?
+5. What would it take to publish a truthful ETA ("2 min 10 s left") during a build, given what the server already knows?
+6. List the risks of any change to the deploy path, and the rollback for each.
+
+Keep it specific to this code. No generic DevOps advice. Plain text.

@@ -275,7 +275,7 @@
     "popup-width": {
         "type": "generic",
         "default": 590,
-        "value": 590
+        "value": 900
     },
     "popup-height": {
         "type": "generic",

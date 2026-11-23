@@ -1,2 +1,5 @@
+[PlasmaRunnerManager]
+LaunchCounts=1 appstream_org.telegram.desktop,2 krunner_systemsettings_kcm_users,1 appstream_android-file-transfer,1 exec:///usr/bin/flatpak run --branch=stable --arch=x86_64 --command=Telegram --file-forwarding org.telegram.desktop -- @@u @@
+
 [PlasmaRunnerManager][History]
-2082dcef-65d9-485d-9a49-67cbed1cc476=
+2082dcef-65d9-485d-9a49-67cbed1cc476=f droid,tel,pass,telegram

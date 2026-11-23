@@ -99,8 +99,14 @@ export default function Post() {
   useEffect(() => { loadMine(); }, []);
 
   useEffect(() => {
-    const onAi = (e) => { if (e.detail) setAiDraft(e.detail); };
+    // the AI widget navigates to #/post and hands the draft over via sessionStorage,
+    // because the hashchange that mounts Post fires *after* the widget's synchronous event
+    const onAi = (e) => { if (e.detail) { setAiDraft(e.detail); try { sessionStorage.removeItem("rmt-ai-draft"); } catch {} } };
     addEventListener("rmt-ai-listing", onAi);
+    try {
+      const pending = sessionStorage.getItem("rmt-ai-draft");
+      if (pending) { sessionStorage.removeItem("rmt-ai-draft"); setAiDraft(JSON.parse(pending)); }
+    } catch {}
     return () => removeEventListener("rmt-ai-listing", onAi);
   }, []);
   useEffect(() => {

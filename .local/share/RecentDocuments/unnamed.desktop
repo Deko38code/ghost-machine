@@ -1,6 +1,6 @@
 [Desktop Entry]
-Icon=text-html
+Icon=plasmadiscover
 Name=
 Type=Link
-URL[$e]=https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/
-X-KDE-LastOpenedWith=firefox
+URL[$e]=appstream://android-file-transfer
+X-KDE-LastOpenedWith=org.kde.discover.urlhandler

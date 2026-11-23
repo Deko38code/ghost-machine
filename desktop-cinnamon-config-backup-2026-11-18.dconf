@@ -1,0 +1,157 @@
+[/]
+alttab-switcher-delay=100
+alttab-switcher-show-all-workspaces=true
+desklet-decorations=2
+desklet-snap-interval=25
+desktop-effects-close='fly'
+desktop-effects-map='traditional'
+desktop-effects-minimize='fly'
+device-aliases=['/org/freedesktop/UPower/devices/battery_BAT0:=LGC-LGC3.95 DELL 0WF284C7']
+enabled-applets=['panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:52:systray@cinnamon.org:3', 'panel1:right:54:notifications@cinnamon.org:5', 'panel1:right:55:printers@cinnamon.org:6', 'panel1:right:56:removable-drives@cinnamon.org:7', 'panel1:right:57:keyboard@cinnamon.org:8', 'panel1:right:58:favorites@cinnamon.org:9', 'panel1:right:59:network@cinnamon.org:10', 'panel1:right:60:sound@cinnamon.org:11', 'panel1:right:62:calendar@cinnamon.org:13', 'panel1:right:63:cornerbar@cinnamon.org:14', 'panel2:right:0:cinnamon-multi-line-taskbar-applet:16', 'panel1:right:48:classic-menu@fredcw:18', 'panel1:right:47:powerman@dr.drummie:19', 'panel1:right:42:AutostartPrograms@spacy01:24', 'panel1:right:35:window-closer@stefan-schmidbauer:31', 'panel1:right:32:workspace-switcher@cinnamon.org:34', 'panel1:right:30:CassiaWindowList@klangman:36', 'panel1:right:25:Mint-Unsplash-Background@omidmaldar:41', 'panel1:right:23:Exit@claudiux:43', 'panel1:right:22:temperature@fevimu:44', 'panel1:right:18:collapsible-systray@feuerfuchs.eu:48', 'panel1:right:17:computer@brownsr:49', 'panel1:right:15:trash@cinnamon.org:51', 'panel1:right:13:separator@cinnamon.org:53', 'panel1:right:12:separator@cinnamon.org:54', 'panel1:right:6:grouped-window-list@cinnamon.org:60', 'panel1:right:5:menu@cinnamon.org:61', 'panel1:right:0:app-launcher@mchilli:66']
+favorite-apps=['firefox.desktop', 'mintinstall.desktop', 'cinnamon-settings.desktop', 'org.gnome.Terminal.desktop', 'nemo.desktop', 'org.kde.kmail2.desktop']
+lock-desklets=false
+next-applet-id=67
+no-adjacent-panel-barriers=false
+panel-edit-mode=false
+panel-launchers=['DEPRECATED']
+panel-zone-icon-sizes='[{"panelId":1,"left":0,"center":0,"right":28}]'
+panel-zone-symbolic-icon-sizes='[{"panelId":1,"left":28,"center":30,"right":18}]'
+panel-zone-text-sizes='[{"panelId":1,"left":16,"center":9,"right":0}]'
+panels-autohide=['1:false', '2:false']
+panels-enabled=['1:0:left']
+panels-height=['1:38', '2:37']
+panels-hide-delay=['1:0', '2:0']
+panels-show-delay=['1:0', '2:0']
+window-effect-speed=1
+
+[desktop/background]
+picture-options='centered'
+picture-uri='file:///home/ghost/.local/share/cinnamon/applets/Mint-Unsplash-Background@omidmaldar/background'
+primary-color='#050505050808'
+
+[desktop/background/slideshow]
+delay=1
+image-source='directory:///home/ghost/claude_agents'
+random-order=true
+slideshow-enabled=false
+
+[desktop/interface]
+clock-show-date=true
+clock-show-seconds=true
+clock-use-24h=true
+cursor-size=32
+cursor-theme='Bibata-Original-Ice'
+first-day-of-week=0
+gtk-theme='Mint-Y-Dark-Red'
+icon-theme='Mint-L-Orange'
+text-scaling-factor=1.25
+
+[desktop/keybindings/wm]
+rotate-monitor=@as []
+
+[desktop/notifications]
+bottom-notifications=true
+display-notifications=true
+fullscreen-notifications=true
+notification-duration=22
+notification-screen-display='active-screen'
+remove-old=true
+
+[desktop/peripherals/keyboard]
+numlock-state=false
+
+[desktop/peripherals/mouse]
+accel-profile='flat'
+double-click=486
+drag-threshold=397
+left-handed=false
+locate-pointer=true
+middle-click-emulation=false
+natural-scroll=true
+speed=0.77874186550976132
+
+[desktop/peripherals/touchpad]
+click-method='default'
+disable-while-typing=true
+edge-scrolling-enabled=false
+natural-scroll=false
+send-events='disabled-on-external-mouse'
+speed=-0.9219088937093276
+two-finger-scrolling-enabled=false
+
+[desktop/screensaver]
+ask-for-away-message=true
+default-message='haksterai-bots'
+lock-delay=uint32 2
+
+[desktop/session]
+idle-delay=uint32 300
+
+[desktop/sound]
+allow-amplified-volume=true
+event-sounds=false
+
+[desktop/wm/preferences]
+min-window-opacity=30
+num-workspaces=3
+workspace-names=@as []
+
+[gestures]
+enabled=false
+pinch-percent-threshold=uint32 40
+swipe-down-2='PUSH_TILE_DOWN::end'
+swipe-down-3='TOGGLE_OVERVIEW::end'
+swipe-down-4='VOLUME_DOWN::end'
+swipe-left-2='PUSH_TILE_LEFT::end'
+swipe-left-3='WORKSPACE_NEXT::end'
+swipe-left-4='WINDOW_WORKSPACE_PREVIOUS::end'
+swipe-percent-threshold=uint32 60
+swipe-right-2='PUSH_TILE_RIGHT::end'
+swipe-right-3='WORKSPACE_PREVIOUS::end'
+swipe-right-4='WINDOW_WORKSPACE_NEXT::end'
+swipe-up-2='PUSH_TILE_UP::end'
+swipe-up-3='TOGGLE_EXPO::end'
+swipe-up-4='VOLUME_UP::end'
+tap-3='MEDIA_PLAY_PAUSE::end'
+
+[muffin]
+draggable-border-width=10
+experimental-features=['scale-monitor-framebuffer', 'x11-randr-fractional-scaling']
+
+[settings-daemon/peripherals/keyboard]
+numlock-state='off'
+
+[settings-daemon/peripherals/touchscreen]
+orientation-lock=true
+
+[settings-daemon/plugins/color]
+night-light-last-coordinates=(-31.43, 128.52000000000001)
+
+[settings-daemon/plugins/power]
+button-power='interactive'
+idle-brightness=10
+idle-dim-ac=false
+idle-dim-battery=true
+idle-dim-time=30
+lid-close-ac-action='nothing'
+lid-close-battery-action='nothing'
+lock-on-suspend=false
+sleep-display-ac=600
+sleep-display-battery=600
+sleep-inactive-ac-timeout=0
+sleep-inactive-battery-timeout=0
+
+[settings-daemon/plugins/xsettings]
+buttons-have-icons=true
+
+[sounds]
+close-enabled=true
+map-enabled=true
+maximize-enabled=true
+maximize-file='/usr/share/mint-artwork/sounds/tile.oga'
+minimize-enabled=true
+unmaximize-enabled=true
+unmaximize-file='/usr/share/mint-artwork/sounds/tile.oga'
+
+[theme]
+name='Windows-10-Dark'

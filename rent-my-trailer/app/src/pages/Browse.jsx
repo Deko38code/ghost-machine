@@ -3,8 +3,8 @@ import { search, stats } from "../data/db.js";
 import { money } from "../router.jsx";
 
 export default function Browse({ route }) {
-  const qs = useMemo(() => new URLSearchParams((route.param || "").split("?")[1] || ""), [route.param]);
-  const q = qs.get("q") || (route.param || "").split("?")[0] || "";
+  const qs = useMemo(() => route.query || new URLSearchParams(), [route]);
+  const q = qs.get("q") || route.param || "";
   const [cat, setCat] = useState(qs.get("cat") || "");
   const [state, setState] = useState("");
   const [max, setMax] = useState(qs.get("max") || "");

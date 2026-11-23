@@ -1,0 +1,8 @@
+{
+  "name": "orebolt-real",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Orebolt real mining business site skeleton",
+  "main": "server.js",
+  "engines": { "node": ">=20" }
+}

@@ -4,6 +4,7 @@ import { user } from "./lib/api.js";
 import rmtBadge from "./assets/rmt-badge.webp";
 import haksterLogo from "./assets/haksterai-logo.png";
 import AiWidget from "./components/AiWidget.jsx";
+import { AdPopup } from "./components/AdPopup.jsx";
 import { AuthModal } from "./lib/Auth.jsx";
 import { AccountChip } from "./lib/Auth.jsx";
 import Bookings from "./lib/Bookings.jsx";
@@ -13,11 +14,20 @@ import Home from "./pages/Home.jsx";
 import Browse from "./pages/Browse.jsx";
 import Detail from "./pages/Detail.jsx";
 import Messages from "./pages/Messages.jsx";
+import Community from "./pages/Community.jsx";
 import Deposit from "./pages/Deposit.jsx";
 import Post from "./pages/Post.jsx";
 import Settings from "./pages/Settings.jsx";
 import Admin from "./pages/Admin.jsx";
+import Migrate from "./pages/Migrate.jsx";
 import Reset from "./pages/Reset.jsx";
+import Membership from "./pages/Membership.jsx";
+import Terms from "./pages/Terms.jsx";
+import Privacy from "./pages/Privacy.jsx";
+import Refund from "./pages/Refund.jsx";
+import About from "./pages/About.jsx";
+import Faq from "./pages/Faq.jsx";
+import Contact from "./pages/Contact.jsx";
 import badge from "./assets/rmt-badge.jpg";
 
 let _rmtInstallEvt = null;
@@ -48,8 +58,18 @@ function RefGate({ route }) {
     <div className="page"><h1 className="sec-title">Invite accepted</h1><p className="sec-sub">Setting up your $5 welcome credit…</p></div>
   );
 }
-const PAGES = { admin: Admin, home: Home, browse: Browse, detail: Detail, messages: Messages, deposit: Deposit, post: Post, bookings: Bookings, settings: Settings, reset: Reset, r: RefGate };
+const PAGES = {
+  admin: Admin, migrate: Migrate, home: Home, browse: Browse, detail: Detail, messages: Messages, community: Community, deposit: Deposit, post: Post, bookings: Bookings, confirmation: Confirmation, settings: Settings, reset: Reset, membership: Membership, terms: Terms, privacy: Privacy, refund: Refund, about: About, faq: Faq, contact: Contact, r: RefGate,
+};
 const fLink = { display: "block", color: "var(--muted)", fontSize: 13, padding: "3px 0", textDecoration: "none", cursor: "pointer" };
+const COMPANY_LINKS = [
+  { href: "#/about", label: "About" },
+  { href: "#/faq", label: "FAQ / Help" },
+  { href: "#/contact", label: "Contact" },
+  { href: "#/terms", label: "Terms of Service" },
+  { href: "#/privacy", label: "Privacy Policy" },
+  { href: "#/refund", label: "Refund & Cancellation Policy" },
+];
 
 /* ─── first-signup onboarding: avatar + bio, 2 quick taps ── */
 function Onboarding({ u, onDone }) {
@@ -112,6 +132,7 @@ function FoundingPrompt({ onClose }) {
           <div style={row}><span>💳</span><span><b style={{ color: "#f2f6fa" }}>Credit card required to sign</b> — cards are verified to claim the founding rate. Nothing is charged for month one.</span></div>
           <div style={row}><span>💸</span><span><b style={{ color: "#f2f6fa" }}>You must pay rental fees before pickup</b> — and a booking deposit is required before pickup (returned in full after a clean handover).</span></div>
           <div style={row}><span>⚖️</span><span><b style={{ color: "#f2f6fa" }}>8% platform fee</b> for your first 1,000 signups — you keep 92% (regular signups pay 10%). CA sales tax is added at checkout for California. The fee is never taken out of your deposit.</span></div>
+          <div style={row}><span>📱</span><span><b style={{ color: "#f2f6fa" }}>Swap phone numbers free</b> — the founding 1,000 message owners and renters directly. After the seats fill, number-sharing needs premium and the fee is 10% + CA tax.</span></div>
           <div style={row}><span>🛡️</span><span>Trailer insurance available via <b style={{ color: "#f2f6fa" }}>Jerry</b> (3rd-party, optional).</span></div>
         </div>
         <button onClick={claim} style={{ width: "100%", padding: "13px 0", borderRadius: 24, border: 0, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
@@ -145,68 +166,6 @@ function MaintBanner() {
   );
 }
 
-function PlanCard() {
-  const [p, setP] = useState(null);
-  const [count, setCount] = useState(null);
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    fetch("/api/pricing").then((r) => r.json()).then(setP).catch(() => {});
-    fetch("/api/member-count").then((r) => r.json()).then(setCount).catch(() => {});
-  }, []);
-  const start = async () => {
-    try {
-      const token = localStorage.getItem("rmt-token") || "";
-      const r = await fetch("/api/auth/upgrade/start", { method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ sid: "membership" }) });
-      const j = await r.json();
-      if (j.url) { location.href = j.url; return; }
-      throw new Error(j.error || "checkout unavailable");
-    } catch (e) { setErr(e.message); }
-  };
-  return (
-    <div style={{ maxWidth: 440, margin: "0 auto", border: "2px solid #f5b325", borderRadius: 16, background: "#0d1117", padding: "22px 26px", boxShadow: "0 10px 40px rgba(0,0,0,.45)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <img src={badge} alt="" style={{ width: 44, height: 44, borderRadius: "50%" }} />
-        <b style={{ color: "#f5b325", letterSpacing: ".14em", fontSize: 12 }}>PREMIUM MEMBERSHIP</b>
-      </div>
-      {p && (
-        <>
-          <div style={{ color: "#f2f6fa", fontSize: 34, fontWeight: 900 }}>
-            ${p.monthly_incl_tax}<span style={{ fontSize: 15, color: "#8b949e", fontWeight: 600 }}> /month — tax included</span>
-          </div>
-          <div style={{ color: "#8b949e", fontSize: 12, marginTop: 4 }}>Base ${p.monthly} + {(p.tax_rate * 100).toFixed(2)}% tax — baked in, live-watched</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-            <div style={{ border: "1px solid #2a2e35", borderRadius: 10, padding: "8px 10px" }}>
-              <div style={{ color: "#8b949e", fontSize: 11 }}>+ refundable deposits per rental</div>
-            </div>
-            <div style={{ border: "1px solid #2a2e35", borderRadius: 10, padding: "8px 10px" }}>
-              <div style={{ color: "#8b949e", fontSize: 11, letterSpacing: ".1em" }}>OWNERS EARN</div>
-              <div style={{ color: "#f2f6fa", fontWeight: 800 }}>{(100 - (p.founder?.fee_pct ?? p.owner_fee_pct ?? 10)).toFixed(0)}% of every rental</div>
-              {p.founder && p.founder.remaining > 0 && (
-                <div style={{ color: "#f5b325", fontSize: 11, marginTop: 3 }}>first {p.founder.cap.toLocaleString()} signups · {p.founder.remaining} left</div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-      <ul style={{ color: "#c9d1d9", fontSize: 13, lineHeight: 1.7, paddingLeft: 18, margin: "12px 0" }}>
-        {p?.perks?.map((x) => <li key={x}>{x}</li>)}
-      </ul>
-      {count && (
-        <div style={{ color: "#f5b325", fontSize: 12, fontWeight: 800, marginBottom: 10 }}>
-          {count.claimed}/1000 premium in — {count.remaining} free-month slots remain (first-1000: card required, nothing charged for month one)
-        </div>
-      )}
-      {err && <div style={{ color: "#ff5c1a", fontSize: 12, marginBottom: 8 }}>{err}</div>}
-      <button onClick={start} style={{ width: "100%", padding: "12px 0", borderRadius: 10, border: 0, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
-        {count?.remaining > 0 ? "Claim free first month — add card" : "Go premium"}
-      </button>
-      <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 10, lineHeight: 1.6 }}>
-        Cancel anytime — free cancellation before pickup; after pickup deposit rules apply. Owners: 10% platform fee only on completed rentals.
-      </div>
-    </div>
-  );
-}
-
 /* ─── profile completion % — used on chip + leaderboard (top rankers) ── */
 export function completionScore(u) {
   if (!u) return 0;
@@ -233,7 +192,7 @@ function TopRankers() {
           {u.picture ? (
             <img src={u.picture} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
           ) : (
-            <span style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--asphalt)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", fontSize: 12, fontWeight: 800 }}>{(u.display_name || u.email || "?")[0].toUpperCase()}</span>
+            <img src={rmtBadge} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", display: "block" }} />
           )}
           <span style={{ display: "flex", flexDirection: "column" }}>
             <b style={{ color: "#f2f6fa", fontSize: 13 }}>{u.display_name || u.email?.split("@")[0]}</b>
@@ -258,23 +217,103 @@ function PayFeesBtn() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("rmt-token") || ""}` },
         body: JSON.stringify({ sid: "membership" }),
       });
-      const j = await r.json();
-      if (j.url) location.href = j.url;
-      else setMsg(j.error || "checkout unavailable");
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.url) { location.href = j.url; return; }
+      if (r.status === 401) {
+        try { localStorage.removeItem("rmt-token"); localStorage.removeItem("rmt-user"); } catch {}
+        setMsg("Your session expired — sign in again, then tap Pay Fees."); dispatchEvent(new CustomEvent("rmt-auth", { detail: "google" }));
+      } else setMsg(j.error || `checkout unavailable (${r.status})`);
     } catch (e) { setMsg(e.message); }
     setBusy(false);
   };
   return (
-    <button onClick={go} disabled={busy} title="Pay your platform fee / premium"
-      style={{ padding: "6px 12px", borderRadius: 6, border: 0, cursor: busy ? "wait" : "pointer",
-        background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap" }}>
-      {busy ? "OPENING CHECKOUT…" : "💳 Pay Fees"}
-    </button>
+    <span className="payfees" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      {msg && <small style={{ color: "var(--amber)", fontSize: 11, maxWidth: 220 }}>{msg}</small>}
+      <button onClick={go} disabled={busy} title="Pay your platform fee / premium"
+        style={{ padding: "6px 12px", borderRadius: 6, border: 0, cursor: busy ? "wait" : "pointer",
+          background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap" }}>
+        {busy ? "OPENING CHECKOUT…" : "💳 Pay Fees"}
+      </button>
+    </span>
   );
+}
+
+
+/* hamburger nav for phones/tablets — the desktop nav row is hidden <=900px */
+function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    const doc = (e) => { if (!(e.target instanceof Element) || !e.target.closest(".burger, .mnav")) setOpen(false); };
+    document.addEventListener("click", doc);
+    addEventListener("hashchange", close);
+    return () => { document.removeEventListener("click", doc); removeEventListener("hashchange", close); };
+  }, [open]);
+  const mlink = (href, label) => <a className="mlink" href={href} onClick={() => setOpen(false)}>{label}</a>;
+  return (
+    <>
+      <button className="burger" aria-label="Open menu" aria-expanded={open} onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>☰</button>
+      {open && (
+        <div className="mnav" onClick={(e) => e.stopPropagation()}>
+          {mlink("#/browse", "Browse Trailers")}
+          {mlink("#/bookings", "Bookings")}
+          {mlink("#/messages", "Messages")}
+          {mlink("#/community", "Community")}
+          {mlink("#/post", "List Your Trailer")}
+          {mlink("#/deposit", "Deposits")}
+          {user()?.role === "admin" && mlink("#/admin", "Admin")}
+          <div className="mnav-foot">mobile menu — rentmytrailer</div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ── 30-min idle warning banner — click anywhere to reset the countdown ─*/
+function IdleWarnBanner() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const on = (e) => setShow(true);
+    addEventListener("rmt-idle-warn", on);
+    return () => removeEventListener("rmt-idle-warn", on);
+  }, []);
+  useEffect(() => {
+    if (!show) return;
+    const hide = () => setShow(false);
+    const evt = ["mousemove", "keydown", "wheel", "touchstart", "click"];
+    evt.forEach((e) => addEventListener(e, hide, { once: true, passive: true }));
+    const t = setTimeout(() => setShow(false), 5000);
+    return () => { evt.forEach((e) => removeEventListener(e, hide)); clearTimeout(t); };
+  }, [show]);
+  if (!show) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 22, left: "50%", transform: "translateX(-50%)", zIndex: 24000, background: "linear-gradient(135deg,#f5b325,#ff9d00)", color: "#16181b", padding: "12px 22px", borderRadius: 16, boxShadow: "0 10px 40px rgba(0,0,0,.5)", fontWeight: 700, fontSize: 14 }}>
+      ⏳ You've been idle — signing out in 3 min. Click to stay signed in.
+    </div>
+  );
+}
+/* ── server-side ping — fires on every activity reset, builds access_log trail ─*/
+function ActivityPing() {
+  useEffect(() => {
+    const tok = localStorage.getItem("rmt-token") || "";
+    if (!tok) return;
+    let inflight = false, lastAt = 0;
+    const ping = () => {
+      const now = Date.now();
+      if (inflight || now - lastAt < 4000) return;   // throttle 1 ping / 4s
+      lastAt = now; inflight = true;
+      fetch("/api/auth/ping", { method: "POST", headers: { Authorization: `Bearer ${tok}` } }).catch(() => {}).finally(() => inflight = false);
+    };
+    const evt = ["mousemove", "keydown", "wheel", "touchstart", "scroll", "click"];
+    evt.forEach((e) => addEventListener(e, ping, { passive: true }));
+    return () => evt.forEach((e) => removeEventListener(e, ping));
+  }, []);
 }
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("google");
   const [onbDone, setOnbDone] = useState(false);
   const [foundingOpen, setFoundingOpen] = useState(() => { try { return localStorage.getItem("rmt-founding-prompt") === "1"; } catch { return false; } });
   const maybeFounding = () => {
@@ -284,27 +323,49 @@ export default function App() {
     } catch {}
   };
   useEffect(() => {
-    const on = () => setAuthOpen(true);
+    const on = (e) => { setAuthMode(e.detail || "google"); setAuthOpen(true); };
     addEventListener("rmt-auth", on);
     return () => removeEventListener("rmt-auth", on);
   }, []);
   useEffect(() => { maybeFounding(); }, [authOpen]);
-  /* auto logout after 30 min idle */
+  /* ── auto logout — 30 min of true idle (no mouse/key/touch events) ──
+     Tracks lastActivity in state so the user can still trigger it manually via
+     a visible "You'll be signed out in X min" warning. Also sends a /api/auth/ping
+     to the backend, which validates the token AND logs the ping to access_log,
+     so we have a server-side audit trail of who was idle and who stayed. */
   useEffect(() => {
-    const LIMIT = 30 * 60 * 1000;
-    let timer;
+    const LIMIT = 30 * 60 * 1000;       // 30 min idle
+    const WARN_BEFORE = 3 * 60 * 1000;  // warn user 3 min before logout
+    let timer, warnTimer;
+    let lastAct = Date.now();
     const evt = ["mousemove", "keydown", "wheel", "touchstart", "scroll", "click"];
-    const reset = () => { clearTimeout(timer); timer = setTimeout(() => {
-      if (localStorage.getItem("rmt-token")) {
-        try { localStorage.clear(); } catch {}
-        location.hash = "#/home";
-        dispatchEvent(new CustomEvent("rmt-autologout"));
-        location.reload();
+    const onActivity = () => {
+      lastAct = Date.now();
+      try { localStorage.setItem("rmt-last-act", String(lastAct)); } catch {}
+      schedule();
+    };
+    const schedule = () => {
+      clearTimeout(timer); clearTimeout(warnTimer);
+      const since = Date.now() - lastAct;
+      const remaining = LIMIT - since;
+      if (remaining <= 0) return doLogout();
+      timer = setTimeout(doLogout, remaining);
+      if (remaining > WARN_BEFORE) {
+        warnTimer = setTimeout(() => dispatchEvent(new CustomEvent("rmt-idle-warn", { detail: { warn_ms: WARN_BEFORE } })), remaining - WARN_BEFORE);
       }
-    }, LIMIT); };
-    evt.forEach((e) => addEventListener(e, reset, { passive: true }));
-    reset();
-    return () => { evt.forEach((e) => removeEventListener(e, reset)); clearTimeout(timer); };
+    };
+    const doLogout = () => {
+      clearTimeout(timer); clearTimeout(warnTimer);
+      if (!localStorage.getItem("rmt-token")) return;
+      try { localStorage.clear(); } catch {}
+      localStorage.removeItem("rmt-last-act");
+      location.hash = "#/home";
+      dispatchEvent(new CustomEvent("rmt-autologout"));
+      location.reload();
+    };
+    evt.forEach((e) => addEventListener(e, onActivity, { passive: true }));
+    schedule();
+    return () => { evt.forEach((e) => removeEventListener(e, onActivity)); clearTimeout(timer); clearTimeout(warnTimer); };
   }, []);
   const [route, setRoute] = useState(() => routes.parse(location.hash));
   useEffect(() => {
@@ -314,11 +375,12 @@ export default function App() {
   }, []);
   useEffect(() => { scrollTo(0, 0); }, [route.name, route.param]);
 
-  const showPlans = route.name === "membership";
   const Page = PAGES[route.name] || Home;
   const active = (n) => (route.name === n ? " navlink active" : " navlink");
   return (
     <div className="shell">
+      <IdleWarnBanner />
+      <ActivityPing />
       {!(() => {
         try {
           const u = JSON.parse(localStorage.getItem("rmt-user") || "null");
@@ -334,9 +396,9 @@ export default function App() {
         <nav>
           <a className={active("browse")} href="#/browse">Browse Trailers</a>
           <a className={active("deposit")} href="#/deposit">Deposits</a>
-          <a className={active("messages")} href="#/messages">Messages</a>
           <a className={active("post")} href="#/post">List Your Trailer</a>
           <a className={active("bookings")} href="#/bookings">Bookings</a>
+          <a className={active("community")} href="#/community">Community</a>
         </nav>
         <PayFeesBtn />
         <AccountChip />
@@ -351,20 +413,12 @@ export default function App() {
           <span style={{ color: "var(--amber)", fontWeight: 700 }}>HaksterAI</span>
         </a>
           {user()?.role === "admin" && <a className={active("admin")} href="#/admin">🛡️ Admin</a>}
+        <MobileMenu />
       </header>
 
       <main>
-        {showPlans ? (
-          <div className="page">
-            <p className="sec-sub">Premium unlocks sharing, priority booking and fleet deals. First 1,000 signups keep 92% of every rental · CA tax added at checkout for California.</p>
-            <PlanCard />
-          </div>
-        ) : (
-          <>
-            <Page route={route} />
-            {route.name === "home" && <div className="page"><TopRankers /></div>}
-          </>
-        )}
+        <Page route={route} />
+        {route.name === "home" && <div className="page"><TopRankers /></div>}
       </main>
 
       <footer className="sitefoot">
@@ -374,6 +428,7 @@ export default function App() {
             <a href="#/browse" style={fLink}>Browse trailers</a>
             <a href="#/post" style={fLink}>List your trailer</a>
             <a href="#/membership" style={fLink}>Premium plans</a>
+            <a href="#/migrate" style={fLink}>Migrate your website</a>
           </div>
           <div>
             <div style={{ color: "var(--muted)", fontSize: 11, letterSpacing: ".16em", fontWeight: 700, marginBottom: 10 }}>ACCOUNT</div>
@@ -389,7 +444,11 @@ export default function App() {
           </div>
           <div>
             <div style={{ color: "var(--muted)", fontSize: 11, letterSpacing: ".16em", fontWeight: 700, marginBottom: 10 }}>COMPANY</div>
-            <a href="https://haksterai.com" target="_blank" rel="noreferrer" style={fLink}>HaksterAI</a>
+            {COMPANY_LINKS.map(({ href, label }) => (
+              <a key={href} href={href} style={fLink} {...(href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}>
+                {label}
+              </a>
+            ))}
             <a href="#/home" style={fLink}>rmt.haksterai.com</a>
             <InstallChip />
           </div>
@@ -417,13 +476,14 @@ export default function App() {
         </div>
       </footer>
       <AiWidget onListingDraft={(d) => { location.hash = "#/post"; dispatchEvent(new CustomEvent("rmt-ai-listing", { detail: d })); }} />
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+      {authOpen && <AuthModal initialMode={authMode} onClose={() => setAuthOpen(false)} />}
       {(() => {
         const u0 = (() => { try { return JSON.parse(localStorage.getItem("rmt-user") || "null"); } catch { return null; } })();
         const need = !onbDone && u0 && u0.tier && !u0.bio && !localStorage.getItem("rmt-onboarded");
         return need ? <Onboarding u={u0} onDone={() => { setOnbDone(true); localStorage.setItem("rmt-onboarded", "1"); }} /> : null;
       })()}
       {foundingOpen && <FoundingPrompt onClose={() => setFoundingOpen(false)} />}
+      <AdPopup />
     </div>
   );
 }

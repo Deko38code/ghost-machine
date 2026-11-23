@@ -11,6 +11,8 @@
    <GroupState-Tags-IsHidden>false</GroupState-Tags-IsHidden>
    <withRecentlyUsed>true</withRecentlyUsed>
    <GroupState-RecentlySaved-IsHidden>false</GroupState-RecentlySaved-IsHidden>
+   <withBaloo>true</withBaloo>
+   <GroupState-SearchFor-IsHidden>false</GroupState-SearchFor-IsHidden>
   </metadata>
  </info>
  <bookmark href="file:///home/ghost">

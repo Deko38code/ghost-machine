@@ -41,7 +41,9 @@
             "banshee",
             "vlc",
             "rhythmbox",
-            "firefox"
+            "firefox",
+            "floorp",
+            "io.github.celluloid_player.Celluloid"
         ]
     },
     "section2": {
@@ -76,7 +78,7 @@
             "Toggle Play / Pause": "player"
         },
         "description": "Action on middle click",
-        "value": "mute"
+        "value": "player"
     },
     "middleShiftClickAction": {
         "type": "combobox",
@@ -88,7 +90,7 @@
             "Toggle Play / Pause": "player"
         },
         "description": "Action on shift+middle click",
-        "value": "in_mute"
+        "value": "player"
     },
     "horizontalScroll": {
         "type": "switch",

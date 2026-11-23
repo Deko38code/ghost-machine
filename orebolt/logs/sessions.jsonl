@@ -1,0 +1,5 @@
+{"id":"testoperator01","ip":"::1","ua":"curl/8.5.0","t":"2026-10-16T09:19:46.961Z","type":"new"}
+{"id":"8491620d-f151-427c-83bc-ca0224ffcaf0","ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessC","t":"2026-10-16T09:19:55.250Z","type":"new"}
+{"id":"71ec3fde-b3b7-44e2-88f0-97e58077025e","ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessC","t":"2026-10-16T09:19:57.624Z","type":"new"}
+{"id":"f761732e-707a-4ffe-bc79-1743df0fa3e3","ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessC","t":"2026-10-16T09:20:38.149Z","type":"new"}
+{"id":"72bf06e9-95c6-4ebf-af94-a426e9edeaa8","ip":"127.0.0.1","ua":"Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0","t":"2026-10-16T09:24:33.127Z","type":"new"}

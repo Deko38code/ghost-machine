@@ -1,0 +1,23 @@
+{
+  "name": "PhantomIDE model configuration lock",
+  "adopted": "2026-11-21",
+  "owner_rule": "The model configuration must never be altered \u2014 for any caller, operator, agent, or the owner. Our public name sits on top of the exact CLI config; there is no difference in behaviour. What sits behind the name stays in the code and in /health, never in marketing or client copy.",
+  "public_name": "phantom-flash",
+  "wire_model": "deepseek-v4.1-flash:cloud",
+  "relay": "http://127.0.0.1:11434",
+  "cli_env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:11434",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4.1-flash:cloud",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4.1-flash:cloud",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4.1-flash:cloud",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000"
+  },
+  "service": {
+    "host": "10.0.0.251",
+    "health": "http://127.0.0.1:4199/health",
+    "expect_model": "phantom-flash",
+    "expect_lane": "deepseek-v4.1-flash:cloud",
+    "expect_upstream": "http://127.0.0.1:11434"
+  },
+  "secrets_policy": "No token, key or password is stored in this file. Values here are non-secret and safe to read. The lane behind our public name is internal and is not described to clients."
+}

@@ -1,0 +1,690 @@
+<title>PhantomIDE Contract Packet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a document packet. A fill-in bar at the top feeds named placeholders inside two
+   letter-style sheets; a contents rail runs beside each sheet on wide screens. */
+:root{
+  --bg:#e8eae7; --paper:#fcfcfa; --ink:#161c23; --ink2:#4b5560; --ink3:#6d7883;
+  --rule:#d3d8d2; --rule-strong:#b3bcb4;
+  --accent:#2b5f7e; --accent-ink:#1d465f; --accent-soft:#e6eef3;
+  --warn:#7d4a1d; --warn-soft:#f6ede2;
+  --shadow:0 1px 2px rgba(18,26,32,.06),0 12px 34px rgba(18,26,32,.07);
+  --serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --display:"Newsreader","Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --sheet-w:52rem;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b0e12; --paper:#12171d; --ink:#e4e9ee; --ink2:#a8b3be; --ink3:#8592a0;
+    --rule:#242d36; --rule-strong:#38434f;
+    --accent:#7fb3d1; --accent-ink:#a8cee4; --accent-soft:#152430;
+    --warn:#d9a86b; --warn-soft:#241a10;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b0e12; --paper:#12171d; --ink:#e4e9ee; --ink2:#a8b3be; --ink3:#8592a0;
+  --rule:#242d36; --rule-strong:#38434f;
+  --accent:#7fb3d1; --accent-ink:#a8cee4; --accent-soft:#152430;
+  --warn:#d9a86b; --warn-soft:#241a10;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--serif); font-size:16.5px; line-height:1.62;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:74rem;margin:0 auto;padding-block:clamp(20px,4vw,44px) 72px}
+.masthead{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:18px;border-bottom:2px solid var(--rule-strong);margin-bottom:clamp(18px,3vw,30px)}
+.masthead .kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.masthead h1{font-family:var(--display);font-weight:600;font-size:clamp(1.85rem,4.4vw,2.9rem);line-height:1.08;margin:0;letter-spacing:-.015em;text-wrap:balance}
+.masthead p.sub{margin:10px 0 0;color:var(--ink2);max-width:44ch;font-size:.95rem}
+.masthead .meta{font-family:var(--mono);font-size:.7rem;color:var(--ink3);text-align:right;line-height:1.9}
+@media (max-width:620px){.masthead .meta{text-align:left}}
+
+/* fill-in bar */
+.filler{background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);
+  padding:clamp(14px,2.6vw,20px);margin-bottom:clamp(20px,3.4vw,34px)}
+.filler h2{font-family:var(--mono);font-weight:500;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink2);margin:0 0 12px}
+.filler-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px}
+.filler label{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);min-width:0}
+.filler input{font-family:var(--serif);font-size:.92rem;color:var(--ink);background:var(--bg);
+  border:1px solid var(--rule);border-radius:7px;padding:7px 9px;min-width:0}
+.filler input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.filler .hint{margin:12px 0 0;font-size:.82rem;color:var(--ink3)}
+.filler .hint b{color:var(--ink2);font-weight:600}
+
+/* document shells */
+.doc{margin-bottom:clamp(34px,6vw,64px)}
+.doc-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(16px,2.4vw,28px)}
+@media (min-width:1040px){.doc-grid{grid-template-columns:13.5rem minmax(0,1fr)}}
+.rail{position:sticky;top:18px;align-self:start;font-family:var(--mono);font-size:.7rem;line-height:1.55}
+.rail .rail-label{color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px;font-size:.62rem}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:block;padding:3px 0 3px 9px;border-left:2px solid transparent;color:var(--ink2);text-decoration:none}
+.rail a:hover{border-left-color:var(--accent);color:var(--accent-ink)}
+.rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1039px){.rail{display:none}}
+
+.sheet{background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);
+  padding:clamp(20px,4vw,52px);min-width:0}
+.sheet-head{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:baseline;
+  padding-bottom:14px;border-bottom:1px solid var(--rule);margin-bottom:22px}
+.sheet-head .docno{font-family:var(--mono);font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+.sheet-head .stamp{font-family:var(--mono);font-size:.64rem;color:var(--ink3);letter-spacing:.08em}
+.sheet h2{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,2.6vw,1.72rem);line-height:1.18;
+  margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sheet .standfirst{color:var(--ink2);font-size:.95rem;margin:0 0 26px;max-width:60ch}
+.sheet h3{font-family:var(--mono);font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-ink);margin:30px 0 8px;padding-top:12px;border-top:1px solid var(--rule)}
+.sheet h4{font-family:var(--serif);font-weight:600;font-size:1rem;margin:20px 0 6px}
+.sheet p{margin:0 0 11px;max-width:70ch}
+.sheet ol.clauses{list-style:none;counter-reset:clause;margin:0;padding:0}
+.sheet ol.clauses{--sec:"1"}
+.sheet ol.clauses>li{counter-increment:clause;position:relative;padding-left:3.6rem;margin:0 0 14px}
+.sheet ol.clauses>li::before{content:var(--sec) "." counter(clause);position:absolute;left:0;top:0;width:3.1rem;
+  font-family:var(--mono);font-size:.8rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.sheet ol.clauses.letters>li{padding-left:2.2rem}
+.sheet ol.clauses.letters>li::before{content:counter(clause,upper-alpha) ".";width:1.8rem}
+.sheet ol.sub{list-style:none;margin:0;padding:0}
+.sheet ol.sub>li{position:relative;padding-left:2rem;margin:0 0 7px;color:var(--ink)}
+.sheet ol.sub.letters>li::before{position:absolute;left:0;top:0;font-family:var(--mono);font-size:.76rem;color:var(--ink3)}
+.sheet ol.sub.letters{counter-reset:sub}
+.sheet ol.sub.letters>li{counter-increment:sub}
+.sheet ol.sub.letters>li::before{content:"(" counter(sub,lower-alpha) ")"}
+.sheet ul.plain{margin:0 0 12px;padding-left:1.15rem}
+.sheet ul.plain li{margin:0 0 5px;max-width:68ch}
+.sheet .fill{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent-ink);
+  padding:0 .3em;border-radius:3px;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.sheet .fill.blank{color:var(--ink3);background:transparent;border-bottom:1px dashed var(--rule-strong)}
+.sheet strong{font-weight:600}
+.sheet .caps{font-family:var(--mono);font-size:.78rem;letter-spacing:.02em;line-height:1.6;
+  background:var(--bg);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 6px 6px 0;margin:0 0 14px}
+.sheet table{width:100%;border-collapse:collapse;margin:6px 0 18px;font-size:.9rem;font-variant-numeric:tabular-nums}
+.sheet table caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:.64rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:6px}
+.sheet th,.sheet td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sheet th{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sheet td.num{text-align:right;font-family:var(--mono);font-size:.85rem;white-space:nowrap}
+.sheet tr.total td{border-top:2px solid var(--rule-strong);font-weight:600}
+.scroll{overflow-x:auto;max-width:100%}
+
+.sig{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px 40px;margin-top:26px}
+.sig .party{min-width:0}
+.sig .party h4{margin:0 0 22px;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sig .line{border-bottom:1px solid var(--ink2);height:26px;margin-bottom:5px}
+.sig .cap{font-family:var(--mono);font-size:.62rem;color:var(--ink3);letter-spacing:.06em}
+
+.note{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 28%,transparent);
+  border-radius:10px;padding:14px 16px;margin:24px 0 0;font-size:.88rem;color:var(--ink)}
+.note strong{color:var(--warn)}
+.note p{margin:0 0 7px;max-width:72ch}
+.note p:last-child{margin-bottom:0}
+
+.checks{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.checks li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;
+  padding:10px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--bg);font-size:.9rem}
+.checks .mark{font-family:var(--mono);font-size:.7rem;color:var(--accent);padding-top:2px}
+.checks b{display:block;font-weight:600;margin-bottom:1px}
+.checks span.body{color:var(--ink2)}
+
+footer.packet{margin-top:8px;padding-top:18px;border-top:1px solid var(--rule);color:var(--ink3);
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between}
+
+@media print{
+  @page{margin:16mm 14mm}
+  body{background:#fff;color:#000;font-size:10.5pt;padding:0}
+  .wrap{max-width:none;padding:0}
+  .filler,.rail,.masthead .meta,footer.packet{display:none!important}
+  .masthead{border-bottom:1px solid #000;margin-bottom:10mm}
+  .sheet{border:0;box-shadow:none;border-radius:0;padding:0;background:#fff}
+  .doc{margin:0}
+  .doc+.doc{break-before:page}
+  .sheet h3{break-after:avoid}
+  .sheet p,.sheet li{orphans:2;widows:2}
+  .sig{break-inside:avoid}
+  a{color:#000;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="kicker">Draft agreements · provider side</p>
+      <h1>PhantomIDE contract packet</h1>
+      <p class="sub">Two agreements for the website business: a build-and-hosting contract you can send to any client, and the payment agreement for the Junkalot balance.</p>
+    </div>
+    <div class="meta">
+      Prepared 8 November 2026<br>
+      Documents: 2 + review notes<br>
+      Status: draft for attorney review
+    </div>
+  </header>
+
+  <section class="filler" aria-labelledby="filler-title">
+    <h2 id="filler-title">Fill in once — every blank below updates</h2>
+    <div class="filler-grid">
+      <label>Business legal name<input data-f="biz" placeholder="e.g. PhantomIDE LLC" autocomplete="organization"></label>
+      <label>State of organization<input data-f="state" placeholder="e.g. Pennsylvania" autocomplete="address-level1"></label>
+      <label>County<input data-f="county" placeholder="e.g. Westmoreland"></label>
+      <label>Notice address<input data-f="addr" placeholder="street, city, state ZIP" autocomplete="street-address"></label>
+      <label>Notice email<input data-f="email" placeholder="billing@phantomide.com" autocomplete="email" inputmode="email"></label>
+      <label>Effective date<input data-f="effDate" placeholder="8 November 2026"></label>
+      <label>Junkalot client's legal name<input data-f="client" placeholder="full legal name"></label>
+      <label>Client address<input data-f="clientAddr" placeholder="street, city, state ZIP"></label>
+      <label>Client email<input data-f="clientEmail" placeholder="client@example.com" inputmode="email"></label>
+      <label>First installment date<input data-f="firstPay" placeholder="1 January 2027"></label>
+    </div>
+    <p class="hint">Values stay in this browser only. To hand a client a clean copy, fill what you can, then print the page to PDF with your browser (<b>Ctrl/Cmd + P</b>) — the fill bar and contents rails drop out of the printout.</p>
+  </section>
+
+  <!-- ============================= DOCUMENT 1 ============================= -->
+  <section class="doc" id="doc1" aria-labelledby="d1-title">
+    <div class="doc-grid">
+      <nav class="rail" aria-label="Agreement sections">
+        <p class="rail-label">Agreement</p>
+        <ol>
+          <li><a href="#d1-s1">1. Parties and effective date</a></li>
+          <li><a href="#d1-s2">2. Services</a></li>
+          <li><a href="#d1-s3">3. Client responsibilities</a></li>
+          <li><a href="#d1-s4">4. Fees and payment</a></li>
+          <li><a href="#d1-s5">5. Schedule and revisions</a></li>
+          <li><a href="#d1-s6">6. Launch, hosting, care</a></li>
+          <li><a href="#d1-s7">7. Domains and third parties</a></li>
+          <li><a href="#d1-s8">8. Intellectual property</a></li>
+          <li><a href="#d1-s9">9. Confidentiality</a></li>
+          <li><a href="#d1-s10">10. Independent contractor</a></li>
+          <li><a href="#d1-s11">11. Warranties</a></li>
+          <li><a href="#d1-s12">12. Liability</a></li>
+          <li><a href="#d1-s13">13. Indemnification</a></li>
+          <li><a href="#d1-s14">14. Term and termination</a></li>
+          <li><a href="#d1-s15">15. Disputes</a></li>
+          <li><a href="#d1-s16">16. General</a></li>
+          <li><a href="#d1-a">Schedule A — Order Form</a></li>
+          <li><a href="#d1-b">Schedule B — Care Plan</a></li>
+        </ol>
+      </nav>
+
+      <article class="sheet">
+        <div class="sheet-head">
+          <span class="docno">Document 1 of 2</span>
+          <span class="stamp">Provider-favorable draft</span>
+        </div>
+        <h2 id="d1-title">Website Design, Development and Hosting Agreement</h2>
+        <p class="standfirst">This Agreement covers one client and one engagement. The Order Form in Schedule A sets the scope, price and timeline; everything else below applies to every engagement unless the Order Form explicitly changes it.</p>
+
+        <h3 id="d1-s1">1. Parties and effective date</h3>
+        <ol class="clauses" style="--sec:'1'">
+          <li>This Agreement is made on <span class="fill" data-f="effDate"></span> between <span class="fill" data-f="biz"></span>, of <span class="fill" data-f="addr"></span> ("Provider"), and the client named in the Order Form ("Client").</li>
+          <li>The person signing for Client represents that they are authorized to bind Client to this Agreement.</li>
+        </ol>
+
+        <h3 id="d1-s2">2. Services</h3>
+        <ol class="clauses" style="--sec:'2'">
+          <li><strong>Scope.</strong> Provider will design, build, test and launch the website described in the Order Form, and will provide the hosting and care services selected there. Anything not written in the Order Form is out of scope.</li>
+          <li><strong>Out of scope by default.</strong> Unless the Order Form lists it: copywriting beyond the text Client supplies, photography and video production, logo and identity design, paid advertising, search-engine optimization retainers, social media management, third-party subscription costs, and data migration from systems Provider has not been given access to.</li>
+          <li><strong>AI-assisted tooling.</strong> Provider uses AI-assisted development tools under its own direction and review. Provider is responsible for the delivered result, but Client acknowledges that portions of the code may be machine-generated and human-reviewed rather than hand-typed line by line.</li>
+          <li><strong>Method.</strong> Provider chooses its own tools, frameworks, hosts and workflow. Provider may change them where it does not materially reduce what Client receives.</li>
+        </ol>
+
+        <h3 id="d1-s3">3. Client responsibilities</h3>
+        <ol class="clauses" style="--sec:'3'">
+          <li><strong>Content.</strong> Client supplies the text, images, logos, product data, prices and claims for the site, and warrants that it owns or has permission to use all of it and that it is accurate and lawful.</li>
+          <li><strong>Decisions.</strong> Client names one contact person with authority to approve work, and responds to questions and approvals within five business days.</li>
+          <li><strong>Access.</strong> Client provides timely access to any domain registrar, hosting account, business profile or third-party account the work requires. Provider does not purchase accounts in Client's name without written instruction.</li>
+          <li><strong>Delays.</strong> A delay caused by Client extends the schedule by at least as long as the delay, and Provider may invoice work completed to that point.</li>
+          <li><strong>Compliance.</strong> Client is responsible for the legal and regulatory requirements of its own business, including licensing, advertising rules, consumer-protection rules and accessibility commitments beyond the build standard in the Order Form.</li>
+        </ol>
+
+        <h3 id="d1-s4">4. Fees and payment</h3>
+        <ol class="clauses" style="--sec:'4'">
+          <li><strong>Price.</strong> Client pays the fees in the Order Form. Unless the Order Form says otherwise, half is due before build work starts and the rest before launch.</li>
+          <li><strong>Invoicing.</strong> Invoices are due within seven days. Late amounts carry interest at 1.5% per month or the highest rate the law allows, whichever is lower.</li>
+          <li><strong>Work stoppage.</strong> If an invoice is more than ten days overdue, Provider may pause work and suspend hosting after written notice, and may resume once the account is current. Suspension is not a waiver of anything owed.</li>
+          <li><strong>Disputes and chargebacks.</strong> Client will raise a billing dispute in writing before contacting its card issuer. Client agrees not to reverse a charge for work that was delivered as described. A chargeback for delivered work is a breach of this Agreement.</li>
+          <li><strong>Taxes.</strong> Fees exclude sales, use and similar taxes, which Client pays where applicable. Each party pays its own income taxes.</li>
+          <li><strong>Expenses.</strong> Third-party costs are billed at cost and only when approved in writing in advance.</li>
+        </ol>
+
+        <h3 id="d1-s5">5. Schedule, revisions and change orders</h3>
+        <ol class="clauses" style="--sec:'5'">
+          <li><strong>Revisions.</strong> Two rounds of revisions within the agreed scope are included unless the Order Form says otherwise. Further rounds, or work outside the scope, are billed at Provider's hourly rate stated in the Order Form.</li>
+          <li><strong>Change orders.</strong> A change in scope is documented in writing with its effect on price and schedule, and takes effect when Client approves it. Approval resets the relevant dates.</li>
+          <li><strong>Acceptance.</strong> Client has five business days after a delivery notice to object in writing to a defect against the Order Form. Without a written objection in that window, the delivery is accepted.</li>
+          <li><strong>Launch.</strong> Provider launches the site when the build is accepted and all build fees are paid.</li>
+        </ol>
+
+        <h3 id="d1-s6">6. Launch, hosting and care</h3>
+        <ol class="clauses" style="--sec:'6'">
+          <li><strong>Hosting term.</strong> Hosting and care run month to month under Schedule B and either party may end them with thirty days' written notice.</li>
+          <li><strong>Availability.</strong> Provider uses commercially reasonable efforts to keep the site online and reachable over HTTPS, and does not warrant uninterrupted or error-free operation.</li>
+          <li><strong>Exclusions from availability.</strong> Downtime caused by Client's own edits, third-party outages or policy changes, domain or DNS problems outside Provider's control, denial-of-service attacks, or events of force majeure does not count against availability.</li>
+          <li><strong>Backups.</strong> Provider keeps periodic backups but they are a convenience, not a data-recovery guarantee. Client keeps its own copy of all content and data it cannot afford to lose.</li>
+          <li><strong>Maintenance.</strong> Provider may take the site down briefly for maintenance and will avoid peak hours where practical.</li>
+          <li><strong>Security response.</strong> Provider may suspend or restrict the site to contain abuse, malware or a legal threat, and will tell Client why.</li>
+        </ol>
+
+        <h3 id="d1-s7">7. Domains and third-party services</h3>
+        <ol class="clauses" style="--sec:'7'">
+          <li><strong>Domain ownership.</strong> A domain registered for Client is registered in Client's name and belongs to Client. Registration and renewal fees are Client's cost and Client's responsibility to keep current.</li>
+          <li><strong>Third parties.</strong> The site may depend on services such as Cloudflare, Stripe, Google or GitHub sign-in, and email delivery. Those services are governed by their own terms, and Provider is not responsible for their outages, pricing changes, rejections or account decisions.</li>
+          <li><strong>Credentials.</strong> Provider keeps API keys, OAuth secrets and payment credentials server-side and does not place them in page source, client-side code or public repositories. Client will not ask Provider to embed secrets in the browser.</li>
+          <li><strong>No platform guarantee.</strong> Provider does not guarantee approval or continued access on any third-party platform, including search engines, business profiles, app stores or advertising networks.</li>
+        </ol>
+
+        <h3 id="d1-s8">8. Intellectual property</h3>
+        <ol class="clauses" style="--sec:'8'">
+          <li><strong>Transfer on payment.</strong> On receipt of all amounts due for the build, Provider assigns to Client the copyright in the custom design and code created for the site.</li>
+          <li><strong>Until payment.</strong> Until then Client has a limited, non-exclusive, non-transferable licence to review and use the work product, and ownership stays with Provider.</li>
+          <li><strong>Provider materials.</strong> Provider keeps ownership of its pre-existing tools, templates, libraries and know-how, and grants Client a perpetual, royalty-free licence to use any of them embedded in the delivered site so the site keeps working.</li>
+          <li><strong>Third-party assets.</strong> Fonts, stock images, icons and libraries remain under their own licences. Client pays any licence fee the Order Form attributes to Client.</li>
+          <li><strong>Portfolio.</strong> Unless Client opts out in writing, Provider may display the finished site, screenshots and a link in its portfolio and marketing.</li>
+        </ol>
+
+        <h3 id="d1-s9">9. Confidentiality</h3>
+        <ol class="clauses" style="--sec:'9'">
+          <li>Each party keeps the other's non-public business information confidential, uses it only to perform this Agreement, and protects it with reasonable care for three years after the engagement ends.</li>
+          <li>This does not cover information that is public, independently developed, received from a third party without a duty, or required to be disclosed by law, provided the other party is notified where lawful.</li>
+        </ol>
+
+        <h3 id="d1-s10">10. Independent contractor</h3>
+        <ol class="clauses" style="--sec:'10'">
+          <li>Provider is an independent contractor. Nothing here creates employment, partnership, joint venture or agency, and neither party may bind the other.</li>
+          <li>Provider supplies its own equipment and pays its own taxes, insurance and benefits. Client does not withhold taxes for Provider.</li>
+        </ol>
+
+        <h3 id="d1-s11">11. Warranties</h3>
+        <ol class="clauses" style="--sec:'11'">
+          <li>Provider warrants that the work will be performed in a workmanlike manner, will materially match the Order Form, and, to Provider's knowledge, will not infringe a third party's intellectual property.</li>
+          <li>Provider will correct a defect reported within thirty days of launch at no charge if the defect is in the delivered work and not caused by Client's edits or a third-party change.</li>
+          <li><strong>No performance promises.</strong> Provider does not warrant search rankings, traffic, conversion rates, revenue, advertising results or the behaviour of third-party platforms or AI models.</li>
+          <li class="caps">EXCEPT AS STATED ABOVE, THE SERVICES AND ANY HOSTING ARE PROVIDED "AS IS" AND "AS AVAILABLE", AND PROVIDER DISCLAIMS ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.</li>
+        </ol>
+
+        <h3 id="d1-s12">12. Limitation of liability</h3>
+        <ol class="clauses" style="--sec:'12'">
+          <li>Except as stated in section 12.4, each party's total liability arising out of this Agreement is limited to the amount Client paid Provider under it in the twelve months before the claim, or the total build fee if that is less.</li>
+          <li>Neither party is liable for indirect, incidental, special, punitive or consequential damages, or for lost profits, lost revenue, lost data or business interruption, even if advised they were possible.</li>
+          <li>Client's sole remedy for a hosting or availability failure is to end the hosting service and receive a pro-rata refund of any prepaid hosting fees.</li>
+          <li>Nothing in this section limits liability for gross negligence or wilful misconduct, breach of confidentiality, a party's indemnification obligations, or any liability that cannot be limited by law.</li>
+        </ol>
+
+        <h3 id="d1-s13">13. Indemnification</h3>
+        <ol class="clauses" style="--sec:'13'">
+          <li><strong>By Client.</strong> Client will defend and indemnify Provider against claims, damages and reasonable legal costs arising from Client's content, Client's products or services, Client's own legal and regulatory compliance, or Client's misuse of the delivered site.</li>
+          <li><strong>By Provider.</strong> Provider will defend and indemnify Client against a third-party claim that the delivered custom work infringes a copyright or trademark, provided Client notifies Provider promptly, gives Provider control of the defence, and does not settle without consent. Provider's obligation is limited by section 12.</li>
+          <li><strong>Procedure.</strong> The indemnified party gives prompt notice, reasonable cooperation, and control of the defence to the indemnifying party.</li>
+        </ol>
+
+        <h3 id="d1-s14">14. Term, suspension and termination</h3>
+        <ol class="clauses" style="--sec:'14'">
+          <li>The build term runs until the site is accepted and launched. Hosting runs month to month under Schedule B.</li>
+          <li>Either party may terminate for material breach if the breach is not cured within fifteen days of written notice. Provider may suspend service immediately for non-payment beyond the notice period in section 4.3, or for content that is unlawful or creates a security risk.</li>
+          <li>On termination Client pays for work performed and expenses incurred through the termination date.</li>
+          <li>On full payment Provider hands over the deliverables and any Client-owned accounts and credentials. Hosting stops at the end of the paid period and the site may go offline.</li>
+          <li>Sections 4, 8, 9, 11, 12, 13, 15 and 16 survive termination.</li>
+        </ol>
+
+        <h3 id="d1-s15">15. Dispute resolution and governing law</h3>
+        <ol class="clauses" style="--sec:'15'">
+          <li><strong>Talk first.</strong> The parties will attempt to resolve any dispute by written notice and thirty days of good-faith negotiation.</li>
+          <li><strong>Mediation, then arbitration.</strong> If negotiation fails, the dispute goes to mediation, and then to binding arbitration administered under the commercial rules of the American Arbitration Association, seated in <span class="fill" data-f="county"></span> County, <span class="fill" data-f="state"></span>. A single arbitrator decides, and judgment on the award may be entered in any court with jurisdiction.</li>
+          <li><strong>Carve-outs.</strong> Either party may bring an individual claim in small claims court, and either party may seek injunctive relief in court to protect intellectual property or confidential information.</li>
+          <li><strong>Class action waiver.</strong> Disputes are brought only individually, not as part of a class or representative action, to the extent the law allows.</li>
+          <li><strong>Fees.</strong> In arbitration the arbitrator may award the prevailing party its reasonable attorney fees and costs.</li>
+          <li><strong>Governing law.</strong> This Agreement is governed by the laws of the State of <span class="fill" data-f="state"></span>, without regard to its conflict-of-laws rules.</li>
+        </ol>
+
+        <h3 id="d1-s16">16. General</h3>
+        <ol class="clauses" style="--sec:'16'">
+          <li><strong>Entire agreement.</strong> This Agreement with its Schedules is the whole agreement and replaces any earlier proposal, quote or discussion on the same subject.</li>
+          <li><strong>Amendments.</strong> Changes must be in writing and signed or electronically accepted by both parties.</li>
+          <li><strong>Severability and waiver.</strong> If a provision is unenforceable it is cut back to the minimum needed and the rest stands. Not enforcing a term once is not a waiver.</li>
+          <li><strong>Assignment.</strong> Client may not assign this Agreement without Provider's written consent. Provider may assign it to a successor of the business.</li>
+          <li><strong>Notices.</strong> Written notices go to the addresses in the Order Form, or by email with confirmation of receipt. Notice to Provider: <span class="fill" data-f="email"></span>.</li>
+          <li><strong>Force majeure.</strong> Neither party is liable for a delay caused by events beyond its reasonable control, provided it notifies the other and resumes promptly.</li>
+          <li><strong>Counterparts and e-signature.</strong> This Agreement may be signed in counterparts and by electronic signature, which is binding under the federal E-SIGN Act and applicable state law.</li>
+          <li><strong>Independent counsel.</strong> Each party has had the chance to consult its own lawyer and signs voluntarily.</li>
+        </ol>
+
+        <h3 id="d1-a">Schedule A — Order Form</h3>
+        <p>Complete this form and attach it to the Agreement. Where the Order Form conflicts with the body of the Agreement, the Order Form controls for that engagement.</p>
+        <div class="scroll">
+          <table>
+            <caption>Engagement details</caption>
+            <tbody>
+              <tr><th scope="row">Client legal name</th><td><span class="fill" data-f="client"></span></td></tr>
+              <tr><th scope="row">Client address</th><td><span class="fill" data-f="clientAddr"></span></td></tr>
+              <tr><th scope="row">Client contact email</th><td><span class="fill" data-f="clientEmail"></span></td></tr>
+              <tr><th scope="row">Project / site name</th><td><span class="fill" data-f="">[project name]</span></td></tr>
+              <tr><th scope="row">Pages and included features</th><td><span class="fill" data-f="">[list pages, booking, payments, member sign-in, AI chat, and so on]</span></td></tr>
+              <tr><th scope="row">Build fee</th><td><span class="fill" data-f="">[$ amount]</span></td></tr>
+              <tr><th scope="row">Deposit due at signing</th><td><span class="fill" data-f="">[$ amount]</span></td></tr>
+              <tr><th scope="row">Balance due at launch</th><td><span class="fill" data-f="">[$ amount]</span></td></tr>
+              <tr><th scope="row">Hourly rate for out-of-scope work</th><td><span class="fill" data-f="">[$ / hour]</span></td></tr>
+              <tr><th scope="row">Hosting and care plan</th><td><span class="fill" data-f="">[$ / month, per Schedule B]</span></td></tr>
+              <tr><th scope="row">Domain</th><td><span class="fill" data-f="">[name and who registers it]</span></td></tr>
+              <tr><th scope="row">Target launch date</th><td><span class="fill" data-f="">[date]</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="d1-b">Schedule B — Website and Care Plan</h3>
+        <h4>Included each month</h4>
+        <ul class="plain">
+          <li>Hosting for the site on Provider's infrastructure, including the web server and its databases.</li>
+          <li>HTTPS certificate and tunnel or reverse-proxy configuration, monitored.</li>
+          <li>Deploys of approved changes and routine updates to the site's dependencies.</li>
+          <li>Monitoring for uptime and security problems, with notice to Client when something needs a decision.</li>
+          <li>A monthly allowance of support time for small edits, stated in the Order Form. Unused time does not roll over.</li>
+        </ul>
+        <h4>Not included</h4>
+        <ul class="plain">
+          <li>New pages, new features or a redesign, which are change orders.</li>
+          <li>Content writing, photography or graphic design.</li>
+          <li>Search-engine optimization, advertising management or social media work.</li>
+          <li>Recovery from damage caused by Client's own edits, by malware on Client's devices, or by a third party Client authorized.</li>
+          <li>Third-party subscription fees, including domain renewal, email services and payment processing.</li>
+        </ul>
+        <h4>Service expectations</h4>
+        <p>Support requests are answered on the next business day during Provider's normal business hours. Urgent outages are triaged first. The plan is month to month and either party may end it with thirty days' written notice; work already performed is still payable.</p>
+
+        <h4>Signatures</h4>
+        <div class="sig">
+          <div class="party">
+            <h4>Provider</h4>
+            <div class="line"></div><div class="cap">Signature</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Printed name and title</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Date</div>
+          </div>
+          <div class="party">
+            <h4>Client</h4>
+            <div class="line"></div><div class="cap">Signature</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Printed name and title</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Date</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================= DOCUMENT 2 ============================= -->
+  <section class="doc" id="doc2" aria-labelledby="d2-title">
+    <div class="doc-grid">
+      <nav class="rail" aria-label="Payment agreement sections">
+        <p class="rail-label">Payment agreement</p>
+        <ol>
+          <li><a href="#d2-s1">Recitals</a></li>
+          <li><a href="#d2-s2">1. Acknowledgment of delivery</a></li>
+          <li><a href="#d2-s3">2. Amount due</a></li>
+          <li><a href="#d2-s4">3. Installments</a></li>
+          <li><a href="#d2-s5">4. Care plan during the term</a></li>
+          <li><a href="#d2-s6">5. Prepayment</a></li>
+          <li><a href="#d2-s7">6. Late payment and suspension</a></li>
+          <li><a href="#d2-s8">7. Default and acceleration</a></li>
+          <li><a href="#d2-s9">8. Ownership until paid</a></li>
+          <li><a href="#d2-s10">9. No chargebacks</a></li>
+          <li><a href="#d2-s11">10. Release of claims</a></li>
+          <li><a href="#d2-s12">11. Records and statements</a></li>
+          <li><a href="#d2-s13">12. Notices and disputes</a></li>
+          <li><a href="#d2-s14">13. General</a></li>
+          <li><a href="#d2-a">Exhibit A — Delivered work</a></li>
+        </ol>
+      </nav>
+
+      <article class="sheet">
+        <div class="sheet-head">
+          <span class="docno">Document 2 of 2</span>
+          <span class="stamp">Balance: $13,126.99</span>
+        </div>
+        <h2 id="d2-title">Payment Agreement and Care Plan</h2>
+        <p class="standfirst">This Agreement records work already delivered, the amount still owed, the installment schedule, and the care plan that runs while the balance is being paid.</p>
+
+        <h3 id="d2-s1">Recitals</h3>
+        <ol class="clauses letters">
+          <li>Provider designed, built and launched the client's website and booking system, including the pages, backend services, booking and invoice flows, email delivery, an AI coach, visitor chat and a security and monitoring setup, as summarised in Exhibit A.</li>
+          <li>Client has received the site, has been using it in the ordinary course of business, and is satisfied with the work delivered to date.</li>
+          <li>The parties want to record the remaining balance and the terms on which it is paid, so that the schedule is clear to both of them.</li>
+        </ol>
+        <p>Accordingly, the parties agree as follows.</p>
+
+        <h3 id="d2-s2">1. Acknowledgment of delivery</h3>
+        <ol class="clauses" style="--sec:'1'">
+          <li>Client acknowledges that the work described in Exhibit A has been delivered, deployed and made available to Client, and that it materially matches what was agreed.</li>
+          <li>Client accepts the delivered work as complete. A defect in the delivered work reported in writing within thirty days of this Agreement will be corrected at no charge. After that window, corrections are support work under the care plan.</li>
+        </ol>
+
+        <h3 id="d2-s3">2. Amount due</h3>
+        <ol class="clauses" style="--sec:'2'">
+          <li>The agreed contract amount is <strong>$15,375.99</strong>, made up of a $15,000.00 base build and $375.99 for photo maintenance.</li>
+          <li>Credited to date: <strong>$2,249.00</strong>, being $2,000.00 paid and $249.00 credited toward the first monthly installment.</li>
+          <li><strong>Remaining balance: $13,126.99.</strong> Client owes this amount, payable as set out below.</li>
+        </ol>
+        <div class="scroll">
+          <table>
+            <caption>Balance summary</caption>
+            <tbody>
+              <tr><th scope="row">Base build</th><td class="num">$15,000.00</td></tr>
+              <tr><th scope="row">Photo maintenance</th><td class="num">$375.99</td></tr>
+              <tr class="total"><th scope="row">Contract total</th><td class="num">$15,375.99</td></tr>
+              <tr><th scope="row">Paid to date</th><td class="num">$2,000.00</td></tr>
+              <tr><th scope="row">Monthly credit applied</th><td class="num">$249.00</td></tr>
+              <tr class="total"><th scope="row">Remaining balance</th><td class="num">$13,126.99</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="d2-s4">3. Installments</h3>
+        <ol class="clauses" style="--sec:'3'">
+          <li>Client will pay <strong>$249.00 per month</strong> for fifty-two months, followed by a final payment of <strong>$178.99</strong>, for 53 payments totalling $13,126.99.</li>
+          <li>The first installment is due <span class="fill" data-f="firstPay"></span>. Later installments are due on the first day of each month after that. On the stated schedule the balance is cleared in <strong>May 2031</strong>.</li>
+          <li>Payments are made by the method Provider invoices or by any method the parties agree in writing. Client is responsible for keeping its payment details current.</li>
+          <li>Each payment is applied to the balance in the order it falls due. A payment made in a month is not charged again in a later month.</li>
+        </ol>
+
+        <h3 id="d2-s5">4. Care plan during the term</h3>
+        <ol class="clauses" style="--sec:'4'">
+          <li>While this Agreement is current, the <strong>PhantomIDE Website and Booking Care</strong> plan is included at no additional charge. It covers hosting for the site and its databases, the domain's DNS and HTTPS configuration under Provider's control, deploys of approved changes, booking and email support, the AI coach and visitor chat, security monitoring, backups, and a quarterly review call or visit.</li>
+          <li>The plan does not include new pages or features, a redesign, content writing or photography, advertising or search work, third-party subscription fees, or recovery from damage caused by Client's own edits or by a third party Client authorized. Those are quoted separately.</li>
+          <li>Support requests are answered on the next business day. Urgent outages are triaged first.</li>
+          <li>If Client stops paying, the care plan, hosting included, may be suspended under section 6.</li>
+        </ol>
+
+        <h3 id="d2-s6">5. Prepayment</h3>
+        <ol class="clauses" style="--sec:'5'">
+          <li>Client may pay ahead at any time without penalty. A prepayment is applied to the earliest unpaid installments, and the remaining schedule shortens accordingly.</li>
+          <li>Provider will confirm the reduced balance in writing after a prepayment clears.</li>
+        </ol>
+
+        <h3 id="d2-s7">6. Late payment and suspension</h3>
+        <ol class="clauses" style="--sec:'6'">
+          <li>An installment is late if it is not received within five days of its due date.</li>
+          <li>A late amount carries interest at 1.5% per month, or the highest rate the law allows, whichever is lower, from the due date until paid.</li>
+          <li>If an installment is thirty days late, Provider may suspend hosting and the care plan after written notice. Service resumes within two business days after the overdue amount and any interest are paid. A suspension does not cancel the debt or the remaining schedule.</li>
+          <li>Provider may charge a reasonable reactivation fee after a suspension caused by non-payment, stated in the notice.</li>
+        </ol>
+
+        <h3 id="d2-s8">7. Default and acceleration</h3>
+        <ol class="clauses" style="--sec:'7'">
+          <li>Client is in default if two consecutive installments are missed, or three installments are missed in any twelve-month period, or a payment is reversed after it was made.</li>
+          <li>On default, after written notice and ten days to cure, Provider may declare the entire remaining balance immediately due and pursue any remedy available at law or in equity.</li>
+          <li>Provider may also terminate the licence in section 8 and take the site offline. Client remains responsible for all amounts already due plus the accelerated balance.</li>
+        </ol>
+
+        <h3 id="d2-s9">8. Ownership until paid in full</h3>
+        <ol class="clauses" style="--sec:'8'">
+          <li>The custom code and design for the site remain the property of Provider until the balance is paid in full. Until then Client holds a non-exclusive, non-transferable licence to operate the site for its business, which is revoked if Client defaults and does not cure within the notice period.</li>
+          <li>On receipt of the final payment, Provider assigns the copyright in the custom work to Client and provides the handover described in section 13. Provider keeps ownership of its pre-existing tools and grants Client a perpetual licence to use them as embedded in the site.</li>
+          <li>Client may not resell, sublicense or transfer the site or its code to a third party before the balance is paid in full without Provider's written consent.</li>
+        </ol>
+
+        <h3 id="d2-s10">9. No chargebacks; acknowledgment</h3>
+        <ol class="clauses" style="--sec:'9'">
+          <li>Client acknowledges the work described in Exhibit A was delivered and accepted, and agrees not to reverse or dispute a payment for it through its card issuer or bank.</li>
+          <li>If Client believes an amount is wrong, Client will give Provider written notice and ten business days to correct it before taking any other step.</li>
+          <li>A chargeback for a payment that was due under this Agreement is a default under section 7.</li>
+        </ol>
+
+        <h3 id="d2-s11">10. Release of claims</h3>
+        <ol class="clauses" style="--sec:'10'">
+          <li>In exchange for the payment terms in this Agreement, each party releases the other from claims arising before the effective date of this Agreement, other than the payment obligations recorded here, the warranty in section 1.2, and any claim that cannot be released by law.</li>
+          <li>This release does not cover fraud or wilful misconduct.</li>
+        </ol>
+
+        <h3 id="d2-s12">11. Records and statements</h3>
+        <ol class="clauses" style="--sec:'11'">
+          <li>Provider keeps a payment record showing each installment received, the running credit and the remaining balance, and will send a statement on request.</li>
+          <li>If the parties disagree about a payment, Provider's record governs unless Client produces a receipt or bank record showing otherwise.</li>
+        </ol>
+
+        <h3 id="d2-s13">12. Notices, law and disputes</h3>
+        <ol class="clauses" style="--sec:'12'">
+          <li>Notices go to the addresses above and by email to <span class="fill" data-f="email"></span> for Provider and <span class="fill" data-f="clientEmail"></span> for Client, or to a replacement address either party gives in writing.</li>
+          <li>The parties will first try to resolve a dispute by written notice and thirty days of good-faith negotiation, then by mediation, then by binding arbitration under the commercial rules of the American Arbitration Association seated in <span class="fill" data-f="county"></span> County, <span class="fill" data-f="state"></span>, except that either party may bring an individual claim in small claims court and either party may seek injunctive relief in court.</li>
+          <li>This Agreement is governed by the laws of the State of <span class="fill" data-f="state"></span>. In any proceeding the prevailing party may recover its reasonable attorney fees and costs.</li>
+        </ol>
+
+        <h3 id="d2-s14">13. General</h3>
+        <ol class="clauses" style="--sec:'13'">
+          <li>This Agreement with Exhibit A is the entire agreement on the balance and replaces earlier statements about it. Changes must be in writing and accepted by both parties.</li>
+          <li>On full payment Provider will hand over the site files, any assets it holds for Client, and the account access it controls, and will confirm the balance is zero in writing.</li>
+          <li>If a provision is unenforceable it is cut back to the minimum needed and the rest stands. Not enforcing a term once is not a waiver.</li>
+          <li>This Agreement may be signed in counterparts and by electronic signature, which is binding under the federal E-SIGN Act and applicable state law.</li>
+          <li>Each party has had the chance to consult its own lawyer and signs voluntarily.</li>
+        </ol>
+
+        <h3 id="d2-a">Exhibit A — Delivered work</h3>
+        <ul class="plain">
+          <li>15 site pages and the site's navigation, built and deployed.</li>
+          <li>19 backend services, including booking, customer records, invoices and email delivery.</li>
+          <li>Approximately 9,400 lines of application code, across 54 production builds and 67 recorded changes.</li>
+          <li>Hosting, the server and its databases, the domain's DNS and HTTPS configuration, and backups.</li>
+          <li>An AI coach for the business owner, a visitor chat, a security and monitoring panel, and an email monitor.</li>
+        </ul>
+
+        <h4>Signatures</h4>
+        <div class="sig">
+          <div class="party">
+            <h4>Provider — <span class="fill" data-f="biz"></span></h4>
+            <div class="line"></div><div class="cap">Signature</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Printed name and title</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Date</div>
+          </div>
+          <div class="party">
+            <h4>Client — <span class="fill" data-f="client"></span></h4>
+            <div class="line"></div><div class="cap">Signature</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Printed name and title</div>
+            <div class="line" style="margin-top:18px"></div><div class="cap">Date</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================= REVIEW NOTES ============================= -->
+  <section class="doc" id="notes" aria-labelledby="notes-title">
+    <article class="sheet">
+      <div class="sheet-head">
+        <span class="docno">Read before signing</span>
+        <span class="stamp">Not legal advice</span>
+      </div>
+      <h2 id="notes-title">What these documents do, and what they don't</h2>
+      <p class="standfirst">These are provider-side drafts, written to be reviewed and adjusted by a lawyer licensed in your state. They are a starting point that reflects how you actually work, not a substitute for advice.</p>
+
+      <ul class="checks">
+        <li><span class="mark">01</span><span><b>Have a lawyer read them once.</b><span class="body"> Arbitration clauses, late-fee rates, liability caps and the release in Document 2 are the parts most often tested. A one-hour review is cheap next to a dispute.</span></span></li>
+        <li><span class="mark">02</span><span><b>Sign as an entity, not as yourself.</b><span class="body"> An LLC or corporation is what keeps a business claim off your personal assets. If you sign personally, the liability cap protects the business, not you.</span></span></li>
+        <li><span class="mark">03</span><span><b>Keep the paper trail.</b><span class="body"> Signed Order Forms, invoices, payment records and change orders are what make these clauses usable. Document 2's payment record section is only worth something if you actually keep the record.</span></span></li>
+        <li><span class="mark">04</span><span><b>Match the offer to the paper.</b><span class="body"> The Order Form must state the real price and features. A contract that promises something the site does not do is worse than no contract.</span></span></li>
+        <li><span class="mark">05</span><span><b>Insurance.</b><span class="body"> A technology errors-and-omissions policy covers the claims these contracts limit but do not eliminate. A liability cap does not pay a lawyer.</span></span></li>
+        <li><span class="mark">06</span><span><b>Late fees have a ceiling.</b><span class="body"> Usury limits cap what 1.5% per month can mean in some states. The clause already says "or the highest rate the law allows"; confirm the number for your state.</span></span></li>
+        <li><span class="mark">07</span><span><b>Chargeback clauses do not override card rules.</b><span class="body"> They give you a contractual claim if a client reverses a delivered charge; the card network still decides the reversal itself.</span></span></li>
+        <li><span class="mark">08</span><span><b>Deliver what the contract says.</b><span class="body"> Handover on final payment, the licence that keeps embedded tools working, and the thirty-day defect window are promises. Keep them and the rest of the document holds up.</span></span></li>
+      </ul>
+
+      <div class="note">
+        <p><strong>Not legal advice.</strong> These drafts were prepared for review, not for signature as-is. Laws differ by state and change over time, and how a clause is enforced depends on the facts of a dispute.</p>
+        <p>Have a lawyer licensed in <span class="fill" data-f="state"></span> review both documents before you use them with a client. Nothing here creates an attorney-client relationship.</p>
+      </div>
+    </article>
+  </section>
+
+  <footer class="packet">
+    <span>PhantomIDE contract packet · draft 8 November 2026</span>
+    <span>Two agreements · review notes · print to PDF for signing</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var KEY = 'phantomide_contract_fields_v1';
+  var inputs = Array.prototype.slice.call(document.querySelectorAll('[data-f]'));
+  var fills = Array.prototype.slice.call(document.querySelectorAll('.fill[data-f]'));
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function save(data) {
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
+  var BLANKS = {
+    biz: '[business legal name]',
+    state: '[state]',
+    county: '[county]',
+    addr: '[notice address]',
+    email: '[notice email]',
+    effDate: '[effective date]',
+    client: '[client legal name]',
+    clientAddr: '[client address]',
+    clientEmail: '[client email]',
+    firstPay: '[first installment date]'
+  };
+  function placeholderFor(el) {
+    var f = el.getAttribute('data-f');
+    return BLANKS[f] || '[detail]';
+  }
+  function render(data) {
+    fills.forEach(function (span) {
+      var f = span.getAttribute('data-f');
+      var value = f && data[f] ? String(data[f]).trim() : '';
+      if (value) {
+        span.textContent = value;
+        span.classList.remove('blank');
+      } else {
+        span.textContent = span.getAttribute('data-empty') || placeholderFor(span);
+        span.classList.add('blank');
+      }
+    });
+  }
+  // Remember the placeholder the document shipped with, so an empty field falls back to it.
+  fills.forEach(function (span) {
+    span.setAttribute('data-empty', span.textContent.trim());
+  });
+
+  var data = load();
+  inputs.forEach(function (input) {
+    var f = input.getAttribute('data-f');
+    if (data[f]) input.value = data[f];
+    input.addEventListener('input', function () {
+      data[f] = input.value;
+      save(data);
+      render(data);
+    });
+  });
+  render(data);
+})();
+</script>

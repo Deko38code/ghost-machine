@@ -1,0 +1,27 @@
+You are doing a READ-ONLY analysis of two production update applets. Do not modify any file. Do not run build or network commands.
+
+PROJECT A (reference, other host): Junkalot.co update toast. A copy of its component is at /home/ghost/tmp-applet-ref/UpdateToast.tsx (Next.js, React, 1629 lines). It is the behaviour standard the owner wants matched.
+
+PROJECT B (the one under review): HaksterAI.com, working directory /home/ghost/haksterAi (Astro). Its applet is an inline markup+CSS+script block inside src/layouts/Layout.astro (roughly lines 281-1120). Its data comes from its OWN endpoints only:
+- GET /api/version  -> server/src/index.js line ~2212, build state from server/src/serverBuild.js and server/src/serverBuild.js stale/pending/applying
+- GET /api/applet/status, GET /api/applet/stream (SSE), POST /api/applet/event, GET /api/applet/events -> server/src/applet.js -> dev/applet/stream.cjs and dev/applet/telemetry.cjs
+- a dev copy of the same widget lives in dev/applet/applet.js and dev/applet/applet.html
+
+The owner's requirements for B:
+1. It must function the same as A with updates: the card must only OPEN when an update is queued/ready (or a build is running/failed/offline), never just because someone loaded the page; then it follows the same lifecycle (card -> chip after ~10 s -> edge tab after ~20 s, done-card closes ~5 s after the update finishes, real countdown/progress only where measured).
+2. No fabricated numbers or states. Never show COMPLETED before verification.
+3. Per-site isolation: B's applet must show only B's own builds. Flag anything where B reads or could display Junkalot data.
+
+TASK 1 - BEHAVIOUR DIFF REPORT
+Compare B's lifecycle against A and list every divergence that matters, each with: Layout.astro line number, what A does, what B does, and the minimal change. Pay special attention to:
+- initial mode/visibility on a normal page load (markup hard-codes data-mode="card")
+- what opens the card (queued update, newer build, applying, offline, failed) vs what only updates the chip/tab
+- the 8-second countdown: A shows a real seconds ring; does B show one, and does B ever auto-apply or reload by itself?
+- expand() (chip/tab click) and its scheduleDock interaction
+- anything that can leave the card pinned open with no update, or hidden while an update is running
+
+TASK 2 - SECURITY REVIEW OF THE APPLET SURFACE (both A's copy and B)
+Look for: DOM XSS and injection (innerHTML/outerHTML/document.write/insertAdjacentHTML, template strings into markup, unescaped server data, attribute injection via dataset/style), javascript: URLs, event-handler attributes, prototype/clobbering issues, unsafe JSON.parse paths, SSE frame parsing bugs, CSRF on POST /api/applet/event, authorization (does a public visitor reach owner-only routes; is the x-api-key header-only; does a key ever go in a URL or localStorage in a way that leaks), information disclosure on public endpoints (e.g. /api/version returning server source filenames in `files`, absolute paths or e.message on 500), rate limiting / event-log flooding, and anything in the widget that lets one site's data appear on another.
+For each finding: severity (critical/high/medium/low), file:line, the concrete exploit path in one or two sentences, and the minimal fix. If a category is clean, say so in one line with the evidence you checked.
+
+OUTPUT: two sections, "BEHAVIOUR DIFFS" and "SECURITY FINDINGS", then a short "MINIMAL PATCH PLAN" listing the exact files and edits needed (do not make them).

@@ -8,7 +8,9 @@ import { routes, money } from "../router.jsx";
    /booking-detail + /extension-request + /damageclaim of the real site. */
 export default function Confirmation({ route }) {
   const code = route.param;
-  const d = useBooking(code);
+  const paid = route.query?.get("paid");
+  const canceled = route.query?.get("canceled");
+  const d = useBooking(code, paid);
 
   if (!getToken()) return <div className="page"><h1 className="sec-title">Confirmation</h1><p className="sec-sub">Log in to view this booking.</p></div>;
   if (d === "missing") return <div className="page"><h1 className="sec-title">Booking not found</h1><a className="cta-line" href="#/bookings">All bookings →</a></div>;
@@ -19,6 +21,16 @@ export default function Confirmation({ route }) {
     <div className="page deposit">
       <h1 className="sec-title">Booking confirmed</h1>
       <p className="sec-sub">Reservation {b.code} is held. Complete the steps below to get on the road.</p>
+      {/* the Stripe return lands here — say what happened instead of dropping the flag */}
+      {paid && String(b.payment_state || "").startsWith("paid") && (
+        <p className="booked-note" style={{ marginTop: 10 }}><b style={{ color: "var(--amber)" }}>✅ Payment received</b> — rental and deposit are paid.</p>
+      )}
+      {paid && !String(b.payment_state || "").startsWith("paid") && (
+        <p className="booked-note" style={{ marginTop: 10 }}>Confirming your payment with the gateway…</p>
+      )}
+      {canceled && (
+        <p className="booked-note" style={{ marginTop: 10 }}><b style={{ color: "#ff5c1a" }}>Checkout canceled</b> — nothing was charged. You can pay below whenever you're ready.</p>
+      )}
 
       <BookingSummary b={b} />
 
@@ -40,15 +52,24 @@ export default function Confirmation({ route }) {
   );
 }
 
-function useBooking(code) {
+function useBooking(code, paid) {
   const [d, setD] = useState(null);
   useEffect(() => {
     setD(null);
     if (!getToken()) return;
-    api("GET", `/api/bookings/${code}`)
-      .then((r) => setD({ ...r, reload: () => api("GET", `/api/bookings/${code}`).then((r2) => setD({ ...r2, reload: d?.reload })) }))
+    let stop = false, tries = 0;
+    const fetchIt = () => api("GET", `/api/bookings/${code}`)
+      .then((r) => {
+        if (stop) return;
+        setD({ ...r, reload: () => api("GET", `/api/bookings/${code}`).then((r2) => setD({ ...r2, reload: d?.reload })) });
+        // the gateway's webhook can land just after the browser is redirected back,
+        // so keep asking briefly before telling the user anything
+        if (paid && !String(r.booking?.payment_state || "").startsWith("paid") && tries++ < 5) setTimeout(fetchIt, 2000);
+      })
       .catch(() => setD("missing"));
-  }, [code]);
+    fetchIt();
+    return () => { stop = true; };
+  }, [code, paid]);
   return d;
 }
 
@@ -65,6 +86,11 @@ export function BookingSummary({ b }) {
       <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: 13 }}>
         Payment state: {b.payment_state} · Deposit state: {b.deposit_state}
       </p>
+      {b.lat && b.lng && (
+        <p style={{ margin: "10px 0 0", fontSize: 13 }}>
+          🧭 Door-to-door directions live: <a href={`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&travelmode=driving`} target="_blank" rel="noreferrer" style={{ color: "var(--amber)" }}>🗺️ Google Maps</a> · <a href={`https://waze.com/ul?ll=${b.lat}%2C${b.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={{ color: "var(--amber)" }}>🚙 Waze</a>
+        </p>
+      )}
     </div>
   );
 }
@@ -208,7 +234,7 @@ export function ConfirmationExtras({ b }) {
         <b>Next steps</b>
         <span>• Dropoff photos: 4 slots (hitch, tires, corners, extras) unlock deposit hold.</span>
         <span>• Owner approval of any extension updates your booking days + total automatically.</span>
-        <span>• Full history lives in <a href="#/bookings" style={{ color: "var(--amber)" }}>Bookings</a>; talk to the owner in <a href={`#/messages/${b.trailer_id}`} style={{ color: "var(--amber)" }}>Messages</a>.</span>
+        <span>• Full history lives in <a href="#/bookings" style={{ color: "var(--amber)" }}>Bookings</a>; talk to the owner in <a href="#/messages" style={{ color: "var(--amber)" }}>Messages</a>.</span>
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api, setToken, setUser, user, getToken } from "./api.js";
+import rmtBadge from "../assets/rmt-badge.webp";
+import PartnerAds from "../components/PartnerAds.jsx";
 
 
 let clientConfig = null;
@@ -9,8 +11,8 @@ async function googleClientId() {
 }
 
 
-export function AuthModal({ onDone, onClose }) {
-  const [mode, setMode] = useState("google");          // google | email | signup | forgot | 2fa
+export function AuthModal({ initialMode = "google", onDone, onClose }) {
+  const [mode, setMode] = useState(initialMode);          // google | email | signup | forgot | 2fa
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -19,7 +21,13 @@ export function AuthModal({ onDone, onClose }) {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const finishSignIn = () => { onDone?.(); onClose?.(); location.reload(); };
+  const finishSignIn = (r) => {
+    const u = r?.user;
+    const kind = u ? (u.role === "admin" ? "Admin" : (u.role === "owner" || u.owns_trailers) ? "Owner" : "Renter") : "";
+    if (kind) setMsg(`✓ Signed in — ${kind} account. Loading the yard…`);
+    else setMsg("✓ Signed in. Loading the yard…");
+    setTimeout(() => { onDone?.(); onClose?.(); location.reload(); }, 1100);
+  };
   useEffect(() => { if (mode === "google") setMsg(""); setErr(""); }, [mode]);
   const submit = async (e) => {
     e.preventDefault();
@@ -28,7 +36,7 @@ export function AuthModal({ onDone, onClose }) {
       if (mode === "email") {
         const r = await api("POST", "/api/auth/login", { email, password });
         if (r.need2fa) { setChallenge(r.challenge); setMode("2fa"); setBusy(false); return; }
-        setUser(r.user); setToken(r.token); return finishSignIn();
+        setUser(r.user); setToken(r.token); return finishSignIn(r);
       }
       if (mode === "signup") {
         let refCode = null;
@@ -36,16 +44,16 @@ export function AuthModal({ onDone, onClose }) {
         const r = await api("POST", "/api/auth/signup", { email, password, display_name: name, ref: refCode });
         try { localStorage.removeItem("rmt-ref"); } catch {}
         try { localStorage.setItem("rmt-founding-prompt", "1"); } catch {}
-        setUser(r.user); setToken(r.token); return finishSignIn();
+        setUser(r.user); setToken(r.token); return finishSignIn(r);
       }
       if (mode === "forgot") {
         const r = await api("POST", "/api/auth/forgot", { email });
-        setMsg("That email may need email login: " + (r.devLink || "check your inbox — a reset link works for 30 minutes."));
+        setMsg(r.devLink ? "Dev reset link (30 min): " + r.devLink : "If that email has an account, a reset link is on its way — it works for 30 minutes.");
         setBusy(false); return;
       }
       if (mode === "2fa") {
         const r = await api("POST", "/api/auth/login/verify", { challenge, code });
-        setUser(r.user); setToken(r.token); return finishSignIn();
+        setUser(r.user); setToken(r.token); return finishSignIn(r);
       }
     } catch (ex) { setErr(ex.message); }
     setBusy(false);
@@ -94,6 +102,7 @@ export function AuthModal({ onDone, onClose }) {
             </p>
           </form>
         )}
+        <PartnerAds compact floating={false} />
       </div>
     </div>
   );
@@ -110,11 +119,20 @@ export function AccountChip() {
   }, []);
 
   const [u, setU] = useState(() => { try { return user(); } catch { return null; } });
+  const [open, setOpen] = useState(false);
   // heal a stale cached role (e.g. promoted to admin after this device logged in)
   useEffect(() => {
     if (!getToken()) return;
     api("GET", "/api/auth/me").then((r) => { if (r?.user) { setUser(r.user); setU(r.user); } }).catch(() => {});
   }, [u]);
+  // account menu auto-hides: closes on any click outside the chip, and on navigation
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (!(e.target instanceof Element) || !e.target.closest(".acct")) setOpen(false); };
+    document.addEventListener("click", close);
+    addEventListener("hashchange", close);
+    return () => { document.removeEventListener("click", close); removeEventListener("hashchange", close); };
+  }, [open]);
   const [btnGone, setBtnGone] = useState(false);
   // hide the Sign in chip when Google isn't configured on the server
   useEffect(() => {
@@ -129,12 +147,13 @@ export function AccountChip() {
   if (btnGone) return null;
   if (u && Object.keys(u || {}).length) return (
     <span className="acct acct-in" onClick={() => setOpen(!open)} title="Account">
-      {u.picture ? <img className="acct-ava" src={u.picture} alt="" referrerPolicy="no-referrer" loading="lazy" /> : <span className="acct-ava" style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--char2,#222)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", fontSize: 11, fontWeight: 800 }}>{(u.display_name || u.email || "?")[0].toUpperCase()}</span>}'
+      {u.picture ? <img className="acct-ava" src={u.picture} alt="" referrerPolicy="no-referrer" loading="lazy" /> : <img className="acct-ava" src={rmtBadge} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover", display: "block" }} />}
 
         <b>{u.display_name || u.email || "Account"}</b>
         <small>{u.tier === "paid" ? "✦ paid" : "free"} · {(() => { const role = u.role || "user"; if (role === "admin") return "admin"; if (role === "owner" || u.owns_trailers) return "owner"; return "renter"; })()} · {u.email || ""}</small>
       {open && (
         <span className="acct-pop">
+          {["admin", "owner"].includes(u.role) && <button onClick={() => { setOpen(false); location.hash = "#/admin"; }}>Admin</button>}
           <button onClick={() => { setOpen(false); location.hash = "#/settings"; }}>Settings</button>
           <button onClick={() => { localStorage.clear(); setU(null); setOpen(false); setBtnGone(false); location.hash = "#/home"; }}>Log out</button>
         </span>

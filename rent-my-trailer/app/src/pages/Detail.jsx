@@ -144,7 +144,7 @@ export default function Detail({ route }) {
         <section className="desc-col">
           <h2 className="sec-title">About this trailer</h2>
           <p className="desc">{l.desc}</p>
-          <a className="cta-line" href={`#/messages/${l.id}`}>Message about this trailer →</a>
+          <button className="cta-line" style={{ cursor: "pointer", background: "none", border: 0, padding: 0, font: "inherit", color: "var(--amber)" }} onClick={async () => { if (!localStorage.getItem("rmt-token")) { location.hash = "#/post"; return; } try { const r = await api("POST", "/api/messages/start/" + l.id); if (r.threadId) location.hash = "#/messages/" + r.threadId; } catch (err) { setErr(err.message); } }}>Message about this trailer →</button>
 
           <h2 className="sec-title" style={{ marginTop: 26 }}>Pickup location</h2>
           <div style={{ border: "1px solid var(--line)" }}>

@@ -1,0 +1,19 @@
+{
+  "_readme": "Server-side only. Read by phantom-server.js when PHANTOM_SUPPORT_BRIDGE=1 to map a Junkalot sign-in email to her PhantomIDE identity and to record the owner's entitlement decision. Never served, never logged, never committed. Install at ~/.config/phantom-support-customers.json with mode 600. `support: true` is the owner's decision recorded once (2026-11-23); this code never infers it. A paid PhantomIDE users row always outranks this record.",
+  "1junkalot@gmail.com": {
+    "phantom_email": "1junkalot@gmail.com",
+    "support": true,
+    "planUsdMonth": 249,
+    "billingStartsISO": "2027-01-01T00:00:00.000Z",
+    "meterSinceISO": "2026-11-20T00:00:00.000Z",
+    "evidence": "Owner 2026-11-23: client usage meter already running and accumulating. Mr Ed meter on this account 19.1949 USD at 2026-11-22T11:07:45Z (15 turns, 34,688 in / 3,862 out tokens) at the locked plan-anchored rates 541.3043 / 108.2609 per Mtok; shown in the owner admin and her admin. Plan 249 USD/month, billing starts 2027-01-01."
+  },
+  "susanschlamp53@gmail.com": {
+    "phantom_email": "susanschlamp53@gmail.com",
+    "support": true,
+    "planUsdMonth": 249,
+    "billingStartsISO": "2027-01-01T00:00:00.000Z",
+    "meterSinceISO": "2026-11-20T00:00:00.000Z",
+    "evidence": "Second client account, same owner-confirmed plan and meter basis as 1junkalot@gmail.com (2026-11-23)."
+  }
+}

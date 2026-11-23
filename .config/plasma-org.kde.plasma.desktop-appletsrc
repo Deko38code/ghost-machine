@@ -2,6 +2,25 @@
 RightButton;NoModifier=org.kde.contextmenu
 wheel:Vertical;NoModifier=org.kde.switchdesktop
 
+[ActionPlugins][0][RightButton;NoModifier]
+_add panel=true
+_context=true
+_display_settings=true
+_lock_screen=false
+_logout=false
+_open_terminal=false
+_run_command=false
+_sep1=true
+_sep2=true
+_sep3=true
+_wallpaper=true
+add widgets=true
+configure=true
+configure shortcuts=false
+edit mode=true
+manage activities=true
+remove=true
+
 [ActionPlugins][1]
 RightButton;NoModifier=org.kde.contextmenu
 
@@ -19,9 +38,19 @@ wallpaperplugin=org.kde.image
 [Containments][1][Applets][28][Configuration][SensorColors]
 cpu/all/usage=61,174,233
 
+[Containments][1][Applets][30][Configuration][SensorColors]
+memory/physical/used=61,174,233
+
+[Containments][1][ConfigDialog]
+DialogHeight=540
+DialogWidth=720
+
 [Containments][1][General]
 ToolBoxButtonState=topcenter
-ToolBoxButtonX=444
+ToolBoxButtonX=559
+
+[Containments][1][Wallpaper][org.kde.image][General]
+SlidePaths=/usr/share/plasma/wallpapers/,/usr/share/wallpapers/
 
 [Containments][2]
 activityId=
@@ -62,6 +91,7 @@ plugin=org.kde.plasma.systemmonitor.cpu
 
 [Containments][2][Applets][28][Configuration]
 CurrentPreset=org.kde.plasma.systemmonitor
+PreloadWeight=60
 
 [Containments][2][Applets][28][Configuration][Appearance]
 chartFace=org.kde.ksysguard.piechart
@@ -81,8 +111,8 @@ plugin=org.kde.plasma.kickoff
 
 [Containments][2][Applets][3][Configuration]
 PreloadWeight=100
-popupHeight=514
-popupWidth=651
+popupHeight=638
+popupWidth=817
 
 [Containments][2][Applets][3][Configuration][General]
 favoritesPortedToKAstats=true
@@ -93,6 +123,41 @@ global=Alt+F1
 [Containments][2][Applets][3][Shortcuts]
 global=Alt+F1
 
+[Containments][2][Applets][30]
+immutability=1
+plugin=org.kde.plasma.systemmonitor
+
+[Containments][2][Applets][30][Configuration]
+CurrentPreset=org.kde.plasma.systemmonitor
+PreloadWeight=55
+UserBackgroundHints=
+
+[Containments][2][Applets][30][Configuration][Appearance]
+Title=Memory
+chartFace=org.kde.ksysguard.piechart
+
+[Containments][2][Applets][30][Configuration][SensorColors]
+memory/physical/used=61,174,233
+
+[Containments][2][Applets][30][Configuration][Sensors]
+highPrioritySensorIds=["memory/physical/used"]
+totalSensors=["memory/physical/used", "memory/physical/total"]
+
+[Containments][2][Applets][30][Configuration][org.kde.ksysguard.piechart][General]
+showLegend=false
+
+[Containments][2][Applets][32]
+immutability=1
+plugin=org.kde.plasma.panelspacer
+
+[Containments][2][Applets][33]
+immutability=1
+plugin=org.kde.plasma.icon
+
+[Containments][2][Applets][33][Configuration]
+localPath=/home/ghost/.local/share/plasma_icons/org.kde.konsole.desktop
+url=file:///usr/share/applications/org.kde.konsole.desktop
+
 [Containments][2][Applets][4]
 immutability=1
 plugin=org.kde.plasma.pager
@@ -100,6 +165,14 @@ plugin=org.kde.plasma.pager
 [Containments][2][Applets][5]
 immutability=1
 plugin=org.kde.plasma.icontasks
+
+[Containments][2][Applets][5][Configuration][ConfigDialog]
+DialogHeight=540
+DialogWidth=720
+
+[Containments][2][Applets][5][Configuration][General]
+launchers=applications:org.kde.discover.desktop,preferred://filemanager,preferred://browser,file:///home/ghost/Desktop/guake.desktop,applications:org.telegram.desktop.desktop,applications:thunderbird.desktop
+showOnlyCurrentScreen=true
 
 [Containments][2][Applets][6]
 immutability=1
@@ -110,15 +183,15 @@ immutability=1
 plugin=org.kde.plasma.systemtray
 
 [Containments][2][Applets][7][Configuration]
-PreloadWeight=55
+PreloadWeight=100
 SystrayContainmentId=8
 
 [Containments][2][ConfigDialog]
-DialogHeight=84
+DialogHeight=102
 DialogWidth=1920
 
 [Containments][2][General]
-AppletOrder=28;3;4;26;25;5;6;7;19;20
+AppletOrder=28;3;32;4;26;25;30;5;33;6;7;19;20
 
 [Containments][8]
 activityId=
@@ -127,13 +200,19 @@ immutability=1
 lastScreen=0
 location=4
 plugin=org.kde.plasma.private.systemtray
+popupHeight=624
+popupWidth=624
 wallpaperplugin=org.kde.image
 
 [Containments][8][Applets][10]
 immutability=1
 plugin=org.kde.plasma.volume
 
+[Containments][8][Applets][10][Configuration]
+PreloadWeight=55
+
 [Containments][8][Applets][10][Configuration][General]
+currentTab=streams
 migrated=true
 
 [Containments][8][Applets][11]
@@ -180,6 +259,9 @@ plugin=org.kde.plasma.battery
 immutability=1
 plugin=org.kde.plasma.networkmanagement
 
+[Containments][8][Applets][23][Configuration]
+PreloadWeight=90
+
 [Containments][8][Applets][24]
 immutability=1
 plugin=org.kde.plasma.bluetooth
@@ -189,7 +271,7 @@ PreloadWeight=42
 
 [Containments][8][Applets][29]
 immutability=1
-plugin=org.kde.plasma.mediacontroller
+plugin=org.kde.kupapplet
 
 [Containments][8][Applets][29][Configuration]
 PreloadWeight=34
@@ -204,4 +286,4 @@ knownItems=org.kde.plasma.networkmanagement,org.kde.plasma.devicenotifier,org.kd
 
 [ScreenMapping]
 itemsOnDisabledScreens=
-screenMapping=
+screenMapping=desktop:/chrome-mefgecoehdmbajlhdnljoemkbmojpmol-Default.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/thunderbird.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/chrome-mjoklplbddabcmpepnokjaffbmgbkkgg-Default.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/firefox.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/chrome-kbdhpemeclgiggljbfcmlnmibnmolaih-Default.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/guake.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/kcm_users.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476,desktop:/MacAttack.desktop,0,2082dcef-65d9-485d-9a49-67cbed1cc476

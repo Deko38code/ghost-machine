@@ -1,0 +1,254 @@
+{
+ "fetchedAt": "2026-11-20T22:13:31.599Z",
+ "hakster": {
+  "revenue": {
+   "allTimeCents": 300,
+   "month30Cents": 300,
+   "payments": 1,
+   "activeSubs": 1,
+   "excludedDuplicateCents": 300,
+   "excludedDuplicateRows": 1
+  },
+  "usage": {
+   "calls": 77,
+   "inputTokens": 511540,
+   "outputTokens": 40304,
+   "costCents": 0,
+   "firstDay": "2026-10-12",
+   "lastDay": "2026-11-16",
+   "byDay": [
+    {
+     "day": "2026-11-06",
+     "calls": 1,
+     "ot": 0
+    },
+    {
+     "day": "2026-11-07",
+     "calls": 1,
+     "ot": 1495
+    },
+    {
+     "day": "2026-11-08",
+     "calls": 14,
+     "ot": 18829
+    },
+    {
+     "day": "2026-11-15",
+     "calls": 2,
+     "ot": 4
+    },
+    {
+     "day": "2026-11-16",
+     "calls": 42,
+     "ot": 5270
+    }
+   ],
+   "byModel": [
+    {
+     "provider": "ollama",
+     "model": "glm-5.3:cloud",
+     "calls": 19
+    },
+    {
+     "provider": "ollama",
+     "model": "glm-5.2:cloud",
+     "calls": 12
+    },
+    {
+     "provider": "hackbot",
+     "model": "glm-5.2:cloud",
+     "calls": 6
+    },
+    {
+     "provider": "ollama",
+     "model": "glm-5.3-flash:cloud",
+     "calls": 6
+    },
+    {
+     "provider": "codex-cli",
+     "model": "gpt-6-luna",
+     "calls": 4
+    },
+    {
+     "provider": "deepseek",
+     "model": "deepseek-v4.1-flash:cloud",
+     "calls": 4
+    }
+   ]
+  },
+  "people": {
+   "total": 7,
+   "plans": [
+    {
+     "plan": "enterprise",
+     "c": 5
+    },
+    {
+     "plan": "free",
+     "c": 1
+    },
+    {
+     "plan": "lite",
+     "c": 1
+    }
+   ],
+   "activity7d": 113
+  }
+ },
+ "phantom": {
+  "checkedAt": "2026-11-20T22:13:31.183Z",
+  "windowDays": 30,
+  "totals": {
+   "tokensServed": 0,
+   "calls": 0,
+   "bookedCents": 37500,
+   "collectedCents": 0,
+   "estCostCents": 0,
+   "marginCents": 37500,
+   "marginPct": 100
+  },
+  "verdict": "hold",
+  "clients": [
+   {
+    "key": "1junkalot@gmail.com",
+    "label": "Junk-A-Lot Junk Removal LLC",
+    "tokens": 0,
+    "calls": 0,
+    "bookedCents": 37500,
+    "collectedCents": 0,
+    "estCostCents": 0,
+    "marginPct": 100,
+    "tokensPerDollar": 0,
+    "sources": [
+     "invoice"
+    ]
+   }
+  ],
+  "history": [
+   {
+    "day": "2026-11-20",
+    "tokens": "0",
+    "gross": "37500",
+    "cost": "0",
+    "margin_pct": 100,
+    "verdict": "hold"
+   }
+  ]
+ },
+ "junkalot": {
+  "account": "susie (junkalot coach)",
+  "planUsdMonth": 249,
+  "includedInPlan": true,
+  "turns": 6,
+  "tokens": 16030,
+  "metered": false,
+  "estMarginalCostUsd": 0,
+  "providers": [
+   {
+    "provider": "deepseek-peer",
+    "turns": 4,
+    "tokens": 10140,
+    "metered": false,
+    "estCostUsd": 0
+   },
+   {
+    "provider": "glm-local",
+    "turns": 2,
+    "tokens": 5890,
+    "metered": false,
+    "estCostUsd": 0
+   }
+  ],
+  "newestAt": "2026-11-20T20:35:41.811Z",
+  "source": "junkalot data/mred-usage.jsonl (read only)"
+ },
+ "junkalotValue": {
+  "monthKey": "2026-11",
+  "month": {
+   "month": "2026-11",
+   "turns": 6,
+   "inTokens": 13986,
+   "outTokens": 2044,
+   "valueUsd": 0.07,
+   "activeDays": 1,
+   "lanes": [
+    {
+     "provider": "deepseek-peer",
+     "turns": 4,
+     "tokens": 10140
+    },
+    {
+     "provider": "glm-local",
+     "turns": 2,
+     "tokens": 5890
+    }
+   ]
+  },
+  "previousMonth": null,
+  "monthToDate": [
+   {
+    "day": "2026-11-20",
+    "turns": 6,
+    "inTokens": 13986,
+    "outTokens": 2044,
+    "valueUsd": 0.07
+   }
+  ],
+  "plan": {
+   "priceUsd": 249,
+   "utilisationPct": 0.03,
+   "surplusUsd": 0,
+   "shortfallUsd": 248.93,
+   "verdict": "well under plan - usage is a small share of what the plan includes"
+  },
+  "projection": {
+   "elapsedDays": 20,
+   "daysInMonth": 30,
+   "projectedValueUsd": 0.11,
+   "projectedTurns": 9
+  },
+  "patterns": [
+   {
+    "label": "Active days",
+    "value": "1 of 20",
+    "note": "Coach used on 1 day(s) this month."
+   },
+   {
+    "label": "Turns per active day",
+    "value": "6.00",
+    "note": "6 turn(s) across 1 day(s)."
+   },
+   {
+    "label": "Dominant lane",
+    "value": "deepseek-peer · 67%",
+    "note": "4 of 6 turn(s) via deepseek-peer; 10,140 tokens."
+   },
+   {
+    "label": "Month over month",
+    "value": "no prior month",
+    "note": "No coach usage recorded last month, so there is nothing to compare yet."
+   }
+  ],
+  "allTime": {
+   "turns": 6,
+   "tokens": 16030,
+   "valueUsd": 0.07,
+   "firstAt": "2026-11-20T11:14:39.388Z",
+   "lastAt": "2026-11-20T20:35:41.811Z"
+  },
+  "terms": {
+   "planUsdMonth": 249,
+   "benchmarkInPerM": 3,
+   "benchmarkOutPerM": 15,
+   "rateNote": "Frontier list-price benchmark at $3.00 per million input tokens and $15.00 per million output tokens. A comparison figure, never a bill and never our cost."
+  },
+  "rows": 6,
+  "source": "junkalot data/mred-usage.jsonl (read only, over ssh)"
+ },
+ "bridge": "live",
+ "adminSession": {
+  "email": "dekekenneth840@gmail.com",
+  "role": "admin",
+  "signedInAtSec": 1795196503
+ }
+}

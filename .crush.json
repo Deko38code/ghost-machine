@@ -1,13 +1,13 @@
 {
   "models": {
     "large": {
-      "model": "glm-5.2:cloud",
+      "model": "glm-5.3-flash:cloud",
       "provider": "ollama",
       "max_tokens": 16000,
       "reasoning_effort": "medium"
     },
     "small": {
-      "model": "glm-5.2:cloud",
+      "model": "glm-5.3-flash:cloud",
       "provider": "ollama",
       "max_tokens": 8000,
       "reasoning_effort": "low"
@@ -27,14 +27,31 @@
           "default_max_tokens": 16384,
           "can_reason": true,
           "supports_attachments": false
+        },
+        {
+          "id": "glm-5.3-flash:cloud",
+          "name": "glm-5.3-flash:cloud",
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "cost_per_1m_in_cached": 0,
+          "cost_per_1m_out_cached": 0,
+          "context_window": 131072,
+          "default_max_tokens": 16384,
+          "can_reason": true,
+          "supports_attachments": false
         }
       ],
-      "default_large_model_id": "glm-5.2:cloud"
+      "default_large_model_id": "glm-5.2:cloud",
+      "base_url": "http://10.0.0.251:11434"
     }
   },
   "options": {
     "disable_provider_auto_update": true,
     "skills_paths": [
+      "/home/ghost/.agents/skills",
+      "/home/ghost/.hermes/hermes-agent/skills",
+      "/home/ghost/.hermes/skills",
+      "/home/ghost/haksterAi/pentest-agents/skills",
       "/home/ghost/haksterAi/.hakster/skills"
     ]
   },

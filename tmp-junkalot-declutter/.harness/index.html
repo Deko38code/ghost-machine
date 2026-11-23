@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-admin-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tour harness</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { background:#0a0a0f; color:#e5e7eb; margin:0; font-family:system-ui,sans-serif; }
+  .mock { border:1px solid #1f2937; border-radius:16px; background:#111827; margin:0 auto 40px; width:min(1100px,calc(100% - 32px)); }
+  #report { position:fixed; left:-9999px; top:0; }
+</style>
+</head>
+<body class="p-4 pt-12">
+  <div class="mock" id="t-sections" data-tour="sections" style="height:64px;display:flex;align-items:center;padding:0 16px">Section dropdown</div>
+  <div class="mock" id="t-events" data-tour="overview-events" style="height:420px;padding:16px">Recent Events card</div>
+  <div class="mock" id="t-mred" data-tour="mred" style="height:260px;padding:16px">Mr Ed card</div>
+  <div class="mock" id="t-notices" data-tour="notices" style="height:180px;padding:16px">Service notices</div>
+  <div id="root"></div>
+  <pre id="report"></pre>
+  <script src="bundle.js"></script>
+  <script>
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    function tourRoot(){ return document.querySelector('[aria-label="What\'s new tour"]') }
+    async function run(){
+      const out = []
+      for (let i = 0; i < 4; i++) {
+        await sleep(i === 0 ? 800 : 600)
+        if (!tourRoot()) { out.push({error:'no tour root'}); break }
+        out.push(window.__report())
+        const nextBtn = Array.from(tourRoot().querySelectorAll('button')).find(b => /Next|Got it/.test(b.textContent || ''))
+        if (nextBtn && i < 3) nextBtn.click()
+      }
+      await sleep(200)
+      document.getElementById('report').textContent = 'REPORT:' + JSON.stringify(out)
+    }
+    if (!location.search.includes('embed')) run()
+  </script>
+</body>
+</html>

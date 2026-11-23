@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import badge from "../assets/rmt-badge.jpg";
+import { COUPONS } from "../router.jsx";
 
 /* Floating AI assistant — bottom-right tab. Real backend: POST /api/ai/chat,
    POST /api/ai/listing (description → structured draft that prefills Post). */
@@ -90,7 +91,7 @@ export default function AiWidget({ onListingDraft, contextLine }) {
                   <pre>{JSON.stringify(extracted, null, 1)}</pre>
                   <a
                     href={"#/post"}
-                    onClick={() => { onListingDraft?.(extracted); setOpen(false); }}
+                    onClick={() => { try { sessionStorage.setItem("rmt-ai-draft", JSON.stringify(extracted)); } catch {} onListingDraft?.(extracted); setOpen(false); }}
                     className="cta-line"
                   >
                     Open in publish form with this prefilled →

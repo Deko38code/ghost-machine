@@ -1,8 +1,21 @@
+// Keep this list in sync with PAGES in App.jsx and the footer links.
+export const pageRoutes = new Set(["home", "browse", "post", "membership", "bookings", "messages", "community", "deposit", "settings", "confirmation", "admin", "migrate", "reset", "terms", "privacy", "refund", "about", "faq", "contact", "r"]);
+
 export const routes = {
+ /* the query string is split off here so `param` is always a clean identifier.
+    Anything that appends ?paid=1 (the Stripe return) or ?q=… (a shared browse
+    link) would otherwise end up inside param — corrupting Number(param) on
+    Messages and toUpperCase() on the referral gate. */
  parse(hash) {
    const h = (hash || "").replace(/^#\/?/, "");
-   const [name, ...rest] = h.split("/");
-   return { name: name || "home", param: rest.join("/") || null };
+   const qi = h.indexOf("?");
+   const pathPart = qi === -1 ? h : h.slice(0, qi);
+   const [name, ...rest] = pathPart.split("/");
+   return {
+     name: name || "home",
+     param: rest.join("/") || null,
+     query: new URLSearchParams(qi === -1 ? "" : h.slice(qi + 1)),
+   };
  },
  go(hash) {
    location.hash = hash;

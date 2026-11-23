@@ -1,0 +1,432 @@
+<title>Model Rate Book</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: a market rate sheet — three pinned numbers, one long ledger, one
+     scaled cost ladder, then the reading of it. */
+  :root {
+    --bg: #f7f6f1;
+    --surface: #fffefb;
+    --ink: #1b211d;
+    --muted: #64695f;
+    --rule: #d9d6c9;
+    --accent: #14573a;
+    --accent-soft: #e3ece4;
+    --warn: #8a5200;
+    --ours: #0f5c3a;
+    --ours-bg: #eaf2ec;
+    --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121512;
+      --surface: #191d19;
+      --ink: #e9e8e0;
+      --muted: #9aa196;
+      --rule: #2d332d;
+      --accent: #6fcb96;
+      --accent-soft: #1e2a22;
+      --warn: #e0a54a;
+      --ours: #7fd3a3;
+      --ours-bg: #18271e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121512;
+    --surface: #191d19;
+    --ink: #e9e8e0;
+    --muted: #9aa196;
+    --rule: #2d332d;
+    --accent: #6fcb96;
+    --accent-soft: #1e2a22;
+    --warn: #e0a54a;
+    --ours: #7fd3a3;
+    --ours-bg: #18271e;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    padding-block: 0 56px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header.top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 34px 18px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 5vw, 46px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .stamp {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.5;
+  }
+  .stamp strong { color: var(--accent); font-weight: 600; }
+  .lede {
+    max-width: 62ch;
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  section { padding-block: 34px 0; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+  }
+  .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; max-width: 70ch; }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 16px 16px 14px;
+    min-width: 0;
+  }
+  .tile .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .tile .big {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .tile .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .tile.ours { background: var(--ours-bg); border-color: var(--ours); }
+
+  .tablebox { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 13.5px; }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  thead th:first-child, thead th:nth-child(2) { text-align: left; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--rule); text-align: right; }
+  tbody td:first-child, tbody td:nth-child(2) { text-align: left; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .prov { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  tr.group td {
+    background: var(--accent-soft);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: left;
+    padding: 7px 12px;
+  }
+  tr.ours td { background: var(--ours-bg); }
+  tr.ours td:nth-child(2) { font-weight: 600; }
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 1px 6px;
+    border: 1px solid var(--ours);
+    color: var(--ours);
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+
+  .ladder { display: flex; flex-direction: column; gap: 5px; }
+  .barrow {
+    display: grid;
+    grid-template-columns: minmax(140px, 260px) 1fr 74px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    min-width: 0;
+  }
+  .barrow .name { min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+  .barrow.ours .name { font-weight: 600; color: var(--ours); }
+  .track { position: relative; height: 16px; background: transparent; border-left: 1px solid var(--rule); }
+  .fill { position: absolute; left: 0; top: 3px; height: 10px; background: var(--muted); opacity: 0.45; }
+  .barrow.ours .fill { background: var(--ours); opacity: 0.9; }
+  .barrow .val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); }
+  .barrow.ours .val { color: var(--ours); font-weight: 600; }
+  .scale-note { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 10px; letter-spacing: 0.04em; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 16px 18px;
+    font-size: 14px;
+  }
+  .card p { margin: 0 0 10px; }
+  .card p:last-child { margin: 0; }
+  .card .k { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
+  ul.watch { margin: 0; padding-left: 18px; font-size: 14px; }
+  ul.watch li { margin-bottom: 8px; }
+  ul.watch b { font-weight: 600; }
+  footer {
+    margin-top: 44px;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  footer a { color: var(--accent); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) {
+    .two { grid-template-columns: 1fr; }
+    .barrow { grid-template-columns: minmax(96px, 130px) 1fr 62px; font-size: 11.5px; }
+    .stamp { text-align: left; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">PhantomIDE · rate book · internal</p>
+      <h1>What everyone else charges, next to what we run</h1>
+    </div>
+    <div class="stamp">
+      checked <strong>21 Nov 2026</strong><br>
+      USD per 1M tokens<br>
+      list prices, vendor pages
+    </div>
+  </header>
+
+  <p class="lede">Every lane in our stack priced against the market, so a client quote, a pricing card or a "should we switch?" question is answered from one sheet instead of a memory. Prices are the vendors' own published rates on the date above.</p>
+
+  <section>
+    <h2>Our position</h2>
+    <p class="sub">Three numbers that matter when we price anything.</p>
+    <div class="tiles">
+      <div class="tile ours">
+        <p class="label">What a turn costs us</p>
+        <p class="big">$0</p>
+        <p class="note">deepseek-v4.1-flash:cloud runs inside our Ollama Cloud plan. Marginal cost per turn is plan credit, not per-token billing.</p>
+      </div>
+      <div class="tile">
+        <p class="label">Plan floor</p>
+        <p class="big">$20<span style="font-size:14px">/mo</span></p>
+        <p class="note">Ollama Cloud Pro: $60 of usage credits a month, 3 concurrent requests. The same spend buys one month of Sonnet 5.5 for 6M tokens.</p>
+      </div>
+      <div class="tile">
+        <p class="label">Backup lane</p>
+        <p class="big">$0.60</p>
+        <p class="note">Codex Pro (gpt-6-luna) per 1M in + 1M out if it were metered, and it is not: we ride the flat Pro subscription.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The rate book</h2>
+    <p class="sub">Grouped by vendor, cheapest first inside each group. The last column is the honest comparison number: one million input tokens plus one million output tokens at list price.</p>
+    <div class="tablebox">
+      <table>
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Model</th>
+            <th class="num">In $</th>
+            <th class="num">Out $</th>
+            <th class="num">Cached in</th>
+            <th class="num">1M + 1M</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group"><td colspan="6">Anthropic · Claude</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Fable 5.2</td><td class="num">8.00</td><td class="num">40.00</td><td class="num">0.20</td><td class="num">48.00</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Opus 5.5</td><td class="num">4.00</td><td class="num">20.00</td><td class="num">0.20</td><td class="num">24.00</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Opus 5</td><td class="num">5.00</td><td class="num">25.00</td><td class="num">0.50</td><td class="num">30.00</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Sonnet 5.5</td><td class="num">2.00</td><td class="num">10.00</td><td class="num">0.10</td><td class="num">12.00</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Sonnet 4.6</td><td class="num">3.00</td><td class="num">15.00</td><td class="num">0.30</td><td class="num">18.00</td></tr>
+          <tr><td class="prov">Anthropic</td><td>Haiku 5.5</td><td class="num">0.10</td><td class="num">0.50</td><td class="num">0.01</td><td class="num">0.60</td></tr>
+
+          <tr class="group"><td colspan="6">OpenAI</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-6-astra</td><td class="num">10.00</td><td class="num">50.00</td><td class="num">1.00</td><td class="num">60.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-6.2-astra</td><td class="num">8.00</td><td class="num">40.00</td><td class="num">0.40</td><td class="num">48.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-5.5</td><td class="num">5.00</td><td class="num">30.00</td><td class="num">0.50</td><td class="num">35.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-6.1-sol</td><td class="num">2.00</td><td class="num">10.00</td><td class="num">0.10</td><td class="num">12.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-6.2-sol</td><td class="num">2.00</td><td class="num">10.00</td><td class="num">0.10</td><td class="num">12.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-6.1-terra</td><td class="num">1.00</td><td class="num">5.00</td><td class="num">0.05</td><td class="num">6.00</td></tr>
+          <tr><td class="prov">OpenAI</td><td>gpt-5.6-luna</td><td class="num">0.20</td><td class="num">1.20</td><td class="num">0.02</td><td class="num">1.40</td></tr>
+          <tr class="ours"><td class="prov">OpenAI <span class="tag">our backup</span></td><td>gpt-6-luna · codex-pro</td><td class="num">0.10</td><td class="num">0.50</td><td class="num">0.01</td><td class="num">0.60</td></tr>
+
+          <tr class="group"><td colspan="6">Google</td></tr>
+          <tr><td class="prov">Google</td><td>Gemini 3 Flash</td><td class="num">0.50</td><td class="num">3.00</td><td class="num">0.05</td><td class="num">3.50</td></tr>
+
+          <tr class="group"><td colspan="6">DeepSeek · API</td></tr>
+          <tr><td class="prov">DeepSeek</td><td>deepseek-flash · peak</td><td class="num">0.30</td><td class="num">1.20</td><td class="num">0.006</td><td class="num">1.50</td></tr>
+          <tr><td class="prov">DeepSeek</td><td>deepseek-flash · off-peak</td><td class="num">0.15</td><td class="num">0.60</td><td class="num">0.003</td><td class="num">0.75</td></tr>
+          <tr><td class="prov">DeepSeek</td><td>deepseek-v4-pro · peak</td><td class="num">1.32</td><td class="num">3.96</td><td class="num">0.044</td><td class="num">5.28</td></tr>
+
+          <tr class="group"><td colspan="6">Groq</td></tr>
+          <tr><td class="prov">Groq</td><td>gpt-oss-120b</td><td class="num">0.15</td><td class="num">0.60</td><td class="num">0.075</td><td class="num">0.75</td></tr>
+          <tr><td class="prov">Groq</td><td>gpt-oss-20b</td><td class="num">0.075</td><td class="num">0.30</td><td class="num">0.0375</td><td class="num">0.375</td></tr>
+
+          <tr class="group"><td colspan="6">Ours</td></tr>
+          <tr class="ours"><td class="prov">Ollama Cloud <span class="tag">account 1</span></td><td>deepseek-v4.1-flash:cloud · junkalot.co</td><td class="num">plan</td><td class="num">plan</td><td class="num">plan</td><td class="num">$0</td></tr>
+          <tr class="ours"><td class="prov">Ollama Cloud <span class="tag">account 2</span></td><td>deepseek-v4.1-flash:cloud · haksterai + phantomide</td><td class="num">plan</td><td class="num">plan</td><td class="num">plan</td><td class="num">$0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>The same job, every lane</h2>
+    <p class="sub">One million tokens in and one million out. Bars are logarithmic: linear would flatten the whole bottom half into invisible slivers. The number on the right is the real dollar figure.</p>
+    <div class="ladder" id="ladder"></div>
+    <p class="scale-note">log scale · $0.375 → $60.00</p>
+  </section>
+
+  <section>
+    <h2>One real conversation</h2>
+    <p class="sub">A normal Mr Ed turn: 2,000 tokens in (memory bank + question), 500 tokens out. What that turn costs on each lane.</p>
+    <div class="two">
+      <div class="card">
+        <p><span class="k">$0.0000</span> — ours, deepseek-v4.1-flash:cloud on the Ollama Cloud plan. This is the lane every client chat actually runs on.</p>
+        <p><span class="k">$0.0000</span> — ours, codex-pro backup, flat Pro subscription.</p>
+        <p><span class="k">$0.0019</span> — the same turn on deepseek-flash API at peak.</p>
+      </div>
+      <div class="card">
+        <p><span class="k">$0.0033</span> — Gemini 3 Flash.</p>
+        <p><span class="k">$0.0090</span> — Claude Sonnet 5.5.</p>
+        <p><span class="k">$0.0180</span> — Claude Opus 5.5. <span class="k">$0.0360</span> — Fable 5.2.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What this means for the cards</h2>
+    <p class="sub">Recorded for the price sheet. Nothing here changes a model, a route or a price — the setup stays exactly as it is.</p>
+    <div class="card">
+      <p>Our Lite card sells 30 AI calls + 10 web lookups a month. At 2,500 tokens a turn, those 30 calls cost us <span class="k">$0</span> in plan credits. The same 30 calls on Sonnet 5.5 would be <span class="k">$0.27</span>, on Opus 5.5 <span class="k">$0.54</span>, on Fable 5.2 <span class="k">$1.08</span> — a third of a $3.45 Lite month before hosting.</p>
+      <p>That is the whole argument for the cheap lane: the card price is not carried by the model bill. It also means we never need to touch the model setup to protect a margin.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Watch list</h2>
+    <ul class="watch">
+      <li><b>Gemini 3 Flash, $0.50 / $3.00.</b> The closest thing to a premium brand at Haiku money. Worth a look only if our lane ever runs out of credits — not a swap, a spare.</li>
+      <li><b>DeepSeek direct API, half price off-peak.</b> 01:00–04:00 and 06:00–10:00 UTC are off-peak. Our cloud account already bills nothing per token, so this matters only as a fallback.</li>
+      <li><b>Haiku 5.5 at $0.10 / $0.50.</b> Identical list price to gpt-6-luna. If we ever needed a real Claude-brand lane for a client, this is the one that does not move the card.</li>
+      <li><b>Groq gpt-oss-20b at $0.075 / $0.30.</b> The absolute cheapest metered lane found today. Speed is its selling point, quality is not — kept as a last-resort fallback in HaksterAI's waterfall.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>Sources, read 21 Nov 2026: Anthropic model table (claude-api reference), <a href="https://developers.openai.com/api/docs/pricing">OpenAI API pricing</a>, <a href="https://aistudio.google.com/docs/pricing">Google AI Studio pricing</a> (Gemini 3 Flash cross-checked against Google's launch post), <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek API pricing</a>, <a href="https://console.groq.com/docs/models">GroqCloud model docs</a>, <a href="https://ollama.com/pricing">Ollama pricing</a>.</p>
+    <p>Vendor list prices only. Enterprise agreements, batch discounts (50% at OpenAI, Google and Groq), and long-context surcharges are excluded. Codex Pro and the Ollama Cloud plan are flat subscriptions, so their per-token figures are list-price equivalents, not what we are billed.</p>
+    <p>HaksterAI / PhantomIDE internal · no client-facing pricing decision should be made from this sheet without the owner.</p>
+  </footer>
+</div>
+
+<script>
+  // Blended cost (1M in + 1M out) per lane, sorted cheap -> expensive.
+  // Log-scaled bars so a $0.375 lane and a $60 lane both stay visible.
+  const LANES = [
+    { name: "Ours · Ollama Cloud (both accounts)", cost: 0.0001, ours: true, label: "$0" },
+    { name: "Groq · gpt-oss-20b", cost: 0.375 },
+    { name: "OpenAI · gpt-6-luna (metred)", cost: 0.60 },
+    { name: "Anthropic · Haiku 5.5", cost: 0.60 },
+    { name: "Groq · gpt-oss-120b", cost: 0.75 },
+    { name: "DeepSeek · flash off-peak", cost: 0.75 },
+    { name: "OpenAI · gpt-5.6-luna", cost: 1.40 },
+    { name: "DeepSeek · flash peak", cost: 1.50 },
+    { name: "Google · Gemini 3 Flash", cost: 3.50 },
+    { name: "DeepSeek · v4-pro peak", cost: 5.28 },
+    { name: "OpenAI · gpt-6.1-terra", cost: 6.00 },
+    { name: "Anthropic · Sonnet 5.5", cost: 12.00 },
+    { name: "OpenAI · gpt-6.1-sol", cost: 12.00 },
+    { name: "Anthropic · Sonnet 4.6", cost: 18.00 },
+    { name: "Anthropic · Opus 5.5", cost: 24.00 },
+    { name: "Anthropic · Opus 5", cost: 30.00 },
+    { name: "OpenAI · gpt-5.5", cost: 35.00 },
+    { name: "Anthropic · Fable 5.2", cost: 48.00 },
+    { name: "OpenAI · gpt-6.2-astra", cost: 48.00 },
+    { name: "OpenAI · gpt-6-astra", cost: 60.00 }
+  ];
+
+  const ladder = document.getElementById("ladder");
+  const FLOOR = 0.1;                 // log floor so $0 lanes still draw a stub
+  const MAX = 60.0;
+  const span = Math.log10(MAX / FLOOR);
+
+  for (const lane of LANES) {
+    const row = document.createElement("div");
+    row.className = "barrow" + (lane.ours ? " ours" : "");
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = lane.name;
+
+    const track = document.createElement("div");
+    track.className = "track";
+    const fill = document.createElement("div");
+    fill.className = "fill";
+    const v = Math.max(lane.cost, FLOOR);
+    fill.style.width = Math.max(0.8, (Math.log10(v / FLOOR) / span) * 100) + "%";
+    track.appendChild(fill);
+
+    const val = document.createElement("div");
+    val.className = "val";
+    val.textContent = lane.label || ("$" + lane.cost.toFixed(lane.cost < 1 ? 3 : 2));
+
+    row.append(name, track, val);
+    ladder.appendChild(row);
+  }
+</script>

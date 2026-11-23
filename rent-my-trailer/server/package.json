@@ -10,7 +10,9 @@
     "bcryptjs": "^2.4.3",
     "express": "^4.22.3",
     "jsonwebtoken": "^9.0.3",
+    "mrz": "^5.0.2",
     "multer": "^1.4.5-lts.1",
+    "tesseract.js": "^7.0.0",
     "ws": "^8.22.0"
   }
 }

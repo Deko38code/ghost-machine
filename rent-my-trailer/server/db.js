@@ -14,7 +14,7 @@ export const db = new DatabaseSync(DB_PATH);
 const __COLS = "";
 try {
   for (const [table, cols] of [
-    ["users", ["ref", "picture", "bio", "avatar_file", "phone", "phone_verified", "phone_code", "promo_rank", "paid_until", "ref_code", "kyc_state", "kyc_files", "duo_enabled", "token_ver", "google_sub", "login_log"]],
+    ["users", ["ref", "picture", "bio", "avatar_file", "phone", "phone_verified", "phone_code", "promo_rank", "paid_until", "ref_code", "kyc_state", "kyc_files", "duo_enabled", "duo_secret", "token_ver", "google_sub", "google_profile_name", "google_picture_url", "google_profile_updated_at", "login_log", "card_on_file", "stripe_customer"]],
     ["bookings", ["credit_applied", "rental_paid_cents", "deposit_paid_cents", "rental_paid_at", "deposit_paid_at", "pay_method", "coupon_code"]],
   ]) {
     const have = db.prepare(`SELECT name FROM pragma_table_info('${table}')`).all().map((r) => r.name);
@@ -33,6 +33,13 @@ try {
   // backfill: id order == signup order (AUTOINCREMENT)
   db.exec("UPDATE users SET signup_rank = id WHERE signup_rank IS NULL OR signup_rank = 0");
 } catch (ex) { console.error("MIG2:", String(ex).slice(0, 140)); }
+// ── MIG6: per-side read watermarks on threads (message id high-water mark) ──
+try {
+  const have6 = db.prepare("SELECT name FROM pragma_table_info('threads')").all().map((r) => r.name);
+  for (const col of ["renter_read_id", "owner_read_id"]) {
+    if (!have6.includes(col)) db.exec(`ALTER TABLE threads ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 0`);
+  }
+} catch (ex) { console.error("MIG6:", String(ex).slice(0, 140)); }
 // ── MIG: coupon categories (veteran/senior/etc) with ID# verification ──
 try {
   const haveC = db.prepare("SELECT name FROM pragma_table_info('coupons')").all().map((r) => r.name);
@@ -44,6 +51,31 @@ try {
   seed.run("SENIOR10", 10, "Seniors 65+ — 10% off rentals (ID# verified)", 1, "senior", 1, "SENIOR-ID");
   seed.run("FIRE10", 10, "First responders — 10% off (ID# verified)", 1, "first_responder", 1, "FIRE-ID");
 } catch (ex) { console.error("MIG3:", String(ex).slice(0, 140)); }
+// ── MIG4: booking lifecycle columns (ID verify, insurance, GPS handover) ──
+try {
+  const have4 = (t) => db.prepare(`SELECT name FROM pragma_table_info('${t}')`).all().map((r) => r.name);
+  const bk = have4("bookings");
+  for (const [col, type, def] of [
+    ["id_verified", "INTEGER", "0"],
+    ["id_photo_file", "TEXT", "''"],
+    ["insurance", "TEXT", "''"],
+    ["insurance_daily", "REAL", "0"],
+    ["checkout_at", "TEXT", "''"],
+    ["checkin_at", "TEXT", "''"],
+    ["checkout_gps", "TEXT", "''"],
+    ["checkin_gps", "TEXT", "''"],
+  ]) {
+    if (!bk.includes(col)) db.exec(`ALTER TABLE bookings ADD COLUMN ${col} ${type} DEFAULT ${def}`);
+  }
+} catch (ex) { console.error("MIG4:", String(ex).slice(0, 140)); }
+// ── MIG5: booking IP/UA capture (access_log table is in the CREATE block below) ──
+try {
+  const have5 = (t) => db.prepare(`SELECT name FROM pragma_table_info('${t}')`).all().map((r) => r.name);
+  const bk5 = have5("bookings");
+  for (const [col, type, def] of [["ip", "TEXT", "''"], ["ua", "TEXT", "''"]]) {
+    if (!bk5.includes(col)) db.exec(`ALTER TABLE bookings ADD COLUMN ${col} ${type} DEFAULT ${def}`);
+  }
+} catch (ex) { console.error("MIG5:", String(ex).slice(0, 140)); }
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
 
@@ -69,8 +101,13 @@ CREATE TABLE IF NOT EXISTS users (
   kyc_state TEXT DEFAULT 'none',
   kyc_files TEXT DEFAULT '',
   duo_enabled INTEGER DEFAULT 0,
+  duo_secret TEXT DEFAULT '',
   token_ver INTEGER DEFAULT 0,
   google_sub TEXT DEFAULT '',
+  google_profile_name TEXT DEFAULT '',
+  google_picture_url TEXT DEFAULT '',
+  google_email_verified INTEGER NOT NULL DEFAULT 0,
+  google_profile_updated_at TEXT DEFAULT '',
   login_log TEXT DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS trailers (
@@ -206,8 +243,57 @@ CREATE TABLE IF NOT EXISTS damage_claims (
   filed_on TEXT NOT NULL DEFAULT (datetime('now')),
   resolved_on TEXT
 );
+CREATE TABLE IF NOT EXISTS visits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ip TEXT NOT NULL DEFAULT '',
+  ua TEXT NOT NULL DEFAULT '',
+  ref TEXT NOT NULL DEFAULT '',
+  created_on TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS sms_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  to_ TEXT NOT NULL,
+  text TEXT NOT NULL,
+  state TEXT NOT NULL,
+  at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS access_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL DEFAULT '',
+  user_id INTEGER,
+  email TEXT NOT NULL DEFAULT '',
+  ip TEXT NOT NULL DEFAULT '',
+  ua TEXT NOT NULL DEFAULT '',
+  ref TEXT NOT NULL DEFAULT '',
+  detail TEXT NOT NULL DEFAULT '',
+  created_on TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_access_log_kind ON access_log (kind, id);
+CREATE INDEX IF NOT EXISTS idx_access_log_ip ON access_log (ip);
 
+CREATE TABLE IF NOT EXISTS social_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel TEXT NOT NULL DEFAULT 'facebook',   -- facebook | instagram
+  trailer_id INTEGER,
+  caption TEXT NOT NULL DEFAULT '',
+  img TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',       -- draft | posted | failed
+  post_url TEXT DEFAULT '',
+  error TEXT DEFAULT '',
+  autopilot INTEGER DEFAULT 0,
+  created_on TEXT NOT NULL DEFAULT (datetime('now')),
+  posted_at TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS app_settings (
+  k TEXT PRIMARY KEY,
+  v TEXT NOT NULL DEFAULT ''
+);
 `);
+try {
+  const have = db.prepare("SELECT name FROM pragma_table_info('users')").all().map((r) => r.name);
+  if (!have.includes("google_email_verified")) db.exec("ALTER TABLE users ADD COLUMN google_email_verified INTEGER NOT NULL DEFAULT 0");
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_unique ON users(google_sub) WHERE google_sub IS NOT NULL AND google_sub <> ''");
+} catch (ex) { console.error("MIG_GOOGLE_PROFILE:", String(ex).slice(0, 160)); }
 
 export const seedCoupons = [
   { code: "HAULMORE", percent: 10, note: "10% off any rental over $100" },
@@ -299,3 +385,11 @@ export function seedTrailers() {
   return n;
 }
 /* phone verification + founding-rank cols (textbee SMS)*/
+{
+  const hv = db.prepare("SELECT name FROM pragma_table_info('users')").all().map((r) => r.name);
+  if (!hv.includes("telegram_id")) db.exec("ALTER TABLE users ADD COLUMN telegram_id TEXT NOT NULL DEFAULT ''");
+  if (!hv.includes("telegram_verified")) db.exec("ALTER TABLE users ADD COLUMN telegram_verified INTEGER NOT NULL DEFAULT 0");
+  if (!hv.includes("tg_code")) db.exec("ALTER TABLE users ADD COLUMN tg_code TEXT");
+  if (!hv.includes("tg_code_exp")) db.exec("ALTER TABLE users ADD COLUMN tg_code_exp INTEGER");
+}
+

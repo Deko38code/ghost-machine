@@ -111,6 +111,18 @@
    </metadata>
   </info>
  </bookmark>
+ <bookmark href="recentlyused:/locations">
+  <title>Recent Locations</title>
+  <info>
+   <metadata owner="http://freedesktop.org">
+    <bookmark:icon name="folder-open-recent"/>
+   </metadata>
+   <metadata owner="http://www.kde.org">
+    <ID>1791338699/10</ID>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </bookmark>
  <bookmark href="trash:/">
   <title>Trash</title>
   <info>
@@ -135,16 +147,12 @@
    </metadata>
   </info>
  </bookmark>
- <bookmark href="recentlyused:/locations">
-  <title>Recent Locations</title>
+ <separator>
   <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="folder-open-recent"/>
-   </metadata>
    <metadata owner="http://www.kde.org">
-    <ID>1791338699/10</ID>
+    <UDI>/org/freedesktop/UDisks2/block_devices/sda2</UDI>
     <isSystemItem>true</isSystemItem>
    </metadata>
   </info>
- </bookmark>
+ </separator>
 </xbel>

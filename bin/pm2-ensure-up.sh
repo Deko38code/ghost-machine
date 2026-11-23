@@ -1,0 +1,143 @@
+#!/bin/bash
+# pm2-ensure-up.sh — additive reconciler for the Dell pm2 roster.
+#
+# What it does:
+#   * Starts REQUIRED apps that are not online right now.
+#   * NEVER stops, kills, restarts or reprioritises anything.
+#   * Writes the pm2 dump ONLY when every required app is online AND every public
+#     URL answers 200 — so a snapshot taken while something was down can never
+#     become the next boot's reality.
+#   * In --loop mode it only re-saves when it actually had to start something.
+#
+# Opt an app out of reconciliation (for an intentional stop) with:
+#   touch /home/ghost/.pm2/ensure-hold/<name>.hold
+# Remove that file to put the app back under the reconciler.
+#
+# Usage:
+#   pm2-ensure-up.sh                 # one pass, saves if everything is green (boot mode)
+#   pm2-ensure-up.sh --loop           # watchdog: reconcile every INTERVAL seconds
+#   pm2-ensure-up.sh --no-save        # test mode: check only, never write the dump
+#   pm2-ensure-up.sh --verbose        # also log the healthy paths
+set -uo pipefail
+
+PM2_BIN=${PM2_BIN:-/usr/local/lib/node_modules/pm2/bin/pm2}
+export PM2_HOME=${PM2_HOME:-/home/ghost/.pm2}
+LOG=${LOG:-/home/ghost/.pm2/logs/pm2-ensure-up.log}
+HOLD_DIR=${HOLD_DIR:-/home/ghost/.pm2/ensure-hold}
+INTERVAL=${ENSURE_INTERVAL:-60}
+START_WAIT=${START_WAIT:-15}
+
+# Apps that must be online. Order matters only for readability.
+REQUIRED=(
+  hakster
+  rmt
+  cinevault
+  miniforge
+  haksterai-dell-tunnel
+  rmt-auth-tunnel
+  flixchill-tunnel
+  hakterm
+  claude-code-proxy
+)
+
+# Public endpoints that prove the tunnels are actually carrying traffic.
+URLS=(
+  https://haksterai.com/api/health
+  https://rmt.haksterai.com/
+  https://topreels-3230f40cc3.haksterai.com/api/health
+  https://flixchill.link/
+)
+
+LOOP=0
+SAVE=1
+VERBOSE=0
+for a in "$@"; do
+  case "$a" in
+    --loop)    LOOP=1 ;;
+    --no-save) SAVE=0 ;;
+    --verbose) VERBOSE=1 ;;
+  esac
+done
+
+log()  { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*" >> "$LOG"; }
+vlog() { if [ "$VERBOSE" = 1 ]; then log "$*"; fi; return 0; }
+
+mkdir -p "$(dirname "$LOG")" "$HOLD_DIR" 2>/dev/null
+
+pm2_status() { # $1 = app name -> prints online|stopped|errored|stopping|MISSING|PARSE_ERROR
+  "$PM2_BIN" jlist 2>/dev/null | node -e '
+    let d = "";
+    process.stdin.on("data", c => d += c).on("end", () => {
+      const want = process.argv[1];
+      try {
+        const a = JSON.parse(d);
+        const p = a.find(x => x.name === want);
+        process.stdout.write(p ? ((p.pm2_env && p.pm2_env.status) || "unknown") : "MISSING");
+      } catch (e) { process.stdout.write("PARSE_ERROR"); }
+    });' "$1"
+}
+
+run_once() {
+  local started_count=0
+  local all_ok=1
+  local app st code
+
+  for app in "${REQUIRED[@]}"; do
+    if [ -e "$HOLD_DIR/$app.hold" ]; then
+      log "hold: $app skipped (hold file present)"
+      continue
+    fi
+    st="$(pm2_status "$app")"
+    case "$st" in
+      online|launching|launching*)
+        vlog "ok: $app ($st)" ;;
+      MISSING|PARSE_ERROR)
+        log "WARN: $app $st — not in the pm2 registry, cannot start by name" ;;
+      *)
+        log "starting $app (was $st)"
+        "$PM2_BIN" start "$app" >> "$LOG" 2>&1
+        started_count=$((started_count + 1)) ;;
+    esac
+  done
+
+  if [ "$started_count" -gt 0 ]; then
+    log "started $started_count app(s); waiting ${START_WAIT}s for them to bind"
+    sleep "$START_WAIT"
+  fi
+
+  for u in "${URLS[@]}"; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$u" 2>/dev/null)"
+    if [ "$code" = "200" ]; then
+      vlog "url ok $code $u"
+    else
+      log "url FAIL $code $u"
+      all_ok=0
+    fi
+  done
+
+  if [ "$SAVE" = 0 ]; then
+    log "check-only pass complete (no-save mode): all_ok=$all_ok started=$started_count"
+    return 0
+  fi
+
+  # Save on boot passes when everything is green; in loop mode only when we had to
+  # repair something, so the dump tracks reality without being rewritten every minute.
+  if [ "$all_ok" = 1 ] && { [ "$LOOP" = 0 ] || [ "$started_count" -gt 0 ]; }; then
+    "$PM2_BIN" save >> "$LOG" 2>&1
+    log "all green — pm2 dump saved (started=$started_count)"
+  elif [ "$all_ok" = 1 ]; then
+    vlog "all green, nothing to repair — dump left as is"
+  else
+    log "NOT saving the dump: one or more public checks failed"
+  fi
+}
+
+if [ "$LOOP" = 1 ]; then
+  log "watchdog started (interval=${INTERVAL}s)"
+  while true; do
+    sleep "$INTERVAL"
+    run_once
+  done
+else
+  run_once
+fi

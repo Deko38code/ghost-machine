@@ -1,0 +1,20 @@
+You are reviewing screenshots of the junkalot.co update applet (dark panel, neon green, ghost spinner) that renders bottom-right on every page.
+
+What was just added: a circular countdown ring under the ghost that shows the real seconds left before a queued update fires, plus the text "applies in 8s". The ring value is drawn from the same measured countdown the card prints.
+
+Screenshots (view them all):
+1. ring-360x640.png  (phone)
+2. ring-390x844.png  (phone)
+3. ring-414x896.png  (phone)
+4. ring-1440x900.png (desktop)
+5. ring-1920x1080.png (FireStick / TV, ten-foot)
+6. resting-390x844.png (widget at rest on a phone, no update queued)
+
+Tell me, concretely:
+- Is the ring legible and correctly positioned under the ghost at each width? Is it clipped, overlapping, or off-screen? Any horizontal overflow at 360 px?
+- Does "applies in 8s" duplicate the ring's number in a way that looks cluttered? Should the caption stay, shrink, or go?
+- Is the ring too small on the TV width (1920x1080) to read from couch distance? Give a size in px.
+- Is the ring distinguishable from the progress bar that appears later during a deploy?
+- Any concrete pixel/size/spacing changes you would make. Keep it short and specific.
+
+Answer in plain text, most important point first.

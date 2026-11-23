@@ -1,0 +1,78 @@
+{
+ "pass": {
+  "mode": "pass",
+  "pageBuild": "2026-11-20T17:25:50.218Z",
+  "firstVerifiedSec": 37,
+  "at5": {
+   "sec": 5,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 1/4 — checkpoint 2 of 4 in 9s — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "at13": {
+   "sec": 13,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 1/4 — checkpoint 2 of 4 in 1s — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "at25": {
+   "sec": 25,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 3/4 — checkpoint 4 of 4 in 12s — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "final": {
+   "sec": 40,
+   "verified": "1",
+   "state": "live",
+   "detail": "Update applied · 4/4 inspection passed · stable (verified 17:27:05Z) — site build 17:25:50Z, server current.",
+   "chipAfter": "\"✓\"",
+   "tabAfter": "\"✓\""
+  },
+  "errors": []
+ },
+ "fail": {
+  "mode": "verifying",
+  "pageBuild": "2026-11-20T17:25:50.218Z",
+  "firstVerifiedSec": null,
+  "at5": {
+   "sec": 5,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 1/4 — checkpoint 2 of 4 in 9s — waiting on stability verified, all checks passing — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "at13": {
+   "sec": 13,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 1/4 — checkpoint 2 of 4 in 1s — waiting on stability verified, all checks passing — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "at25": {
+   "sec": 25,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 1/4 — waiting on stability verified, all checks passing — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "final": {
+   "sec": 47,
+   "verified": "0",
+   "state": "live",
+   "detail": "Update applied · inspection 2/4 — waiting on stability verified, all checks passing — site build 17:25:50Z, server current.",
+   "chipAfter": "none",
+   "tabAfter": "none"
+  },
+  "errors": []
+ }
+}

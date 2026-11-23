@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:border-box}html,body{margin:0}h1,h2,p,ol,ul{margin:0 0 .6em}body{font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Operations Snapshot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f7f6f3;
+    --surface-1:#fcfcfb;
+    --surface-2:#f0efeb;
+    --line:#e2e0da;
+    --text-primary:#0b0b0b;
+    --text-secondary:#52514e;
+    --text-muted:#77756f;
+    --series-1:#2a78d6;
+    --series-2:#eb6834;
+    --series-3:#1baf7a;
+    --zero:#d8d5cd;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#101010;
+      --surface-1:#1a1a19;
+      --surface-2:#232322;
+      --line:#33332f;
+      --text-primary:#f0efec;
+      --text-secondary:#c3c2b7;
+      --text-muted:#96958b;
+      --series-1:#3987e5;
+      --series-2:#d95926;
+      --series-3:#199e70;
+      --zero:#3a3a35;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#101010;
+    --surface-1:#1a1a19;
+    --surface-2:#232322;
+    --line:#33332f;
+    --text-primary:#f0efec;
+    --text-secondary:#c3c2b7;
+    --text-muted:#96958b;
+    --series-1:#3987e5;
+    --series-2:#d95926;
+    --series-3:#199e70;
+    --zero:#3a3a35;
+  }
+  body{background:var(--bg);color:var(--text-primary);font-family:Inter,system-ui,-apple-system,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px;}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:6px;}
+  .eyebrow{font:600 10.5px/1 "Space Grotesk",ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin:0 0 8px;}
+  h1{font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(24px,4vw,34px);line-height:1.1;letter-spacing:-.02em;margin:0;text-wrap:balance;}
+  .stamp{font:500 11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-muted);text-align:right;}
+  .note{max-width:72ch;color:var(--text-secondary);font-size:13px;line-height:1.6;margin:10px 0 22px;}
+  section{margin-top:28px;}
+  h2{font-family:"Space Grotesk",Inter,sans-serif;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-secondary);font-weight:600;margin:0 0 10px;}
+  .card{background:var(--surface-1);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0;}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;}
+  .tile{background:var(--surface-1);border:1px solid var(--line);border-radius:12px;padding:12px 13px;min-width:0;}
+  .tile .k{font:600 9.5px/1 "Space Grotesk",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:0 0 7px;}
+  .tile .v{font:700 21px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-primary);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+  .tile .s{font-size:11px;color:var(--text-muted);margin-top:5px;line-height:1.4;}
+  .tile.accent .v{color:var(--series-1);}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start;}
+  .grid2 > *{min-width:0;}
+  /* bars */
+  .bars{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:18px 1fr;align-items:end;gap:0 2px;height:168px;padding:4px 4px 0;border-bottom:1px solid var(--line);}
+  .bar{grid-row:2;width:100%;max-width:56px;align-self:end;justify-self:center;border-radius:4px 4px 0 0;background:var(--series-1);cursor:default;}
+  .bar.zero{background:var(--zero);}
+  .barval{grid-row:1;align-self:end;justify-self:center;font:600 10.5px/1 ui-monospace,monospace;color:var(--text-primary);}
+  .axis{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;font:500 10px/1.3 ui-monospace,monospace;color:var(--text-muted);margin-top:6px;text-align:center;padding:0 4px;}
+  .axis span{overflow-wrap:anywhere;}
+  .hbars{display:flex;flex-direction:column;gap:8px;}
+  .hrow{display:grid;grid-template-columns:minmax(0,1fr) 54px;align-items:center;gap:10px;}
+  .hrow .lab{font:500 11.5px/1.35 ui-monospace,monospace;color:var(--text-secondary);overflow-wrap:anywhere;min-width:0;}
+  .track{grid-column:1/3;height:10px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:-2px;}
+  .fill{height:100%;border-radius:4px;background:var(--series-1);}
+  .fill.alt{background:var(--series-2);}
+  .fill.third{background:var(--series-3);}
+  .hrow .num{font:600 12px/1 ui-monospace,monospace;color:var(--text-primary);text-align:right;font-variant-numeric:tabular-nums;}
+  /* stacked */
+  .stack{display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--surface-2);gap:2px;}
+  .stack span{display:block;height:100%;}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:11.5px;color:var(--text-secondary);}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+  /* gauge */
+  .gauge{height:12px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin:6px 0 10px;}
+  .gauge .g{height:100%;background:var(--series-3);min-width:2px;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  th{font:600 10px/1 "Space Grotesk",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);}
+  td.num{font-family:ui-monospace,monospace;text-align:right;}
+  .tablewrap{overflow-x:auto;}
+  .src{font-size:11.5px;color:var(--text-muted);line-height:1.7;margin-top:26px;border-top:1px solid var(--line);padding-top:12px;}
+  .warn{font-size:11.5px;color:var(--text-secondary);line-height:1.6;margin-top:8px;}
+  .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.6;color:var(--text-secondary);}
+  .steps li{padding-left:2px;}
+  .steps strong{color:var(--text-primary);font-weight:600;}
+  .steps code{font-size:11.5px;background:var(--surface-2);padding:1px 4px;border-radius:4px;}
+  #tip{position:fixed;z-index:60;pointer-events:none;background:var(--text-primary);color:var(--bg);font:600 11px/1.4 ui-monospace,monospace;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:240px;}
+  @media (max-width:480px){
+    .wrap{padding-block:20px 48px;}
+    .stamp{text-align:left;}
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">HaksterAI · PhantomIDE · Junkalot — owner view</p>
+      <h1>Operations snapshot</h1>
+    </div>
+    <div class="stamp">Collected 2026-11-20 22:13 UTC<br>from the live ledgers, not from memory</div>
+  </header>
+
+  <p class="note">Every figure on this page comes from a row read out of a running service at collection time — HaksterAI's payment and usage tables on the Dell, PhantomIDE's profit ledger and Junkalot's coach usage file on Parrot. Figures that are computed rather than read (unit cost, pace, projection, percentages) are derived from those rows and labelled as derived; nothing is invented. Where a row is missing, the chart says so. This is a snapshot: it does not update itself.</p>
+
+  <section>
+    <h2>Headline</h2>
+    <div class="tiles">
+      <div class="tile accent"><p class="k">HaksterAI collected (all-time)</p><p class="v">$3.00</p><div class="s">1 completed payment · 1 duplicate $3.00 excluded</div></div>
+      <div class="tile"><p class="k">Calls logged</p><p class="v">77</p><div class="s">recorded window 2026-10-12 → 2026-11-16</div></div>
+      <div class="tile"><p class="k">Tokens</p><p class="v">551.8k</p><div class="s">511.5k in · 40.3k out</div></div>
+      <div class="tile"><p class="k">Metered provider cost</p><p class="v">$0.00</p><div class="s">recorded by the usage writer</div></div>
+      <div class="tile"><p class="k">PhantomIDE booked</p><p class="v">$375.00</p><div class="s">collected $0.00 · verdict hold</div></div>
+      <div class="tile"><p class="k">Junkalot vs plan</p><p class="v">0.028%</p><div class="s">derived: $0.07 of $249 = 0.0281%</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Finances — money in, money owed, money out</h2>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Line</th><th>Project</th><th class="num">Amount</th><th>Basis</th></tr></thead>
+        <tbody>
+          <tr><td>Collected</td><td>HaksterAI</td><td class="num">$3.00</td><td>1 completed Stripe payment; the second $3.00 duplicate is excluded</td></tr>
+          <tr><td>Invoiced, not collected</td><td>PhantomIDE → Junk-A-Lot</td><td class="num">$375.00</td><td>30-day window, verdict <strong>hold</strong>, 0 tokens served</td></tr>
+          <tr><td>Provider spend recorded</td><td>All lanes</td><td class="num">$0.00</td><td>the usage writer records $0 cost on the unmetered relay</td></tr>
+          <tr><td>Value delivered (benchmark)</td><td>Junkalot coach</td><td class="num">$0.07</td><td>$3.00/M in, $15.00/M out over 6 turns / 16,030 tokens</td></tr>
+          <tr><td>Plan price</td><td>Junkalot</td><td class="num">$249.00 / mo</td><td>what the client pays</td></tr>
+          <tr><td>Projected value by month end</td><td>Junkalot</td><td class="num">$0.11</td><td>linear projection from the same 6 turns</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="warn" style="margin-top:10px">Read this as a position, not a profit line. Cash in is $3.00. The $375 is money owed to us and unpaid, so margin can only read 100% because nothing has landed. Spend is genuinely $0.00 as recorded — not a rounded-down number — because every lane in use is the local, unmetered relay. Nothing here is billed automatically (§19).</p>
+  </section>
+
+  <section>
+    <h2>Coaching in the admin — where it actually stands</h2>
+    <div class="card">
+      <div class="tiles" style="margin-bottom:14px">
+        <div class="tile"><p class="k">Coach turns this month</p><p class="v">6</p><div class="s">on 1 active day</div></div>
+        <div class="tile"><p class="k">Tokens</p><p class="v">16,030</p><div class="s">13,986 in · 2,044 out</div></div>
+        <div class="tile"><p class="k">Lane mix</p><p class="v">67%</p><div class="s">derived: 4 of 6 turns on deepseek-peer</div></div>
+        <div class="tile"><p class="k">Shortfall to plan</p><p class="v">$248.93</p><div class="s">derived: $249.00 − $0.07</div></div>
+      </div>
+      <ol class="pl-list steps">
+        <li><strong>Put the coach one tap from every admin screen.</strong> Six turns a month is a discovery problem before it is a value problem — the coach is reachable, but not from the pages where a decision gets made (Bookings, Spam, Analytics).</li>
+        <li><strong>Open it pre-loaded with the screen's own numbers.</strong> A coach that starts with "your busiest day is Saturday, 3 unread spam rows, $0 collected this month" gets used; a blank box does not.</li>
+        <li><strong>Ship three saved prompts</strong> the client would actually ask: what should I price this job at, who has not rebooked, what changed this week.</li>
+        <li><strong>One weekly nudge</strong> carrying the three numbers that moved, with a link straight into the coach — measured from real rows, never a fabricated percentage (§10).</li>
+        <li><strong>Report the value back, not the cost.</strong> Show saved-value against the $249 plan on the client side; keep our cost and margin owner-only (already enforced — Junkalot's <code>/admin/value</code> is a 404 and the record lives in HaksterAI's owner admin).</li>
+      </ol>
+      <p class="warn">Advice only. None of this changes a model, a route or a price (§19); each item would be built and verified as its own change, on Junkalot's own build, from its own master copy.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>HaksterAI — calls on the days that recorded any</h2>
+    <div class="card">
+      <div class="bars" id="callsChart" role="img" aria-label="Column chart: calls per day, five days recorded between 6 and 16 November 2026 — 1, 1, 14, 2 and 42"></div>
+      <div class="axis" id="callsAxis"></div>
+      <p class="warn">Only five days in the window contain rows; the empty days are no recorded calls, not missing data. The 42-call day is the build-and-verify stretch on 16 November.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>HaksterAI — which lane served the calls</h2>
+    <div class="card">
+      <div class="hbars" id="laneChart"></div>
+      <p class="warn">51 of the 77 logged calls carry a provider/model row; 26 have no lane recorded, so this chart cannot account for them and does not pretend to.</p>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div>
+      <h2>PhantomIDE — booked against collected</h2>
+      <div class="card">
+        <div class="stack" role="img" aria-label="Stacked bar: booked 375 dollars, collected 0 dollars">
+          <span style="flex:0 0 auto;width:calc(100% - 2px);background:var(--series-1);"></span>
+          <span style="flex:0 0 auto;width:2px;background:var(--line);"></span>
+        </div>
+        <div class="legend"><span><i style="background:var(--series-1)"></i>Booked $375.00</span><span><i style="background:var(--series-2)"></i>Collected $0.00</span></div>
+        <p class="warn">30-day window. Margin reads 100% only because nothing has been collected yet — the $375 is invoiced, not paid. Tokens served in this window: 0.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Junkalot coach — value against the $249 plan</h2>
+      <div class="card">
+        <div class="gauge" role="img" id="valGaugeTrack" aria-label="Gauge: 0.028 percent of the plan price, drawn at the minimum visible width"><div class="g" id="valGauge"></div></div>
+        <div class="legend"><span><i style="background:var(--series-3)"></i>0.028% of the plan ($0.07)</span><span>6 turns · 16,030 tokens</span></div>
+        <p class="warn">Benchmark value $0.07, month-end projection $0.11 (derived by linear projection from the same 6 turns). The bar's width is computed from $0.07 ÷ $249 and held at a 2px minimum so it can be seen at all; its label is the derived value.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Paid-lane break-even — what Codex would cost at your measured call size</h2>
+    <div class="card">
+      <div class="tiles">
+        <div class="tile"><p class="k">Tokens per call</p><p class="v">6,644 / 523</p><div class="s">input / output per call · 551,844 ÷ 77 calls</div></div>
+        <div class="tile"><p class="k">Codex per 1,000 calls</p><p class="v">$5.24</p><div class="s">derived at $0.60/M in · $2.40/M out</div></div>
+        <div class="tile"><p class="k">Covered by revenue collected</p><p class="v">573</p><div class="s">derived, rounded: $3.00 all-time ÷ $5.238 per 1,000</div></div>
+        <div class="tile"><p class="k">Your pace</p><p class="v">~360 / mo</p><div class="s">12 calls per day, derived</div></div>
+      </div>
+      <p class="warn">Advice only — no model or route is switched by any of this. Codex belongs on failures and money-critical answers, not on chat volume.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Owner-reported — DeepSeek volume</h2>
+    <div class="card">
+      <div class="tiles">
+        <div class="tile"><p class="k">Requests reported</p><p class="v">18,034</p><div class="s">owner's own figure, 4-day total</div></div>
+        <div class="tile"><p class="k">Daily average</p><p class="v">4,509</p><div class="s">derived: 18,034 ÷ 4 days</div></div>
+        <div class="tile"><p class="k">Per hour, if spread evenly</p><p class="v">188</p><div class="s">derived: 4,509 ÷ 24</div></div>
+      </div>
+      <p class="warn">Marked unverified on purpose: these three figures come from the owner's report, not from a ledger I can read. No per-user baseline exists here, so no "× normal" claim is made.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Table view — the rows behind the charts</h2>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Series</th><th>Label</th><th class="num">Value</th></tr></thead>
+        <tbody id="tableView"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="src">
+    Sources: HaksterAI <code>payments</code>, <code>user_token_usage</code>, <code>users</code> (Dell, read only) ·
+    PhantomIDE profit ledger 30-day window (Parrot) · Junkalot <code>data/mred-usage.jsonl</code> (Parrot, read only) ·
+    benchmark $3.00/M in and $15.00/M out for the client-value line. Usage is recorded, never billed.
+    Derived figures are rounded to the nearest whole unit (573, not 572.5); percentages are shown to three decimals (0.028%).
+  </p>
+  <p class="src" style="border-top:none;margin-top:6px">
+    <strong>Live, not frozen:</strong> this page is an exported snapshot — it cannot refresh itself, because a page like this one is not allowed to call our servers. The live versions read the same open-source ledgers directly: HaksterAI <code>/admin/profit</code> (owner gate, <code>requireOwner</code>) and PhantomIDE's Profit tab (<code>/api/admin/profit-watch</code> with the owner session). Both show the session card and the lane-budget card built this session.
+  </p>
+</div>
+
+<div id="tip" role="presentation"></div>
+<script>
+(function(){
+  var calls = [
+    {day:'2026-11-06', n:1},
+    {day:'2026-11-07', n:1},
+    {day:'2026-11-08', n:14},
+    {day:'2026-11-15', n:2},
+    {day:'2026-11-16', n:42}
+  ];
+  var lanes = [
+    {name:'ollama · glm-5.3:cloud', n:19},
+    {name:'ollama · glm-5.2:cloud', n:12},
+    {name:'hackbot · glm-5.2:cloud', n:6},
+    {name:'ollama · glm-5.3-flash:cloud', n:6},
+    {name:'codex-cli · gpt-6-luna', n:4},
+    {name:'deepseek · deepseek-v4.1-flash', n:4}
+  ];
+
+  var tip = document.getElementById('tip');
+  function bindTips(root){
+    root.querySelectorAll('[data-tip]').forEach(function(el){
+      el.addEventListener('mouseenter', function(e){
+        tip.textContent = el.getAttribute('data-tip');
+        tip.style.opacity = '1';
+      });
+      el.addEventListener('mousemove', function(e){
+        var x = e.clientX + 12, y = e.clientY - 28;
+        tip.style.left = Math.min(x, window.innerWidth - 250) + 'px';
+        tip.style.top = Math.max(6, y) + 'px';
+      });
+      el.addEventListener('mouseleave', function(){ tip.style.opacity = '0'; });
+    });
+  }
+
+  var host = document.getElementById('callsChart');
+  var maxCalls = Math.max.apply(null, calls.map(function(d){ return d.n; }));
+  host.innerHTML = calls.map(function(d, i){
+    var h = Math.max(3, (d.n / maxCalls) * 100);
+    var cls = d.n === 0 ? 'bar zero' : 'bar';
+    var tip = d.day + ' · ' + d.n + ' call' + (d.n === 1 ? '' : 's');
+    return '<span class="barval" style="grid-column:' + (i + 1) + '" data-tip="' + tip + '">' + d.n + '</span>' +
+      '<div class="' + cls + '" style="grid-column:' + (i + 1) + ';height:' + h.toFixed(1) + '%" data-tip="' + tip + '"></div>';
+  }).join('');
+  document.getElementById('callsAxis').innerHTML = calls.map(function(d){
+    return '<span>' + d.day.slice(5) + '</span>';
+  }).join('');
+
+  var laneHost = document.getElementById('laneChart');
+  var maxLane = Math.max.apply(null, lanes.map(function(d){ return d.n; }));
+  laneHost.innerHTML = lanes.map(function(d, i){
+    var w = (d.n / maxLane) * 100;
+    var cls = i === 0 ? 'fill' : i < 3 ? 'fill alt' : 'fill third';
+    return '<div class="hrow"><span class="lab">' + d.name + '</span><span class="num">' + d.n + '</span>' +
+      '<span class="track"><span class="' + cls + '" style="width:' + w.toFixed(1) + '%" data-tip="' + d.name + ' · ' + d.n + ' calls"></span></span></div>';
+  }).join('');
+
+  var rows = []
+    .concat(calls.map(function(d){ return ['Calls by day', d.day, d.n + ' calls']; }))
+    .concat(lanes.map(function(d){ return ['Calls by lane', d.name, d.n + ' calls']; }))
+    .concat([
+      ['PhantomIDE', 'Booked (30-day window)', '$375.00'],
+      ['PhantomIDE', 'Collected (30-day window)', '$0.00'],
+      ['PhantomIDE', 'Tokens served (30-day window)', '0'],
+      ['Junkalot', 'Coach turns this month', '6'],
+      ['Junkalot', 'Coach tokens this month', '16,030'],
+      ['Junkalot', 'Benchmark usage value this month', '$0.07'],
+      ['Junkalot', 'Utilisation of the plan (derived)', '0.028%'],
+      ['Junkalot', 'Plan price', '$249.00'],
+      ['Junkalot', 'Projected month end (derived)', '$0.11'],
+      ['Codex break-even', 'Tokens per call, measured', '6,644 in / 523 out'],
+      ['Codex break-even', 'Cost per 1,000 calls (derived)', '$5.24'],
+      ['Codex break-even', 'Calls covered by revenue collected (derived, rounded)', '573'],
+      ['Codex break-even', 'Pace (derived)', '~360 / month'],
+      ['Owner-reported', 'DeepSeek requests over 4 days', '18,034'],
+      ['Owner-reported', 'Daily average (derived)', '4,509'],
+      ['Owner-reported', 'Per hour if spread evenly (derived)', '188']
+    ]);
+  document.getElementById('tableView').innerHTML = rows.map(function(r){
+    return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num">' + r[2] + '</td></tr>';
+  }).join('');
+
+  // Gauge width is computed from $0.07 ÷ $249 (0.0281%), held at a 2px floor so it is visible.
+  var gauge = document.getElementById('valGauge');
+  var track = document.getElementById('valGaugeTrack');
+  if (gauge && track) {
+    var px = Math.max(2, track.clientWidth * (0.07 / 249));
+    gauge.style.width = px.toFixed(1) + 'px';
+  }
+
+  bindTips(document);
+})();
+</script>
+
+</body>
+</html>

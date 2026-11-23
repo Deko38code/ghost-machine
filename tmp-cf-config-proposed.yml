@@ -1,0 +1,27 @@
+tunnel: f9f970fe-212b-4faf-82fb-8523463c3a96
+credentials-file: /home/ghost694/.cloudflared/f9f970fe-212b-4faf-82fb-8523463c3a96.json
+
+ingress:
+  - hostname: dash.phantomide.com
+    service: http://127.0.0.1:5173
+  - hostname: phantomide.com
+    service: http://127.0.0.1:4000
+  - hostname: www.phantomide.com
+    service: http://127.0.0.1:4000
+  - hostname: junkalotjunkremoval.com
+    service: http://127.0.0.1:5006
+  - hostname: www.junkalotjunkremoval.com
+    service: http://127.0.0.1:5006
+  - hostname: junkalot.co
+    path: ^/ws/
+    service: http://127.0.0.1:3001
+  - hostname: junkalot.co
+    service: http://127.0.0.1:5006
+  - hostname: www.junkalot.co
+    path: ^/ws/
+    service: http://127.0.0.1:3001
+  - hostname: www.junkalot.co
+    service: http://127.0.0.1:5006
+  - hostname: email-monitor-3230f40cc3.haksterai.com
+    service: http://127.0.0.1:9191
+  - service: http_status:404

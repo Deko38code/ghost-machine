@@ -1,0 +1,69 @@
+#!/usr/bin/python3
+"""Ask the local Tor daemon for a new circuit (SIGNAL NEWNYM).
+
+Used by the Cinnamon "Tor Button" applet's Rebuild chain item. Tor's control
+socket is owned by debian-tor and the auth cookie is root-only, so this runs
+through pkexec and prints a single result line:
+
+    OK  new circuit requested
+    FAIL: <short reason>
+
+Run it by hand to check the current state:
+
+    pkexec /home/ghost/bin/tor-newnym
+    cat /tmp/tor-newnym.log
+"""
+
+import os
+import socket
+import sys
+
+CONTROL = "/run/tor/control"
+COOKIE = "/run/tor/control.authcookie"
+
+
+def fail(reason):
+    print("FAIL: " + reason)
+    sys.exit(1)
+
+
+def main():
+    if not os.path.exists(CONTROL):
+        fail("no control socket at %s — is tor running?" % CONTROL)
+    try:
+        with open(COOKIE, "rb") as fh:
+            cookie = fh.read().hex()
+    except PermissionError:
+        fail("cannot read %s — this helper must run as root (pkexec)" % COOKIE)
+    except OSError as exc:
+        fail("cannot read auth cookie: %s" % exc)
+
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.settimeout(10)
+    try:
+        sock.connect(CONTROL)
+    except OSError as exc:
+        fail("control socket connect failed: %s" % exc)
+
+    try:
+        sock.sendall(("AUTHENTICATE %s\r\n" % cookie).encode())
+        reply = sock.recv(4096).decode(errors="replace").strip()
+        if not reply.startswith("250"):
+            fail("authenticate rejected: %s" % reply.splitlines()[-1:])
+        sock.sendall(b"SIGNAL NEWNYM\r\n")
+        reply = sock.recv(4096).decode(errors="replace").strip()
+        if not reply.startswith("250"):
+            fail("NEWNYM rejected: %s" % reply.splitlines()[-1:])
+        try:
+            sock.sendall(b"QUIT\r\n")
+        except OSError:
+            pass
+    finally:
+        sock.close()
+
+    print("OK  new circuit requested")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

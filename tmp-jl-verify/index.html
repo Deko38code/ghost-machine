@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Junkalot course — layout check</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  html, body { margin: 0; background: #0a0a0a; }
+  #report { position: fixed; left: 0; top: 0; z-index: 99999; margin: 0; padding: 8px; max-width: 46ch; max-height: 100vh; overflow: auto; display: none; background: #000; color: #0f0; font: 11px/1.4 monospace; white-space: pre-wrap; }
+  body.dump #report { display: block; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <pre id="report"></pre>
+  <script>if (location.search.includes('dump=1')) document.body.classList.add('dump')</script>
+  <script src="bundle.js"></script>
+</body>
+</html>

@@ -35,6 +35,8 @@ const parseGps = (b, key) => { try { return b[key] ? JSON.parse(b[key]) : null; 
 export default function Bookings() {
   const [rows, setRows] = useState(null);
   const [logs, setLogs] = useState({});
+  const [busyH, setBusyH] = useState(null);
+  const [handover, setHandover] = useState({});
   useEffect(() => {
     if (!getToken()) return;
     api("GET", "/api/bookings").then((r) => setRows(r.rows)).catch((e) => setErr(e.message));
@@ -52,7 +54,7 @@ export default function Bookings() {
     try {
       const gps = await getPosition();
       const r = await api("POST", `/api/bookings/${code}/${stage}`, { gps });
-      const fenceTxt = !r.fence.center ? "" : ` · ${r.in_fence ? "inside geofence" : "OUTSIDE geofence"} (${r.distance_mi}mi of pickup point)`;
+      const fenceTxt = !r.fence?.center ? "" : ` · ${r.in_fence ? "inside geofence" : "OUTSIDE geofence"} (${r.distance_mi}mi of pickup point)`;
       setHandover((m) => ({ ...m, [code]: { msg: `${stage === "checkout" ? "✓ Picked up" : "✓ Returned"} at ${r.at} — GPS ${r.gps.lat.toFixed(4)}, ${r.gps.lng.toFixed(4)} ±${r.gps.acc}m${fenceTxt}`, ok: r.in_fence !== false } }));
       api("GET", "/api/bookings").then((r2) => setRows(r2.rows));
     } catch (ex) {
@@ -109,7 +111,8 @@ export default function Bookings() {
             {b.payment_state !== "cancelled" && <button className="ai-go" style={{ padding: "6px 10px", fontSize: 11, background: "var(--char2)", color: "var(--orange)" }} onClick={() => cancel(b.code)}>Cancel</button>}
             <a href={gcalUrl(b)} target="_blank" rel="noreferrer"><button className="ai-go" style={{ padding: "6px 10px", fontSize: 11, background: "#1a73e8", color: "#fff" }}>+ Google Calendar</button></a>
             <a href={`data:text/calendar;charset=utf-8,${encodeURIComponent(icsFor(b))}`} download={`${b.code}.ics`}><button className="ai-go" style={{ padding: "6px 10px", fontSize: 11 }}>ICS</button></a>
-            {b.lat && b.lng && <a href={`https://waze.com/ul?ll=${b.lat}%2C${b.lng}&navigate=yes`} target="_blank" rel="noreferrer"><button className="ai-go" style={{ padding: "6px 10px", fontSize: 11, background: "#33ccff", color: "#16181b" }}>🚙 Waze</button></a>}
+            {b.lat && b.lng && <a href={`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&travelmode=driving`} target="_blank" rel="noreferrer"><button className="ai-go" style={{ padding: "6px 10px", fontSize: 11, background: "#1a73e8", color: "#fff" }}>🗺️ Door-to-door pickup</button></a>}
+            {b.lat && b.lng && <a href={`https://waze.com/ul?ll=${b.lat}%2C${b.lng}&navigate=yes`} target="_blank" rel="noreferrer"><button className="ai-go" style={{ padding: "6px 10px", fontSize: 11, background: "#33ccff", color: "#16181b" }}>🚙 Waze live</button></a>}
           </div>
           {logs[b.code] && (
             <pre className="receiptbody">{logs[b.code].map((l) => `${l.logged_on}  ${l.event}${l.detail ? " — " + l.detail : ""}${l.actor ? " (" + l.actor + ")" : ""}`).join("\n")}</pre>
@@ -229,14 +232,21 @@ function KycRow() {
       const r = await fetch("/api/kyc/submit", { method: "POST", headers: { Authorization: `Bearer ${getToken()}` }, body: fd });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "upload failed");
-      kycCache = j; setSt(j); setMsg("ID received — verify completes before your pickup.");
+      kycCache = j; setSt(j);
+      const sc = j.auto?.score;
+      setMsg(j.state === "verified"
+        ? `✓ Auto-verified${sc != null ? ` (score ${sc}/100)` : ""} — pickup unlocked.`
+        : j.state === "needs-review"
+        ? "⏳ ID submitted — an admin will verify it shortly."
+        : "ID received — verify completes before your pickup.");
     } catch (ex) { setMsg("✗ " + ex.message); }
     setBusy(false);
   };
   return (
     <small style={{ display: "block", marginTop: 4 }}>
       {st?.state === "verified" ? <span style={{ color: "#38d9a9" }}>✓ ID verified — pickup unlocked</span>
-        : st?.state === "pending" ? <span style={{ color: "#f5b325" }}>⏳ ID pending verification</span>
+        : st?.state === "needs-review" || st?.state === "pending" ? <span style={{ color: "#f5b325" }}>⏳ ID pending verification</span>
+        : st?.state === "rejected" ? <span style={{ color: "#fab005" }}>✗ ID rejected — try again or contact support</span>
         : <label style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", background: "var(--asphalt)", border: "1px solid var(--line)", borderRadius: 8, padding: "6px 10px" }}>
             🪪 Verify ID (license front + back)
             <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => submit(Array.from(e.target.files || []))} disabled={busy} />

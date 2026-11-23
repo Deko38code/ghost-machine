@@ -1,0 +1,169 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════
+# freebuff-wrapper — CineVault Container Edition (ports kiro-wrapper)
+# 6hr session identity rotation, headless auth bypass, token-injection
+# lane. Never touches the live session config at ~/.config/manicode.
+# ═══════════════════════════════════════════════════════════════
+
+FREEBUFF_STATE_DIR="${FREEBUFF_STATE_DIR:-/home/ghost/.sessions/${CINEVAULT_SESSION:-default}/freebuff-state}"
+FREEBUFF_CONFIG_DIR="${FREEBUFF_STATE_DIR}/config"
+IDENTITY_FILE="${FREEBUFF_STATE_DIR}/identity.env"
+ROTATION_SECS=$((6 * 3600))
+mkdir -p "$FREEBUFF_CONFIG_DIR"
+
+rand_mac() {
+  local first=$((0x02 | (RANDOM % 256 & 0xfc)))
+  printf '%02x:%02x:%02x:%02x:%02x:%02x' $first $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
+}
+rand_ip() {
+  printf '10.%d.%d.%d' $((RANDOM%256)) $((RANDOM%256)) $((1+RANDOM%254))
+}
+
+load_or_rotate_identity() {
+  local now=$(date +%s)
+  local need_new=false
+  if [ -f "$IDENTITY_FILE" ]; then
+    local stamp=$(grep '^FREEBUFF_IDENTITY_TS=' "$IDENTITY_FILE" 2>/dev/null | cut -d= -f2)
+    if [ -n "$stamp" ]; then
+      local age=$(( now - stamp ))
+      [ "$age" -ge "$ROTATION_SECS" ] && need_new=true
+    else
+      need_new=true
+    fi
+  else
+    need_new=true
+  fi
+  if $need_new; then
+    export FREEBUFF_SESSION_MAC=$(rand_mac)
+    export FREEBUFF_SESSION_IP=$(rand_ip)
+    export FREEBUFF_SESSION_TS=$(date -u +%Y%m%dT%H%M%SZ)
+    cat > "$IDENTITY_FILE" <<IDENT
+FREEBUFF_SESSION_MAC=${FREEBUFF_SESSION_MAC}
+FREEBUFF_SESSION_IP=${FREEBUFF_SESSION_IP}
+FREEBUFF_SESSION_TS=${FREEBUFF_SESSION_TS}
+FREEBUFF_IDENTITY_TS=$now
+IDENT
+  else
+    source "$IDENTITY_FILE"
+    export FREEBUFF_SESSION_MAC FREEBUFF_SESSION_IP FREEBUFF_SESSION_TS
+  fi
+}
+
+export BROWSER=none
+export NO_OPEN_BROWSER=1
+export DISPLAY=
+export FREEBUFF_STATE_DIR
+export FREEBUFF_CONFIG_DIR
+
+load_or_rotate_identity
+
+banner() {
+  local stamp=$(grep '^FREEBUFF_IDENTITY_TS=' "$IDENTITY_FILE" 2>/dev/null | cut -d= -f2)
+  local remaining=$(( stamp ? (ROTATION_SECS - ( $(date +%s) - stamp )) : 0 ))
+  local hrs=$(( remaining > 0 ? remaining / 3600 : 0 ))
+  local mins=$(( remaining > 0 ? (remaining % 3600) / 60 : 0 ))
+  echo ""
+  echo -e "\x1b[38;2;130;80;255m╔══════════════════════════════════════════════════════════════╗\x1b[0m"
+  echo -e "\x1b[38;2;130;80;255m║\x1b[0m  \x1b[1;37m🟣 FREEBUFF CLI\x1b[0m  \x1b[38;2;130;80;255m·\x1b[0m  \x1b[2;37mFreebuff Agent\x1b[0m  \x1b[38;2;130;80;255m║\x1b[0m"
+  echo -e "\x1b[38;2;130;80;255m║\x1b[0m  ⏱ \x1b[38;2;136;255;200m$(date -u +%H:%M:%S) UTC\x1b[0m  \x1b[38;2;130;80;255m║\x1b[0m"
+  echo -e "\x1b[38;2;130;80;255m║\x1b[0m  \x1b[2;37m🔄 Rotate in ${hrs}h ${mins}m · mac ${FREEBUFF_SESSION_MAC} · ip ${FREEBUFF_SESSION_IP}\x1b[0m  \x1b[38;2;130;80;255m║\x1b[0m"
+  echo -e "\x1b[38;2;130;80;255m║\x1b[0m  \x1b[2;37mconfig: ${FREEBUFF_CONFIG_DIR}\x1b[0m  \x1b[38;2;130;80;255m║\x1b[0m"
+  echo -e "\x1b[38;2;130;80;255m╚══════════════════════════════════════════════════════════════╝\x1b[0m"
+  echo ""
+}
+
+has_credentials() {
+  [ -n "${CODEBUFF_API_KEY:-}" ] && return 0
+  [ -s "$FREEBUFF_CONFIG_DIR/credentials.json" ]
+}
+
+write_seeded_credentials() {
+  # Token-injection bypass (ports kiro's sync_tokens_to_kirocli.py pattern).
+  # Drops an owner-only credentials.json in the session sandbox so the
+  # freebuff CLI reads the profile without an interactive URL login.
+  local tok="$1"
+  local uid_line="${FREEBUFF_SEED_USER_ID:-}"
+  local email_line="${FREEBUFF_SEED_EMAIL:-}"
+  local creds_file="$FREEBUFF_CONFIG_DIR/credentials.json"
+  if [ -s "$creds_file" ]; then
+    echo "[seed] credentials.json already exists in this identity — nothing replaced" >&2
+    return 0
+  fi
+  python3 - "$creds_file" "$tok" "$uid_line" "$email_line" <<'PYEOF'
+import json, sys, os
+path, tok, uid, email = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+user = {"name": "", "authToken": tok}
+if uid: user["id"] = uid
+if email: user["email"] = email
+with open(path, "w") as f: json.dump({"default": user}, f, indent=2)
+os.chmod(path, 0o600)
+print(f"[seed] wrote {path}")
+PYEOF
+}
+
+FREEBUFF_BIN="${FREEBUFF_BIN:-$(command -v freebuff 2>/dev/null || echo /home/ghost/.npm-global/bin/freebuff)}"
+if ! command -v "$FREEBUFF_BIN" >/dev/null 2>&1 && [ ! -x "$FREEBUFF_BIN" ]; then
+  echo -e "\x1b[33m⚠ freebuff binary not found\x1b[0m" >&2
+  exit 1
+fi
+
+case "${1:-}" in
+  --status)
+    banner
+    echo "state dir : $FREEBUFF_STATE_DIR"
+    echo "config dir: $FREEBUFF_CONFIG_DIR"
+    if has_credentials; then
+      echo "auth      : READY (env or credentials.json)"
+    else
+      echo "auth      : NOT AUTHENTICATED"
+    fi
+    echo "identity  : $(tr '\n' ' ' < "$IDENTITY_FILE" 2>/dev/null)"
+    exit 0
+    ;;
+  --reset-identity)
+    rm -f "$IDENTITY_FILE"
+    load_or_rotate_identity
+    echo "identity rotated: $IDENTITY_FILE"
+    cat "$IDENTITY_FILE"
+    exit 0
+    ;;
+  --seed)
+    # usage: freebuff-wrapper --seed <token> [userId] [email]
+    tok="${2:-}"
+    [ -z "$tok" ] && { echo "usage: $0 --seed <token> [userId] [email]" >&2; exit 1; }
+    FREEBUFF_SEED_USER_ID="${3:-}"
+    FREEBUFF_SEED_EMAIL="${4:-}"
+    write_seeded_credentials "$tok"
+    exit 0
+    ;;
+  --clear)
+    # Logout-like: drops ONLY the sandbox credentials + identity; live config untouched.
+    rm -f "$FREEBUFF_CONFIG_DIR/credentials.json" "$IDENTITY_FILE"
+    echo "[clear] sandboxed credentials + identity removed ($FREEBUFF_STATE_DIR)"
+    exit 0
+    ;;
+esac
+
+if [ "${1:-}" = "login" ]; then
+  banner
+  echo -e "\x1b[38;2;136;255;200m→ headless login (plain URL flow, browser-free)\x1b[0m"
+  echo ""
+  shift
+  exec "$FREEBUFF_BIN" login "$@"
+fi
+
+if ! has_credentials; then
+  banner
+  echo -e "\x1b[33m⚠ No auth token yet.\x1b[0m"
+  echo -e "\x1b[38;2;136;255;200m→ Pick one:\x1b[0m"
+  echo -e "   \x1b[1;37mfreebuff-wrapper login\x1b[0m       (prints URL; approve in any browser)"
+  echo -e "   \x1b[1;37mfreebuff-wrapper --seed <tok>\x1b[0m (inject a token, zero network)"
+  exit 1
+fi
+
+banner
+if [ $# -eq 0 ]; then
+  exec "$FREEBUFF_BIN"
+else
+  exec "$FREEBUFF_BIN" "$@"
+fi

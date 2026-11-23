@@ -1,0 +1,14 @@
+{"id":"13c9223e-1628-49e1-b20b-c6aa5eab7394","time":"2026-10-16T08:20:47.997Z","method":"GET","path":"/api/stats","status":200,"ip":"::1","ua":"curl/8.5.0","ms":7}
+{"id":"73bcf239-a3f0-42f5-9aa8-fe66c753d2cb","time":"2026-10-16T08:20:48.009Z","method":"GET","path":"/api/security","status":200,"ip":"::1","ua":"curl/8.5.0","ms":1}
+{"id":"423bee8a-66da-463e-b256-64de249ab856","time":"2026-10-16T08:20:48.018Z","method":"GET","path":"/api/logs","status":200,"ip":"::1","ua":"curl/8.5.0","ms":0}
+{"id":"aa725be5-f196-41d5-a4ec-34fcbddc18b8","time":"2026-10-16T08:32:12.308Z","method":"GET","path":"/","status":404,"ip":"::1","ua":"curl/8.5.0","ms":6}
+{"id":"213a7bac-ca59-4606-a6a0-207e6b885849","time":"2026-10-16T08:32:12.318Z","method":"GET","path":"/hardware.html","status":200,"ip":"::1","ua":"curl/8.5.0","ms":3}
+{"id":"da61cba2-4fbf-4eac-af9c-09772a477d33","time":"2026-10-16T08:32:12.332Z","method":"GET","path":"/pool.html","status":200,"ip":"::1","ua":"curl/8.5.0","ms":3}
+{"id":"23e3ec78-3d50-461a-907e-3c5446a1a5d3","time":"2026-10-16T08:32:12.342Z","method":"GET","path":"/security.html","status":404,"ip":"::1","ua":"curl/8.5.0","ms":1}
+{"id":"55fe0319-8ebf-44b5-bee3-99f0b8888891","time":"2026-10-16T08:32:12.355Z","method":"GET","path":"/logs.html","status":404,"ip":"::1","ua":"curl/8.5.0","ms":1}
+{"id":"97707acd-c68e-483f-b6a1-0f90c33bf442","time":"2026-10-16T09:05:54.187Z","method":"GET","path":"/","status":200,"ip":"::1","ua":"curl/8.5.0","ms":30}
+{"id":"036a17e9-1c22-4d12-a034-af8efc451a7c","time":"2026-10-27T11:39:01.810Z","method":"GET","path":"/api/health","status":200,"ip":"::ffff:127.0.0.1","ua":"curl/8.5.0","ms":1436}
+{"id":"9f9906d3-16a9-4f1d-954c-99ba99d9a987","time":"2026-11-14T07:33:29.010Z","method":"GET","path":"/","status":200,"ip":"::ffff:127.0.0.1","ua":"curl/8.5.0","ms":150}
+{"id":"0a790165-4aa1-413e-9452-43dd16975029","time":"2026-11-14T07:33:29.084Z","method":"GET","path":"/api/health","status":200,"ip":"::ffff:127.0.0.1","ua":"curl/8.5.0","ms":2}
+{"id":"f5556995-e33f-4f60-ac87-00ab91442bfc","time":"2026-11-15T00:15:51.723Z","method":"GET","path":"/","status":200,"ip":"::ffff:127.0.0.1","ua":"curl/8.5.0","ms":3638}
+{"id":"588c154a-362c-4a7a-b8a2-bef4b0833c64","time":"2026-11-15T00:20:29.489Z","method":"GET","path":"/","status":200,"ip":"::ffff:127.0.0.1","ua":"curl/8.5.0","ms":130}

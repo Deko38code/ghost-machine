@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>frame</title>
+<style>body{margin:0;background:#05050a}iframe{border:0;display:block}#report{position:fixed;left:-99999px;top:0;white-space:pre}</style>
+</head>
+<body>
+<iframe id="f" src="index.html?embed=1"></iframe>
+<pre id="report"></pre>
+<script>
+const p = new URLSearchParams(location.search)
+const W = +p.get('w') || 360
+const H = +p.get('h') || 640
+const f = document.getElementById('f')
+f.style.width = W + 'px'
+f.style.height = H + 'px'
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+f.addEventListener('load', async () => {
+  const win = f.contentWindow
+  const out = []
+  try {
+    for (let i = 0; i < 4; i++) {
+      await sleep(i === 0 ? 900 : 550)
+      const root = win.document.querySelector('[aria-label="What\'s new tour"]')
+      if (!root) { out.push({ error: 'no tour root', i }); break }
+      out.push(win.__report())
+      const next = Array.from(root.querySelectorAll('button')).find(b => /Next|Got it/.test(b.textContent || ''))
+      if (next && i < 3) next.click()
+    }
+  } catch (e) { out.push({ error: String(e) }) }
+  await sleep(150)
+  document.getElementById('report').textContent = 'REPORT:' + JSON.stringify(out)
+})
+</script>
+</body>
+</html>
