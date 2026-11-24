@@ -869,3 +869,112 @@ existing section was modified.
    anonymous visitor and check for the authorised address, the step text and "owner email" — all absent.
 7. **Applies to every project we serve** (§16), and it outranks convenience: if a change makes the
    sign-in page friendlier only by telling the public who the admin is, it does not ship.
+
+## 35. Our Model Is Named HAKSTERAI-FLASH — The Label Only, The Config Untouched
+
+Adopted 2026-11-24 at the owner's direction ("can you name it HAKSTERAI-FLASH with hurting our config
+cost"). Added as a new section; no existing section was modified. This is the separate, explicit decision
+§22.4 requires, and it changes exactly one thing: the name a caller is shown.
+
+1. **The name is HAKSTERAI-FLASH.** `MODEL_DISPLAY_NAME` in `cli/src/models/ladder.js` is
+   `HAKSTERAI-FLASH`, and every surface that names the model to a user renders it through
+   `displayModel()` — the CLI status bar, `/status`, the agent picker, the model picker, the dashboard's
+   server-model cell and the settings detail. The tier labels read `HAKSTERAI-FLASH` and
+   `HAKSTERAI-FLASH direct`.
+2. **This amends the name in §22.1 only; the rest of §22 stands.** The brand name our CLI prints is
+   HAKSTERAI-FLASH rather than Phantom Flash. Everything §22 locks is untouched: the wire model
+   `deepseek-v4.1-flash:cloud`, the `127.0.0.1:11434` relay, the provider, the ladder order, the plan gate
+   and the model-lock verifier. §22.2's resolution behaviour is also unchanged — the endpoint still
+   answers our model for `auto` and Claude-style names; HAKSTERAI-FLASH is the label the CLI shows.
+   Changing any locked value still needs its own separate decision (§22.4).
+3. **The name is a label, so cost and route do not move.** Renaming prints a different string; it does not
+   change which model is called, which provider serves it, how many requests are used, or any dollar
+   figure (§19.3, §26). "Without hurting our config cost" is the requirement this section records: no
+   route, quota or rate changes with the name.
+4. **A caller sees the name; the wire config stays on the record.** As §22.6 requires, `/health` and the
+   usage ledger still record the wire model alongside the public name, so accounting and audits stay
+   truthful. HAKSTERAI-FLASH is never described as a budget, lite or cheap option.
+5. **Pro users get the same name and the same config.** The shipped package serves this exact build
+   (§28): `/cli/latest.json`, the local `ui-fb.mjs` and the bundle inside `/cli/pkg.tar.gz` carry one
+   version and one hash, and the model ladder in that package points at the same wire model and relay.
+   There is no client-specific name and no downgraded model.
+6. **Pinned by a test.** `cli/ui/__tests__/model-name.test.mjs` asserts the displayed name is
+   HAKSTERAI-FLASH **and** that the wire id stays `deepseek-v4.1-flash:cloud`, so a later edit cannot
+   drift one without failing the other.
+7. **Still locked for everyone.** §22.3 and §22.5 continue to apply unchanged: an endpoint answers only
+   this model, a request naming another is refused, and drift is reported to the owner, never
+   auto-corrected.
+
+## 36. Profit Leaves Junkalot — Its Admin Shows Only What Junkalot Owes
+
+Adopted 2026-11-24 at the owner's direction ("data profit from junkalot always goes to phantomide never
+display our profits in junkalot admin dash only what junkalot owes due etc add rule"). Added as a new
+section; no existing section was modified.
+
+1. **The direction is one-way, out.** Our profit figures — the locked rate card, the meter, the margin,
+   the cost base, the demand index and any provider/key breakdown — are *produced* in Junkalot's own data
+   (`data/mred-billing.json`, `data/profit-model.json`, `data/mred-usage.jsonl`) and *read out* by
+   PhantomIDE and HaksterAI through the read-only snapshot and bridge
+   (`data/profit-rates-snapshot.json`, `/api/internal/profit-rates`). Display stops at the project
+   boundary: nothing of ours is rendered on junkalot.co (§16, §26.6, §30.3).
+2. **Junkalot's admin answers "what do I owe", never "what does he earn".** Her side shows the plan, the
+   included allowance, turns and tokens used, the billable meter against her plan, invoices, amounts due,
+   payment status and worklog items. Our rate, our cost, our margin and our index are not part of that
+   answer and are not displayed there.
+3. **Never render our profit in any Junkalot surface.** Not in a client tab, not in an owner tab, not in
+   any API payload either account can read. `/api/admin/mred-usage?format=summary` carries no profit key,
+   and the full record stays owner-only and unconsumed by any junkalot.co page (§30.2).
+4. **Enforced by construction, verified by fetching.** A Junkalot change is not done until an anonymous
+   fetch of the admin payload shows **no** `profit`, `margin`, `costBase`, `demandIndex`, `ratePerMTok`
+   or `rateCard` key, and the page markup has no such block — checked by key, not by eye (§13, §30.5).
+5. **Her own margin calculator is not our profit.** `_BusinessTools.tsx` is a client tool for pricing
+   *her* jobs and stays: it computes her numbers, never ours, and carries none of our rates or cost. A
+   rule that removed it would be removing her feature, not our disclosure (§25.4).
+6. **This extends §30 to the whole project.** §30 keeps profit out of her client view; §36 keeps it out
+   of the entire junkalot.co admin, owner view included. §30 needs no amendment — this is the broader
+   rule it sits inside.
+7. **The owner dashboards are the display side.** PhantomIDE's and HaksterAI's owner admin read the
+   snapshot read-only, labelled "source: junkalot.co" (§26.6). Nothing is written back into Junkalot
+   (§16, §30.3).
+8. **No rate, bill or computation moves.** This rule changes *where a figure is shown*, not what is
+   computed, metered or billed. §19, §24 and §26 are untouched and remain locked.
+9. **Applies to every project we serve.** Any project that produces profit data displays it in the owner
+   dashboards, never in the project that generated it (§16).
+
+## 37. Never Restart The Client's Server While She Is Active — Update Only When Offline
+
+Adopted 2026-11-24 at the owner's direction ("and we never restart clients server while shes active in
+admin dash in junkalot with 1junkalot and her susie email add rule always when offline we update server
+etc"). Added as a new section; no existing section was modified.
+
+**Why: a restart is not only a build.** §32 governs staged installs and §33 governs deploys. This section
+closes the wider hole: *any* restart of Junkalot's server process — a PM2 restart for an env change, a
+config change, a crash-recovery loop, a hand-run `pm2 restart`, a service reload — drops every open session
+and any Coach answer being generated. Her account mid-work reads that as a broken product. So the same
+offline-only rule applies to **every** restart, not only to a build hand-off.
+
+1. **Never restart, reload, stop or bounce Junkalot's server while a client is active.** That covers
+   `pm2 restart/reload/stop junkalot`, a systemd or process-manager restart, a hand-run service bounce and
+   any crash-recovery loop a check would trigger. Her accounts — `1junkalot@gmail.com` and
+   `susanschlamp53@gmail.com` — count; the owner's own account never does (§32.1).
+2. **"Active" has one definition, and it is measured, not guessed.** Run
+   `node scripts/client-activity.mjs` (read-only) and name who is active by **email and IP** before any
+   restart. Active means: her session is open and inside the site's 2-hour idle lifetime, or she sent a
+   Coach message or has an answer generating in the last few minutes (§32.2, §33.1–§33.2). "No obvious
+   session" is not verification (§13).
+3. **Update when offline — the rule is simply "wait".** Every update, restart and deploy lands in the
+   first quiet window where no client is active, by the check in clause 2. A held restart is the correct
+   state while she is active; it is reported as held with the account, IP, how long it has waited and the
+   queue order — never as running or complete (§33.5).
+4. **She signs in, the restart or update is cancelled — not just delayed.** If she signs in before the
+   restart, it is held; if she signs in during the hand-off, it is cancelled at the last check before the
+   process exits, and the attempt is not consumed (§32.3).
+5. **Nothing overrides her session on a timer.** No scheduled job, no watchdog, no agent and no
+   "it would only take a second" applies a restart anyway while she is active. An urgent restart in that
+   window is the owner's explicit, separate decision recorded as such (§3.1, §32.5, §33.6) — never an
+   automatic one.
+6. **State it truthfully.** A restart held because she is active is reported as held/waiting with the
+   account and duration, never as done (§10, §13, §32.6, §33.5).
+7. **Applies to every project we serve that has a client/admin session** (§16), checked read-only over
+   that project's own session log. Junkalot's guard — `data/admin-sessions.jsonl` read via
+   `scripts/client-activity.mjs` — is the reference implementation (§32.7, §33.7).

@@ -76,3 +76,9 @@ Mon Nov 23 21:28:52 2026: Loading settings from "/home/ghost/.config/jack/conf.x
 Mon Nov 23 21:28:52 2026: [1m[31mERROR: failed to stat "/home/ghost/.config/jack/conf.xml", error is 2 (No such file or directory)[0m
 Mon Nov 23 21:28:52 2026: [1m[31mERROR: open() failed to open conf filename.[0m
 Mon Nov 23 21:28:52 2026: Listening for D-Bus messages
+Tue Nov 24 10:13:23 2026: ------------------
+Tue Nov 24 10:13:23 2026: Controller activated. Version 1.9.21 ([]) built on Sat Apr  6 09:59:24 2024
+Tue Nov 24 10:13:27 2026: Loading settings from "/home/ghost/.config/jack/conf.xml" using expat_2.6.1 ...
+Tue Nov 24 10:13:27 2026: [1m[31mERROR: failed to stat "/home/ghost/.config/jack/conf.xml", error is 2 (No such file or directory)[0m
+Tue Nov 24 10:13:27 2026: [1m[31mERROR: open() failed to open conf filename.[0m
+Tue Nov 24 10:13:27 2026: Listening for D-Bus messages
