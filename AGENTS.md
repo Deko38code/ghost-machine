@@ -920,3 +920,153 @@ Git synchronization is unavailable.
 - SyncGuard itself is **not built**: no authoritative private server, no read-only mirror, no
   branch protection, no lag monitoring, no encrypted Git backups and no dashboard section. The
   dashboard and rules must not describe any of that as running.
+
+---
+
+`Section 41 Added — Both Servers Carry The Same Commit (2026-11-26)`
+
+_Appended 2026-11-26 at the owner's direction ("add a rule that when add or commit stuff both boxes stay up
+to date in sync no misses"; "for server sake"). Nothing above this line was rewritten, reordered or
+removed. Backups: `CLAUDE.md.bak-20261125T154730Z (71,515 B, size-verified)`;
+`AGENTS.md.bak-20261125T154730Z (80,782 B, size-verified)`._
+
+`/home/ghost/CLAUDE.md` is **§1–§41**. §41 is **"Both Servers Carry The Same Commit — No Misses"**. What it
+makes binding here:
+
+1. **Both boxes, every commit.** Anything touching `server/`, `cli/`, `scripts/`, `dist/`, `public/` or
+   `package.json` reaches the Dell and the Lenovo before the work is reported done, verified by hash and by
+   the standby door answering `200` (§13).
+2. **The hook does it, not memory.** `.git/hooks/post-commit` starts `scripts/post-commit-sync.sh <sha>` in
+   the background — never blocking the commit, logging to `logs/failover-sync.log`, running only on the
+   primary, and waiting out a sync already in progress so a mid-sync commit is not missed. Docs-only
+   commits stand down. `scripts/post-commit-sync.sh` is the versioned half; `.git/hooks/post-commit` is not
+   versioned, so a re-clone re-appends the hook block.
+3. **Data and env travel with it** — SQLite snapshot into the idle slot, env mirrored by SHA-256, staged,
+   `.prev` kept, mode 600 (§23, §31).
+4. **Blue-green only** — install, boot, wait for `200`, switch, then stop the old slot (§7).
+5. **HELD is reported as HELD**, with its reason and commit id, and is the owner's decision (§15); a
+   FAILED line is rerun before the task is called done.
+6. **Server scope only** — no cross-project copies (§16), no tunnel/DNS/ingress changes (§17).
+
+Reference run at adoption: `b0127e9` → slot 3592 booted on the new code, router switched 3591→3592, door
+`200`; the firecrawl files hash-identical on both boxes.
+
+---
+
+## Section 42 Added — Every CLI Install Gets The Newest Released Build (2026-11-26)
+
+_Appended 2026-11-26 at the owner's direction ("all cli any user etc install need to get latest updates
+pushed commited add rule"). Nothing above this line was rewritten, reordered or removed. Backups:
+`AGENTS.md.bak-20261125T161501Z (82,746 B, size-verified)`; master-rulebook
+`CLAUDE.md.bak-20261125T161501Z (74,619 B, size-verified)`._
+
+`/home/ghost/CLAUDE.md` is now **§1–§42**. §42 is **"Every CLI Install Gets The Newest Released Build —
+Nothing Sits On 'Pull'"**. Why it exists: the served installer already took the published package, but it
+never checked *which* build it got, and a user on the old clone-based installer (the Mint box) could only
+ever see "pull to update" — an install that can never update itself. What §42 makes binding here:
+
+1. **Package, never checkout, as the primary path.** `install.sh` / `install.ps1` (repo root; the
+   `GET /install.sh` and `GET /install.ps1` routes read them per request) fetch `/cli/pkg.tar.gz` and
+   install with `npm pack` + `npm install -g`. No `.git`, so `cli/src/updater.js` can stage and apply a
+   verified update on the next start.
+2. **Verified against `/cli/latest.json`.** Both installers read `version` + `bundleSha256` and compare
+   the unpacked `ui-fb.mjs` hash; a stale cached copy is re-requested once past the cache (`?t=`), and a
+   surviving mismatch is reported, not hidden.
+3. **A labelled fallback.** No package endpoint → depth-1 source clone in a fresh directory (never over an
+   existing install), printed as a checkout that will report 'pull to update'.
+4. **The install states its update path**, and names any older checkout left on the machine untouched.
+5. **`hakster update` on a checkout prints the installer command** (`curl -fsSL <origin>/install.sh | sh`)
+   so "pull" is no longer a dead end (`cli/index.js` blocked branch).
+6. **Version, commit, push, both boxes** — §28.2/§28.3/§41 apply to every CLI change; CLI **v0.3.61**
+   carries this one.
+7. **No config or layout moves** (§19.3, §22.4, §26, §39.4); HaksterAI only (§16).
+
+Verified at adoption: sandbox dry-run of `install.sh` against the live door printed "latest published build
+is v0.3.60", "the package matches the published build (sha256 verified)", "updates: automatic"; against a
+dead origin it fell back to a labelled source clone; `sh -n install.sh` clean, `node --check cli/index.js`
+clean, `cli` test suite 171/171 pass (including `installer-plug-and-play.test.mjs`).
+
+---
+
+## Section 43 Added — Updates Install Themselves, And A Checkout Never Says "Installed" (2026-11-26)
+
+_Appended 2026-11-26 at the owner's direction ("need ours to update like claude does says update installed
+restart cli need ours auto and users to get newest add ons always"; "dont dell auto install on its own";
+"it says it already on dell up top"; "and tells me to restart to"). Nothing above this line was rewritten,
+reordered or removed. Backups: `AGENTS.md.bak-20261125T162224Z (85,294 B, size-verified)`;
+master-rulebook `CLAUDE.md.bak-20261125T162224Z (77,609 B, size-verified)`._
+
+`/home/ghost/CLAUDE.md` is now **§1–§43**. §43 is **"Updates Install Themselves Like Claude Code — And A
+Checkout Never Says 'Installed'"**. What it makes binding here:
+
+1. **Auto-install, no prompt.** `promptStagedUpdate()` returns `auto` for a verified stage on an installed
+   copy, so `tui-entry.mjs` applies it before the bundle loads; `useCliUpdate.js` calls `applyPending()`
+   the moment a mid-session check verifies a newer package. `HAKSTER_UPDATE_PROMPT=ask` restores the old
+   `[i/w]` choice.
+2. **The badge reports the fact.** "✔ Update installed · Restart to update" only after a copy actually
+   happened; a dependency change renders "⬆ update vX · re-run the installer" instead.
+3. **Checkouts are silent and safe.** `diskNewer()` returns null for a source checkout and the updater
+   refuses to write into one — the Dell's dev tree shows no install badge (owner: "it says it already on
+   dell up top").
+4. **Pinned and shipped** by `cli/ui/__tests__/update-auto.test.mjs` (4 tests), a rebuilt `ui-fb.mjs`,
+   CLI v0.3.62, and the §41 sync.
+5. **Config untouched** (§19.3, §22.4, §26); HaksterAI only (§16).
+
+
+
+---
+
+## Section 44 Added — The CLI Says How Far Behind It Is (2026-11-26)
+
+_Added: 2026-11-26, owner-directed ("and i want our cli to say in tui how many commits is behind before
+installs like hermes"; "so it always is upto date"). Backup before the edit:
+`AGENTS.md.bak-20261125T162736Z (87,039 B, size-verified)`; master-rulebook backup
+`CLAUDE.md.bak-20261125T162736Z (80,201 B, size-verified)`. Nothing above this line was rewritten,
+reordered or removed._
+
+`/home/ghost/CLAUDE.md` is now **§1–§44**. §44 is **"The CLI Says How Far Behind It Is — And It Always
+Ends Up Current"**. What it makes binding here:
+
+1. **Shown before the install.** The TUI header reads `⬆ update vX · N commits behind · installs on
+   restart` on its richest form; narrower forms keep the instruction; `✔ Update installed · Restart to
+   update` stays exactly as §43 pinned it (`cli/ui/src/App.jsx`).
+2. **Both sides carry a stamp.** `scripts/cli-build-stamp.cjs` writes `cli/.build-stamp.json` from git
+   on the primary; it is gitignored, refreshed by the §41 sync before the code rsync, and shipped inside
+   `/cli/pkg.tar.gz`, so an installed copy with no `.git` can count its own distance
+   (`cli/src/updater.js` `stampOf`/`runningInfo`, `useCliUpdate.js` `behind`).
+3. **Only a real reading is claimed.** `/cli/latest.json` answers `commit`/`commits` from git only when
+   the root is its own work tree, else from the stamp; a directory merely inside another repository
+   reports nothing (the standby answered 77 commits for a 281-commit tree on 2026-11-26 before the
+   `--show-toplevel` check). Unknown reads `null` and the badge omits it — never a guess (§10, §13).
+4. **Unknown never blocks the update**, and §43's auto-install is unchanged — always current remains the
+   outcome.
+5. **Nothing moves the setup** (§19.3, §22.4, §26, §39.4); HaksterAI only (§16).
+
+Verified at adoption: CLI v0.3.63; `cli` suite 181/181; live check of a 279-commit install →
+`staged`, `behind: 3`, `latestCommit e8e58fd`, `latestCommits 282`; standby door answers `commit` /
+`commits` from the synced stamp; the served package contains `cli/.build-stamp.json`.
+
+## Section 45 Added — An Update Never Kills A CLI Session (2026-11-26)
+
+_Appended 2026-11-26 at the owner's direction ("it shouldnt kills users or mine server when in cli"; "on
+updates"), after an agent ended the owner's own TUI to let a waiting build load. Backups before the edit:
+`CLAUDE.md.bak-20261125T180226Z` (83,163 B, size-verified) and `AGENTS.md.bak-20261125T180226Z`
+(89,209 B, size-verified). Nothing above this line was rewritten, reordered or removed._
+
+`/home/ghost/CLAUDE.md` is now **§1–§45**. §45 is **"An Update Never Kills A CLI Session — Or The Server Under
+One"**. What it makes binding here:
+
+1. **No update path kills a CLI session** — not an installer, updater, watchdog, self-apply, staged build or
+   scheduled job, for a user's CLI or the owner's own. A restart is the operator's keystroke; the update says
+   so and leaves the session running.
+2. **No update path bounces the server under an attached CLI.** `server/src/serverBuild.js` already holds
+   every apply while `cliAttached` (a `/api/tui/status` poll inside 25 s) and reports the reason in
+   `/api/version` (`cliAttached`, `holdReason`); the rule makes that hold mandatory instead of convenient,
+   with no timeout override while a session is attached.
+3. **An update never needs a kill to land.** `cli/src/updater.js` + `cli/ui/src/hooks/useCliUpdate.js` install
+   a verified stage at the operator's next start and show `staged` / `installs on restart` /
+   `✔ Update installed · Restart to update`. Killing the session so the stage applies is forbidden.
+4. **"Restart" means a service, never a session.** The owner's restart authorises restarting a service under
+   §37 and clause 2; it is not consent to kill a CLI/TUI process. When both could be meant, ask which.
+5. **Measured state only** — an update held is reported held, a CLI that closed is reported closed (§10, §13).
+6. **Nothing here moves the setup** (§19.3, §22.4, §26), and it applies to every project we serve (§16).

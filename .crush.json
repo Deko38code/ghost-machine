@@ -1,13 +1,13 @@
 {
   "models": {
     "large": {
-      "model": "glm-5.3-flash:cloud",
+      "model": "deepseek-v4.1-flash:cloud",
       "provider": "ollama",
       "max_tokens": 16000,
       "reasoning_effort": "medium"
     },
     "small": {
-      "model": "glm-5.3-flash:cloud",
+      "model": "deepseek-v4.1-flash:cloud",
       "provider": "ollama",
       "max_tokens": 8000,
       "reasoning_effort": "low"
@@ -39,10 +39,22 @@
           "default_max_tokens": 16384,
           "can_reason": true,
           "supports_attachments": false
+        },
+        {
+          "id": "deepseek-v4.1-flash:cloud",
+          "name": "deepseek-v4.1-flash:cloud",
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "cost_per_1m_in_cached": 0,
+          "cost_per_1m_out_cached": 0,
+          "context_window": 1048576,
+          "default_max_tokens": 16384,
+          "can_reason": true,
+          "supports_attachments": false
         }
       ],
-      "default_large_model_id": "glm-5.2:cloud",
-      "base_url": "http://10.0.0.251:11434"
+      "default_large_model_id": "deepseek-v4.1-flash:cloud",
+      "base_url": "http://127.0.0.1:11434"
     }
   },
   "options": {

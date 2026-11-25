@@ -978,3 +978,300 @@ offline-only rule applies to **every** restart, not only to a build hand-off.
 7. **Applies to every project we serve that has a client/admin session** (§16), checked read-only over
    that project's own session log. Junkalot's guard — `data/admin-sessions.jsonl` read via
    `scripts/client-activity.mjs` — is the reference implementation (§32.7, §33.7).
+
+## 38. Hakster Fixes And Patches — He Never Rewrites His Own Config, And He Hears You While He Works
+
+Adopted 2026-11-25 at the owner's direction ("add a guard where hakster can break himself only fix patch
+but never do what he just did break his own config"; "make sure his steer is working and he recieves his
+messages while working to do it all in one shot"; "make sure his response time is fast like 10sec or less
+not 20 sec"; "his cli updates arent installing when cli starts and dosnt say installed restart cli to see
+changes should be on top of tui to the right of cpu ram usage"; "make sure his model has our config from
+this cli for speed"). Added as a new section; no existing section was modified.
+
+1. **Fix and patch, never reconfigure himself.** Hakster's own model configuration is closed to his tools.
+   `cli/src/self-config-guard.js` refuses — it never rewrites — any tool write to `cli/src/models/ladder.js`,
+   `cli/src/prefs.js`, `~/.hakster/config.json`, or a model/provider variable written into an env file, on
+   both tool surfaces (`cli/tools.js` and the server's `executeAgentTool`). The refusal names the file, the
+   locked values and §22. Reading is untouched; the only way through is the owner's explicit
+   `HAKSTER_ALLOW_SELF_CONFIG=1` on that one action (§22.4).
+2. **The lock is tested, not just documented.** `cli/ui/__tests__/self-config-lock.test.mjs` pins the wire
+   model, the provider, the ladder order, the default lane and the guard's refusals;
+   `cli/scripts/selfcheck-toolcalling.mjs` (`npm run selfcheck`, `--live` for a real turn) fails when a tool
+   round stops completing. A build that trips either is not a build (§13).
+3. **His model is this session's config.** Relay `http://127.0.0.1:11434`, wire model
+   `deepseek-v4.1-flash:cloud` behind every Claude-style alias, the same context and compaction settings,
+   the same survey/reminder switches (§22, §35). `--model` is passed only for a wire id, so an alias can
+   never send the relay a name it does not serve.
+4. **Steer must reach him inside the run, on every lane.** A message typed while he works is read by the
+   run itself: drained before the next model call, taken at a mid-stream boundary, or — on the
+   `claude-cli` lane, which has no stdin turn loop — the turn is stopped, the update is announced on the
+   wire, and the run restarts on the same conversation with what was already completed spelled out. It is
+   bounded (4 restarts) and an update that cannot reach the model is handed back to the client and queued,
+   never dropped.
+5. **The speed bar is 10 seconds, measured.** An interactive turn answers in about 10 s or less. The
+   `claude-cli` lane starts the MCP core plus any server the operator's own message names, not all 20
+   (11.1–11.6 s with all of them, 5.1–6.4 s with the core — measured 2026-11-25). A change that moves
+   latency is measured before and after, never assumed. Amended 2026-11-26 at the owner's direction
+   ("check his response time was almost 20sec this time on dell" → "go"): **the full-auto exemption is
+   removed.** Full-auto is about approving tool calls, not about paying for the whole toolkit, so the
+   approval dial no longer widens the tool set — a chat turn starts the six-server core plus any server
+   the message names, and only the operator asking for "all tools" loads everything. Measured that day on
+   the Dell, same trivial prompt: 6-server core **3.54 s** vs all 20 servers **8.81 s**, so ~5.3 s of every
+   full-auto turn had been spent starting MCP servers before the model was asked anything. The lean set
+   is derived from `mcp.json` into a temp file; no server definition is edited and no model, route,
+   provider, rate or plan moves (§19.3, §22.4, §26).
+6. **Updates say what actually happened, on the top line.** A build on disk newer than the running session
+   shows `⬆ vX installed · restart CLI to see changes` at the right of the cpu/ram meters, and says it once
+   in the transcript. A source checkout is never written into (§8), so a staged package there says pull; the
+   badge never promises an install that cannot happen, and never reports a downgrade as one.
+7. **Nothing here moves the setup for money.** No model, route, provider order, rate, plan or allowance
+   changes with this rule (§19.3, §22.4, §26). It is plumbing, a label and a measurement.
+8. **HaksterAI only.** The guard, the steer lane and the badge live in the CLI and its server; nothing is
+   written into Junkalot, PhantomIDE or any other project (§16).
+
+## 39. The CLI Auto-Compacts Like This Session, And A Version Change Reaches Every Surface
+
+Adopted 2026-11-25 at the owner's direction ("make sure the cli auto compact is set like this cli is in this
+session and make it to where each time the version changes it gets updated also add rule"; "and add
+compacting conversation while doing it"; "never break my output panels or change config"). Added as a new
+section; no existing section was modified.
+
+1. **The compact window is this session's, as a literal.** Every lane that spawns `claude` —
+   `claudeCliEnv()` in `server/src/providers.js` and in `server/src/agent/index.js` — carries
+   `CLAUDE_CODE_AUTO_COMPACT_WINDOW=200000` and `CLAUDE_CODE_MAX_CONTEXT_TOKENS=1048576`, the values read
+   from the owner's own running Claude Code session. 200000 is the *compact* window; 1048576 is the max
+   context. They were once both set to 1048576 here, so the spawned CLI never compacted where his does.
+   Both are literals in code, not env lookups (§22.4), and both are pinned by
+   `cli/ui/__tests__/auto-compact.test.mjs` and `self-config-lock.test.mjs`.
+2. **The conversation is compacted while the run works.** The served `/api/agent/run` loop replaces the
+   older turns with one model-written `📦 SESSION SUMMARY` message once the history passes 60 % of the
+   input budget — on the incoming history and again mid-run — at most once per run, bounded to 15 s, and
+   falling back to the existing truncation on any failure. It drops whole turns only, so an assistant
+   `tool_calls` message is never separated from its `tool` results. The pass reports a `compact` event
+   carrying its own token counts; the TUI shows it as one activity line and one notice turn, with no
+   guessed percentage and no change to the output panels' layout (§10, §38).
+3. **A version change reaches every surface with no second edit.** `cli/package.json` is the one version
+   source. `/cli/latest.json` computes version, bundle SHA-256 and build time from the files on every
+   request. The site's hero badge renders that version at build time and refreshes from `/cli/latest.json`
+   on load, every 60 s while the tab is visible, and on `visibilitychange`. No version string is
+   hardcoded anywhere; bumping the version updates the CLI, the endpoint and an already-open site tab by
+   itself (§28, §27.5 "done means seen").
+4. **Nothing here moves the setup.** No model, route, provider order, rate, plan or allowance changes with
+   this section, and no output-panel layout is altered (§19.3, §22.4, §26). It is compaction, a label and
+   a delivery path (§38.7).
+5. **HaksterAI only.** The compaction and the badge live in the CLI and its server; nothing is written
+   into Junkalot, PhantomIDE or any other project (§16, §38.8).
+
+## 40. The Recap Is Addressable, And Every Run Starts From Memory
+
+Adopted 2026-11-25 at the owner's direction ("when he recaps on idle make it say what he learned from and
+points and logg to his mem so he gets smarter and smarter from mistakes"; "each recap will have id # to go
+stright to for issues in mem"; "make him when starting task cycle threw his memorys 1st for the task to get
+done faster if previous mem are present"; "the mem bar up top in right tui add heath ratio green red for
+bad good slipping getting smarter by the sec"). Added as a new section; no existing section was modified.
+
+1. **The recap states what was learned, from what, and the points.** The idle recap row carries the
+   session's counted learned total with its source (`learned 7 from 2 errors`, or `from 10 ok` on a clean
+   run), the ✦ point total, and the run's outcome — every figure from the meter and the server's own
+   consolidation events, never a guess (§10).
+2. **Every recap has an id, and the id is a pointer into memory.** Each finished run gets a short id
+   (`#a3f9k2`), shown on the recap row. That id is written into every memory entry the run files — as a
+   tag and in the entry's text — plus one keyed record, and `GET /api/agent/recap/<id>` reads it back.
+   `/recap` reports the last id; `/recap #id` prints that run's summary, its mistakes and its banked
+   lessons, so an issue can be reached straight from its recap (§13).
+3. **Mistakes become errors, the run becomes a lesson.** `POST /api/agent/session-summary` posts one
+   summary per finished run: up to five distinct failures are filed as `error` memories (the section
+   consolidation puts under "Errors Encountered") and the run itself as a `lesson` when it had failures —
+   a `pattern` when it was clean. A run with no tool calls writes nothing. Nothing is billed, and nothing
+   is invented (§19, §24).
+4. **Every run starts from memory — memory first.** Before the first model call, the task text is scored
+   against the raw entries, the consolidated banks (recap lessons and mistakes included) and the keyed
+   notes; the strongest four mistakes and four lessons are placed ABOVE the machine context in the system
+   prompt, with the instruction not to repeat a recorded mistake and to build on what already answers the
+   task. The recall is announced on the stream with its own counts, and an empty memory says nothing.
+5. **The memory bar's health ratio is measured.** The ◈ memory bar at the top right carries a health
+   reading: the share of the last 90 s of metered tool calls that worked (green ≥ 80 %, amber ≥ 60 %, red
+   below) and the trend that window's own movement points at — ▲ smarter, ▼ slipping, ◆ steady. With no
+   recent actions it reads the smartness score and says steady rather than inventing a direction. The
+   ratio moves because work happened, never because a timer ticked (§10).
+6. **HaksterAI only.** The recap id, the memory-first block and the health reading live in the CLI and its
+   server; nothing is written into Junkalot, PhantomIDE or any other project (§16, §38.8).
+
+## 41. Both Servers Carry The Same Commit — No Misses
+
+Adopted 2026-11-26 at the owner's direction ("add a rule that when add or commit stuff both boxes stay up
+to date in sync no misses"; "for server sake"). Added as a new section; no existing section was modified.
+
+**Why: the second box is only worth having if it is the same server.** A standby that answers on the door
+while running last week's code is worse than no standby — it would take over onto the wrong build at the
+exact moment it is needed.
+
+1. **A commit is not finished until both boxes carry it.** Every add, fix or commit to the server tree
+   (`server/`, `cli/`, `scripts/`, `dist/`, `public/`, `package.json`) lands on the primary and on the
+   standby, and the standby is verified by hash and by answering `200` on its door, before the work is
+   reported done (§13).
+2. **The commit itself carries it.** HaksterAI's repo hook (`post-commit`) starts
+   `scripts/post-commit-sync.sh` for every commit that touches those paths: backgrounded so the commit
+   never waits, logged to `logs/failover-sync.log`, and run only on the primary (the standby sees its own
+   hostname behind `ssh mint` and stands down). A commit that lands while a sync is already running waits
+   for the lock and runs again — nothing is skipped. The versioned half is
+   `scripts/post-commit-sync.sh`; the two-line hook block lives in `.git/hooks/post-commit`, which Git does
+   not version, so a re-clone must re-append it (the script is the source of truth for what it does).
+3. **Data follows the code.** The same run snapshots the live SQLite database with the backup API and
+   installs it into the idle slot, and mirrors the env files by SHA-256 (§23, §31) — staged, `.prev`
+   kept, mode 600, nothing printed.
+4. **Blue-green, never a gap.** The sync installs into the idle slot, boots it, waits for `200`, switches
+   the router and only then stops the old slot (§7, §27 "done means seen"). No client sees the change.
+5. **A hold is reported, never swallowed.** Primary down, the standby answered during a failover, an
+   unreadable router: the run is logged and reported as HELD with its reason and the commit id, never as
+   synced. Resolving a hold is the owner's decision, not the hook's (§15).
+6. **A miss is repaired the same way.** A commit that lands while the standby was unreachable is picked up
+   whole by the next sync; a session that sees a HELD or FAILED line in the log says so and reruns the
+   sync before calling the work done (§10, §13).
+7. **Server only, and scoped.** This rule covers the two boxes that serve one project; it never copies one
+   project's tree into another (§16) and never touches tunnels, DNS or ingress (§17).
+
+Evidence at adoption: commit `b0127e9` synced by the hook path — code rsync into slot 3592, DB snapshot
+installed, env hash-verified as already current, idle slot answering, router switched 3591→3592, door
+`200` on `10.0.0.210:3581`; the three firecrawl files hash-identical on both boxes. A docs-only commit and
+the standby's own run both stand down without touching the log.
+
+## 42. Every CLI Install Gets The Newest Released Build — Nothing Sits On "Pull"
+
+Adopted 2026-11-26 at the owner's direction ("all cli any user etc install need to get latest updates
+pushed commited add rule"). Added as a new section; no existing section was modified.
+
+1. **Every install is a package install, never a git checkout.** `/install.sh` and `/install.ps1` fetch
+   `/cli/pkg.tar.gz` and install it with `npm` — a real installation with no `.git`, so the updater can
+   write a verified stage into it and apply it on the next start (§38.6). A checkout cannot rewrite itself
+   (§8), so it is never the primary install path.
+2. **The install is verified against the published build.** Before installing, both installers read
+   `/cli/latest.json` (`version` + `bundleSha256`, computed from the files per request — §39.3) and compare
+   the unpacked `ui-fb.mjs` SHA-256 to it. A mismatch (a CDN or proxy cache answering with an older copy)
+   re-requests the package past the cache once; if it still differs, the install continues with what
+   arrived and says so. A check that did not run is reported, never claimed (§13).
+3. **The fallback exists and is labelled.** If the package endpoint does not answer, the Linux/macOS
+   installer falls back to a depth-1 source clone in a fresh directory, prints that the fallback is a
+   checkout which will report "pull to update", and leaves any existing install untouched. Nothing is
+   removed or overwritten.
+4. **Every install states its update path.** The installers print the installed version, whether it
+   matches the advertised build, and either "updates: automatic — `hakster update` checks now; a newer
+   build applies at the next start" or, for a fallback checkout, that re-running the installer is the
+   update path. An older checkout found on the machine is named and left untouched.
+5. **A checkout is told how to leave.** `hakster update` on a source checkout prints the installer command
+   (`curl -fsSL <origin>/install.sh | sh`) instead of leaving "pull" as a dead end; the checkout itself is
+   never rewritten (§8, §38.6).
+6. **Released means version, commit, push and both boxes.** Every CLI change ends with a version bump
+   (§28.2), its files staged by name and committed, pushed when the owner asks for delivery (§28.3), and
+   carried to the standby by the §41 sync. A change that exists only in a working tree has not reached any
+   user's install.
+7. **Nothing here moves the setup.** No model, route, provider order, rate, plan, allowance or UI layout
+   changes (§19.3, §22.4, §26, §39.4). HaksterAI only (§16).
+
+Evidence at adoption: `install.sh` dry-run in a sandbox against the live door reported "latest published
+build is v0.3.60", "the package matches the published build (sha256 verified)" and "updates: automatic";
+the same script against a dead origin fell back to a labelled source clone; `install.ps1` carries the same
+verification. CLI v0.3.61 ships this behaviour.
+
+## 43. Updates Install Themselves Like Claude Code — And A Checkout Never Says "Installed"
+
+Adopted 2026-11-26 at the owner's direction ("need ours to update like claude does says update installed
+restart cli need ours auto and users to get newest add ons always"; "dont dell auto install on its own";
+"it says it already on dell up top"; "and tells me to restart to"). Added as a new section; no existing
+section was modified.
+
+1. **The CLI installs its own updates.** On an installed copy, a verified stage is applied automatically:
+   at start, before the bundle is imported (`cli/tui-entry.mjs` → `applyPending()`), and during a session
+   as soon as `checkForUpdate()` has verified one (`useCliUpdate.js`), so every user runs the newest
+   released build without having to act. No prompt is shown; the old `[i/w]` choice remains available
+   behind `HAKSTER_UPDATE_PROMPT=ask`.
+2. **The badge states the fact, not a promise.** An update installed this session shows
+   "✔ Update installed · Restart to update" (with narrower forms) — the only step left is a restart, and
+   that is what it says (§38.6, §10).
+3. **A stage that cannot be applied says so.** If a release changes the package's dependencies it cannot
+   be copied in mid-session; the badge then reads "⬆ update vX · re-run the installer" rather than
+   promising an install on restart that would not happen.
+4. **A source checkout never installs anything and never claims to.** `applyPending()` and
+   `promptStagedUpdate()` refuse a git tree before writing (§8), and the TUI's disk-newer probe returns
+   nothing for a checkout — so the Dell's own header carries no "Update installed · Restart to update"
+   badge just because its tree is edited. The owner's box stays on its dev tree, deliberately.
+5. **Verified, not assumed.** `cli/ui/__tests__/update-auto.test.mjs` pins all of it: an installed copy
+   applies a verified stage at start without asking; a checkout is refused and left byte-identical; the
+   hook carries the checkout guard. `npm run build:ui` rebuilds `ui-fb.mjs`, and the version bump plus the
+   §41 sync carry it to both boxes (§28.2, §39.3).
+6. **Nothing here moves the setup.** No model, route, provider order, rate, plan or allowance changes;
+   updates ship code only (§19.3, §22.4, §26). HaksterAI only (§16).
+
+Evidence at adoption: CLI v0.3.62; `cli` suite 175/175 pass including the new test; a sandbox install
+applied a 0.3.62 stage at start without prompting, while a checkout of the same state returned
+`blocked` / `source-checkout` and kept its bytes unchanged.
+
+
+
+## 44. The CLI Says How Far Behind It Is — And It Always Ends Up Current
+
+Adopted 2026-11-26 at the owner's direction ("and i want our cli to say in tui how many commits is
+behind before installs like hermes"; "so it always is upto date"). Added as a new section; no existing
+section was modified.
+
+1. **The count is shown before it installs.** When a newer published build is waiting, the TUI header
+   says so with the distance: `⬆ update vX · N commits behind · installs on restart` on its richest
+   form. The narrower forms keep the instruction so the header still fits a small terminal. The pinned
+   wording is untouched — `✔ Update installed · Restart to update` still renders exactly as §43.2
+   requires.
+2. **Both sides carry a stamp.** `scripts/cli-build-stamp.cjs` writes `cli/.build-stamp.json`
+   (`version`, `commit`, `commits`, `builtAt`) from git on the primary. The file is gitignored, refreshed
+   by the §41 sync before the code rsync, synced to the standby, and shipped inside `/cli/pkg.tar.gz` —
+   so an installed copy, which has no `.git`, can still count how far behind it is.
+3. **A reading is only claimed where it is real.** `/cli/latest.json` answers `commit` and `commits` from
+   git when the tree's root is its own work tree, and from the stamp otherwise. A directory that is
+   merely *inside* another repository reports nothing — on 2026-11-26 the standby, whose home is itself
+   a git repository, answered `a109219` / 77 commits for a 281-commit tree before this check existed.
+   An unknown count is `null` and the badge omits it; no number is ever estimated (§10, §13).
+4. **Unknown never blocks the update.** The update installs whether or not the count is known — the
+   count is informational, never a gate.
+5. **Always current is still the outcome.** §43's auto-install is unchanged: a verified stage is applied
+   at start and during a session, so the CLI ends up on the newest released build. The count describes
+   the moment before that happened, and `hakster update` prints the same fact for a checkout.
+6. **Nothing here moves the setup.** No model, route, provider order, rate, plan, allowance or
+   output-panel layout changes (§19.3, §22.4, §26, §39.4). HaksterAI only (§16).
+
+Verified at adoption: CLI v0.3.63; `cli` suite 181/181 pass (including
+`cli/ui/__tests__/commits-behind.test.mjs`, which pins the stamp reading, the nested-directory refusal,
+the staged record's `behind` figure and the badge wording); a live check of a 279-commit install against
+the published package reported `staged`, `behind: 3`, `latestCommit e8e58fd`, `latestCommits 282`; the
+standby door answers `commit` / `commits` from the synced stamp and the served package contains
+`cli/.build-stamp.json`. The primary's own server keeps its running code until its next natural restart
+(§37); with the route absent it falls back to the package's stamp, which is why the live check still
+reported the count.
+
+## 45. An Update Never Kills A CLI Session — Or The Server Under One
+
+Adopted 2026-11-26 at the owner's direction ("it shouldnt kills users or mine server when in cli"; "on
+updates"). Added as a new section; no existing section was modified.
+
+**Why: a killed CLI is a broken product, and an update is never worth one.** On 2026-11-26 an agent read the
+owner's "restart" as permission to end his own TUI session from the outside so the waiting build would load;
+the session vanished, the desktop stalled, and nothing was gained — the new build only ever needed the
+operator's own next start.
+
+1. **No update path kills a CLI session.** No installer, updater, watchdog, self-apply, staged build or
+   scheduled job may terminate a user's CLI/TUI process or the owner's own. "Restart the CLI" is the
+   operator's keystroke: the update says a restart is needed, prints what to run, and leaves the session
+   running.
+2. **No update path bounces the server under an attached CLI.** A restart, reload, self-apply or deploy waits
+   until `cliAttached` is false, and reports a hold with its reason and how long it has waited — never a
+   silent bounce of a live stream, never a "checked anyway" after a timeout.
+3. **An update never needs a kill to land.** A staged build installs at the operator's next start, and a live
+   session reports the honest state (`staged`, `installs on restart`, `✔ Update installed · Restart to
+   update`). Ending a session to make an update apply is forbidden however convenient or urgent it looks; an
+   urgent case is the owner's explicit decision recorded as such.
+4. **"Restart" is not consent to kill a session.** An owner instruction to restart authorises restarting a
+   *service*, under §37 and clause 2 above; it never authorises killing a CLI/TUI process. When both could be
+   meant, ask which — the wrong guess closes a session mid-work.
+5. **The state is measured, never inferred.** `/api/version` answers `cliAttached` / `holdReason` from real
+   polls of `/api/tui/status`; a held update is reported with the reason and duration, never as running or
+   done (§10, §13). A CLI that closes by itself is reported as having closed, not as an update that applied.
+6. **Applies to every project we serve** (§16), and moves no model, route, provider order, rate, plan or
+   allowance (§19.3, §22.4, §26). HaksterAI's `serverBuild` hold and the CLI's own startup apply are the
+   reference implementations.
