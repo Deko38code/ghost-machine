@@ -3357,7 +3357,7 @@ app.use((req, _res, next) => {
   const suffix = ".haksterai.com";
   if (!hostname.endsWith(suffix)) return next();
   const siteId = hostname.slice(0, -suffix.length);
-  if (["www", "rmt", "api", "mail"].includes(siteId) || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(siteId)) return next();
+  if (["www", "rmt", "rentmytrailer", "api", "mail"].includes(siteId) || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(siteId)) return next();
   req.publishedSitePath = `/apps/sites/${siteId}${req.url === "/" ? "/" : req.url}`;
   req.url = req.publishedSitePath;
   next();
